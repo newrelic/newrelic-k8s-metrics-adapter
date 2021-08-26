@@ -1,0 +1,5 @@
+/.git
+/Dockerfile
+/Tiltfile
+# Adding built binary here breaks Tilt live-reloading.
+# It's not a big deal to copy them to the builder layer though.
