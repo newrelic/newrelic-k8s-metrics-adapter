@@ -1,0 +1,19 @@
+FROM golang:1.16-alpine3.14 as builder
+
+RUN apk add -U make
+
+WORKDIR /usr/src/newrelic-k8s-metrics-adapter
+
+COPY go.mod .
+
+RUN go mod download
+
+COPY . .
+
+RUN make
+
+FROM alpine:3.14
+
+COPY --from=builder /usr/src/newrelic-k8s-metrics-adapter/newrelic-k8s-metrics-adapter /usr/local/bin/
+
+ENTRYPOINT ["newrelic-k8s-metrics-adapter"]

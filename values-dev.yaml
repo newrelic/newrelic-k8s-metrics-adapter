@@ -1,0 +1,10 @@
+# Taken from https://github.com/tilt-dev/tilt-helm-demo/blob/d555fabbb1b3110582fb9d4f4e59c7d2ea337d37/values-dev.yaml.
+image:
+  repository: newrelic-k8s-metrics-adapter
+  tag: latest
+  pullPolicy: Never
+
+restartPolicy: Never
+
+# Extra values, required by newrelic-k8s-metrics-adapter chart.
+cluster: testing
