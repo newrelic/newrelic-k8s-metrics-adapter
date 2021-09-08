@@ -39,7 +39,7 @@ if settings.get('live_reload'):
 
   docker_build_with_restart(project_name, '.',
     dockerfile_contents=dockerfile,
-    entrypoint=project_name,
+    entrypoint=[project_name,"--v=2","--secure-port=6443"],
     only=binary_name,
     live_update=[
       # Copy the binary so it gets restarted.

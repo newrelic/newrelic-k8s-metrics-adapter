@@ -15,4 +15,5 @@ ARG TARGETARCH
 ADD --chmod=755 newrelic-k8s-metrics-adapter-${TARGETOS}-${TARGETARCH} ./
 RUN mv newrelic-k8s-metrics-adapter-${TARGETOS}-${TARGETARCH} /usr/local/bin/newrelic-k8s-metrics-adapter
 
-ENTRYPOINT ["/usr/local/bin/newrelic-k8s-metrics-adapter"]
+ARG SECURE_PORT=6443
+ENTRYPOINT ["/usr/local/bin/newrelic-k8s-metrics-adapter","--secure-port=${SECURE_PORT}"]

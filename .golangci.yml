@@ -23,7 +23,7 @@ linters-settings:
       Copyright {{ YEAR }} New Relic Corporation. All rights reserved.
       SPDX-License-Identifier: Apache-2.0
   gci:
-    local-prefixes: github.com/newrelic/newrelic-k8s-metrics-adapter
+    local-prefixes: github.com/gsanchezgavier/metrics-adapter
 
 # Update list of enabled linters using 'make update-linters'.
 linters:

@@ -4,19 +4,25 @@
 package main
 
 import (
-	"log"
-	"net/http"
+	"os"
+
+	"k8s.io/component-base/logs"
+	"k8s.io/klog/v2"
+	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
+
+	"github.com/gsanchezgavier/metrics-adapter/internal/adapter"
 )
 
 func main() {
-	log.Printf("Starting")
+	logs.InitLogs()
+	defer logs.FlushLogs()
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
+	klog.Infof("Starting NewRelic metrics adapter")
 
-		if _, err := w.Write([]byte("ok")); err != nil {
-			log.Printf("Writing response: %v", err)
-		}
-	})
-	log.Fatal(http.ListenAndServe(":8443", nil))
+	options := adapter.Options{
+		Args: os.Args,
+	}
+	if err := adapter.Run(signals.SetupSignalHandler(), options); err != nil {
+		klog.Fatalf("Running adapter: %v", err)
+	}
 }

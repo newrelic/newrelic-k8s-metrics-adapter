@@ -10,8 +10,55 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        goos: [ linux ]
+        goarch: [ amd64, arm64, arm ]
+    env:
+      GOOS: ${{ matrix.goos }}
+      GOARCH: ${{ matrix.goarch }}
     steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.16'
+      
+      # A cache entry is will be generated for `key`, and attempted to restore.
+      # If `key` is not found, any partial match for `restore-keys` will be attempted.
+      # Regardless of whether `key` was found or not, it will be created at the end of the run.
+      # With this mechanism, we ensure caches are cycled regularly.
+      - name: Go modules cache
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: gomod-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            gomod-
+      - name: Build cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/go-build
+          key: gobuild-${{ matrix.goos }}-${{ matrix.goarch }}-${{ github.sha }}
+          restore-keys: |
+            gobuild-${{ matrix.goos }}-${{ matrix.goarch }}
 
+      - name: Build binary
+        run: make build
+
+      - name: Build Docker image
+        if: matrix.goos == 'linux' && matrix.goarch == 'amd64'
+        run: make image
+
+      - name: Run CI checks
+        if: matrix.goos == 'linux' && matrix.goarch == 'amd64'
+        run: make ci
+
+  integration:
+    name: Integration tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
@@ -20,24 +67,55 @@ jobs:
 
       - name: Check out code into the Go module directory
         uses: actions/checkout@v2
+        with:
+          path: newrelic-k8s-metrics-adapter
 
-      - name: Run CI checks
-        run: make ci
+      - name: Go modules cache
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: gomod-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            gomod-
+
+      - name: Build cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/go-build
+          key: gobuild-linux-amd64-${{ github.sha }}
+          restore-keys: |
+            gobuild-linux-amd64
+
+      - name: Checkout charts repository for deployments
+        uses: actions/checkout@v2
+        with:
+          repository: newrelic/helm-charts
+          path: helm-charts-newrelic
+          ref: gsanchez/metrics-adapter-chart
+
+      - name: Install kind
+        run: go install sigs.k8s.io/kind@v0.11.1
+
+      - name: Create k8s Kind Cluster
+        run: make -C newrelic-k8s-metrics-adapter kind-up
+
+      - name: Run integration tests
+        run: make -C newrelic-k8s-metrics-adapter test-integration
 
   lint:
     name: Lint
     runs-on: ubuntu-latest
-    container: golangci/golangci-lint:v1.42
     timeout-minutes: 10
     steps:
-
       - uses: actions/checkout@v2
+      - name: Check linters are up to date
+        run: make check-update-linters
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
         with:
-          fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
-
-      - name: Run lint
-        run: make lint check-update-linters
+          # Optional: show only new issues if it's a pull request. The default value is `false`.
+          only-new-issues: true
+          version: v1.42
 
   codespell:
     name: Codespell
@@ -51,15 +129,4 @@ jobs:
         with:
           check_filenames: true
           check_hidden: true
-
-  image:
-    name: Image
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-
-      - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
-
-      - name: Test building Docker image
-        run: make image
+          skip: ./.git,./internal/generated

@@ -10,10 +10,13 @@ CGO_ENABLED ?= 0
 
 BINARY_NAME ?= newrelic-k8s-metrics-adapter
 
-LD_FLAGS ?= "-extldflags '-static'"
+TAG ?= "dev"
+X_LD_FLAGS ?= -X 'github.com/gsanchezgavier/metrics-adapter/internal/adapter.version=$(TAG)'
+EXT_LD_FLAGS ?= -extldflags '-static'
+LD_FLAGS ?= "$(EXT_LD_FLAGS) $(X_LD_FLAGS)"
 
 ifeq (, $(shell which golangci-lint))
-GOLANGCI_LINT ?= go run -mod=mod github.com/golangci/golangci-lint/cmd/golangci-lint
+GOLANGCI_LINT ?= go run -modfile=tools/go.mod github.com/golangci/golangci-lint/cmd/golangci-lint
 else
 GOLANGCI_LINT ?= golangci-lint
 endif
@@ -52,7 +55,7 @@ test-e2e: ## Runs all e2e tests. Expects metrics-adapter to be installed on the 
 	KUBECONFIG=$(TEST_KUBECONFIG) $(GO_TEST) -tags e2e $(GO_PACKAGES)
 
 .PHONY: ci
-ci: check-tidy build test ## Runs checks performed by CI without external dependencies required (e.g. golangci-lint).
+ci: check-tidy check-generate build test ## Runs checks performed by CI without external dependencies required (e.g. golangci-lint).
 
 .PHONY: check-working-tree-clean
 check-working-tree-clean: ## Checks if working directory is clean.
@@ -66,6 +69,10 @@ check-tidy: check-working-tree-clean ## Checks if Go module files are clean.
 .PHONY: check-update-linters
 check-update-linters: check-working-tree-clean update-linters ## Checks if list of enabled golangci-lint linters is up to date.
 	@test -z "$$(git status --porcelain)" || (echo "Linter configuration outdated. Run 'make update-linters' and commit generated changes to fix."; git diff; exit 1)
+
+.PHONY: check-generate
+check-generate: check-working-tree-clean generate ## Checks if all generated files are up to date.
+	@test -z "$$(git status --porcelain)" || (echo "Generated files are outdated. Run 'make generate' and commit generated changes to fix."; git diff; exit 1)
 
 .PHONY: update-linters
 update-linters: ## Updates list of enabled golangci-lint linters.
@@ -129,3 +136,7 @@ help: ## Prints help message.
 .PHONY: buildLicenseNotice
 buildLicenseNotice:
 	@go list -mod=mod -m -json all | go-licence-detector -noticeOut=NOTICE.txt -rules ./assets/licence/rules.json  -noticeTemplate ./assets/licence/THIRD_PARTY_NOTICES.md.tmpl -noticeOut THIRD_PARTY_NOTICES.md -overrides ./assets/licence/overrides -includeIndirect
+
+.PHONY: generate
+generate: ## Runs code generation from //go:generate statements
+	$(GO_CMD) generate -tags codegen ./...
