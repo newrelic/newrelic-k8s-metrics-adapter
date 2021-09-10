@@ -66,7 +66,7 @@ func NewAdapter(options Options) (Adapter, error) {
 }
 
 func (a *adapter) initFlags(args []string) error {
-	a.FlagSet = pflag.NewFlagSet("newFlagSet", pflag.ExitOnError)
+	a.FlagSet = pflag.NewFlagSet("newFlagSet", pflag.ContinueOnError)
 
 	// Add flags from klog to be able to control log level etc.
 	klogFlagSet := &flag.FlagSet{}

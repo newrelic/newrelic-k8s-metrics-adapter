@@ -42,6 +42,17 @@ func Test_Creating_adapter(t *testing.T) { //nolint:funlen // Just a lot of test
 	t.Run("returns_error_when", func(t *testing.T) {
 		t.Parallel()
 
+		t.Run("undefined_flag_is_provided", func(t *testing.T) {
+			t.Parallel()
+
+			options := testOptions()
+			options.Args = []string{"--non-existent-flag"}
+
+			if _, err := adapter.NewAdapter(options); err == nil {
+				t.Fatalf("Expected error")
+			}
+		})
+
 		t.Run("no_external_metrics_provider_is_configured", func(t *testing.T) {
 			t.Parallel()
 
