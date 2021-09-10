@@ -13,6 +13,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/json"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -29,6 +30,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
 	"github.com/gsanchezgavier/metrics-adapter/internal/adapter"
+	"github.com/gsanchezgavier/metrics-adapter/internal/provider/mock"
 )
 
 const (
@@ -39,97 +41,61 @@ const (
 	kubeconfigEnv        = "KUBECONFIG"
 )
 
-//nolint:funlen // Just a lot of subtests.
-func Test_adapter_Run(t *testing.T) {
+func Test_Adapter_responds_to(t *testing.T) {
 	t.Parallel()
 
-	t.Run("exits_gracefully_when_given_context_is_cancelled", func(t *testing.T) {
+	securePort := fmt.Sprintf("%d", randomUnprivilegedPort(t))
+
+	options := adapter.Options{
+		Args: []string{
+			"--secure-port=" + securePort,
+			"--v=2",
+		},
+		ExternalMetricsProvider: &mock.Provider{},
+	}
+
+	ctx, restConfig := runAdapter(t, options)
+
+	httpClient := authorizedHTTPClient(t, restConfig)
+
+	t.Run("metric_request", func(t *testing.T) {
 		t.Parallel()
 
-		ch := make(chan error)
+		url := fmt.Sprintf("https://%s:%s/apis/external.metrics.k8s.io/v1beta1", testHost, securePort)
 
-		ctxWithDeadline := contextWithDeadline(t)
-
-		ctx, cancel := context.WithTimeout(ctxWithDeadline, 1*time.Second)
-
-		useExistingCluster := true
-		testEnv := &envtest.Environment{
-			UseExistingCluster: &useExistingCluster,
-		}
-
-		if _, err := testEnv.Start(); err != nil {
-			t.Fatalf("Starting test environment: %v", err)
-		}
-
-		t.Cleanup(func() {
-			cancel()
-			if err := testEnv.Stop(); err != nil {
-				t.Logf("Stopping test environment: %v", err)
-			}
-		})
-
-		kubeconfig := os.Getenv(kubeconfigEnv)
-		options := adapter.Options{
-			Args: []string{
-				"--authentication-kubeconfig=" + kubeconfig,
-				"--authorization-kubeconfig=" + kubeconfig,
-				"--secure-port=" + fmt.Sprintf("%d", randomUnprivilegedPort(t)),
-				"--cert-dir=" + t.TempDir(),
-				"--v=2",
-			},
-		}
-
-		go func() {
-			ch <- adapter.Run(ctx, options)
-		}()
-
-		select {
-		case err := <-ch:
-			if err != nil {
-				t.Fatalf("Unexpected error from running adapter: %v", err)
-			}
-		case <-ctxWithDeadline.Done():
-			t.Fatal("Timed out waiting for operator to shutdown")
-		}
+		checkStatusCodeOK(ctx, t, httpClient, url)
 	})
 
-	t.Run("responds_to", func(t *testing.T) {
+	t.Run("openAPI", func(t *testing.T) {
 		t.Parallel()
 
-		securePort := fmt.Sprintf("%d", randomUnprivilegedPort(t))
+		url := fmt.Sprintf("https://%s:%s/openapi/v2", testHost, securePort)
 
-		options := adapter.Options{
-			Args: []string{
-				"--secure-port=" + securePort,
-				"--v=2",
-			},
-		}
+		body := checkStatusCodeOK(ctx, t, httpClient, url)
 
-		ctx, restConfig := runAdapter(t, options)
+		t.Run("with_valid_title", func(t *testing.T) {
+			t.Parallel()
 
-		httpClient := authorizedHTTPClient(t, restConfig)
+			openAPISpec := &struct {
+				Info struct {
+					Title string
+				}
+			}{}
 
-		cases := map[string]string{
-			"health_checks":  "/healthz",
-			"openAPI":        "/openapi/v2",
-			"metric_request": "/apis/external.metrics.k8s.io/v1beta1",
-		}
+			if err := json.Unmarshal(body, openAPISpec); err != nil {
+				t.Fatalf("OpenAPI spec is not a valid JSON: %v", err)
+			}
 
-		for name, uri := range cases {
-			uri := uri
+			expectedTitle := adapter.Name
 
-			t.Run(name, func(t *testing.T) {
-				t.Parallel()
-
-				url := fmt.Sprintf("https://%s:%s%s", testHost, securePort, uri)
-
-				checkStatusCodeOK(ctx, t, httpClient, url)
-			})
-		}
+			if openAPISpec.Info.Title != expectedTitle {
+				t.Fatalf("Expected OpenAPI spec title %q, got %q", expectedTitle, openAPISpec.Info.Title)
+			}
+		})
 	})
 }
 
-func checkStatusCodeOK(ctx context.Context, t *testing.T, httpClient http.Client, url string) {
+func checkStatusCodeOK(ctx context.Context, t *testing.T, httpClient http.Client, url string) []byte {
 	t.Helper()
 
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
@@ -138,6 +104,8 @@ func checkStatusCodeOK(ctx context.Context, t *testing.T, httpClient http.Client
 	}
 
 	req.Header = http.Header{"Content-Type": []string{"application/json"}}
+
+	body := []byte{}
 
 	retryUntilFinished(func() bool {
 		resp, err := httpClient.Do(req) //nolint:bodyclose // Done via closeResponseBody().
@@ -164,6 +132,13 @@ func checkStatusCodeOK(ctx context.Context, t *testing.T, httpClient http.Client
 
 			return false
 		case http.StatusOK:
+			data, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Fatalf("Reading response body: %v", err)
+			}
+
+			body = data
+
 			return true
 		default:
 			t.Fatalf("Got %d response code, expected %d: %v", resp.StatusCode, http.StatusOK, resp)
@@ -171,6 +146,8 @@ func checkStatusCodeOK(ctx context.Context, t *testing.T, httpClient http.Client
 
 		return false
 	})
+
+	return body
 }
 
 func runAdapter(t *testing.T, options adapter.Options) (context.Context, *rest.Config) {
@@ -212,8 +189,13 @@ func runAdapter(t *testing.T, options adapter.Options) (context.Context, *rest.C
 	}
 	options.Args = append(options.Args, args...)
 
+	adapter, err := adapter.NewAdapter(options)
+	if err != nil {
+		t.Fatalf("Creating adapter: %v", err)
+	}
+
 	go func() {
-		if err := adapter.Run(ctx, options); err != nil {
+		if err := adapter.Run(ctx.Done()); err != nil {
 			t.Logf("Running operator: %v\n", err)
 			t.Fail()
 		}

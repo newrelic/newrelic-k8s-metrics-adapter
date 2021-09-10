@@ -5,7 +5,6 @@
 package adapter
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"strings"
@@ -16,28 +15,36 @@ import (
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/custom-metrics-apiserver/pkg/apiserver"
 	basecmd "sigs.k8s.io/custom-metrics-apiserver/pkg/cmd"
+	"sigs.k8s.io/custom-metrics-apiserver/pkg/provider"
 
 	generatedopenapi "github.com/gsanchezgavier/metrics-adapter/internal/generated/openapi"
-	"github.com/gsanchezgavier/metrics-adapter/internal/provider"
 )
 
-const adapterName = "newrelic-k8s-metrics-adapter"
+// Name of the adapter.
+const Name = "newrelic-k8s-metrics-adapter"
 
 var version = "dev" //nolint:gochecknoglobal // Version is set at building time.
 
 // Options holds the configuration for the adapter.
 type Options struct {
-	Args []string
+	Args                    []string
+	ExternalMetricsProvider provider.ExternalMetricsProvider
 }
 
 type adapter struct {
 	basecmd.AdapterBase
 }
 
-// Run is a blocking function that configures and start the metric adapter.
-func Run(ctx context.Context, options Options) error {
-	adapter := adapter{}
-	adapter.Name = adapterName
+// Adapter represents adapter functionality.
+type Adapter interface {
+	Run(<-chan struct{}) error
+}
+
+// NewAdapter validates given adapter options and creates new runnable adapter instance.
+func NewAdapter(options Options) (Adapter, error) {
+	adapter := &adapter{}
+	// Used as identifier in logs with -v=6, defaults to "custom-metrics-adapter", so we want to override that.
+	adapter.Name = Name
 
 	adapter.OpenAPIConfig = genericapiserver.DefaultOpenAPIConfig(
 		generatedopenapi.GetOpenAPIDefinitions,
@@ -47,21 +54,20 @@ func Run(ctx context.Context, options Options) error {
 	adapter.OpenAPIConfig.Info.Version = version
 
 	if err := adapter.initFlags(options.Args); err != nil {
-		return fmt.Errorf("initiating flags: %w", err)
+		return nil, fmt.Errorf("initiating flags: %w", err)
 	}
 
-	p := &provider.Provider{}
-	adapter.WithExternalMetrics(p)
-
-	if err := adapter.Run(ctx.Done()); err != nil {
-		return fmt.Errorf("running the adapter: %w", err)
+	if options.ExternalMetricsProvider == nil {
+		return nil, fmt.Errorf("external metrics provider must be configured")
 	}
 
-	return nil
+	adapter.WithExternalMetrics(options.ExternalMetricsProvider)
+
+	return adapter, nil
 }
 
 func (a *adapter) initFlags(args []string) error {
-	a.FlagSet = pflag.NewFlagSet("newFlagSet", pflag.ExitOnError)
+	a.FlagSet = pflag.NewFlagSet(Name, pflag.ContinueOnError)
 
 	// Add flags from klog to be able to control log level etc.
 	klogFlagSet := &flag.FlagSet{}
