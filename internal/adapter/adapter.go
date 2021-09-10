@@ -5,7 +5,6 @@
 package adapter
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"strings"
@@ -34,9 +33,14 @@ type adapter struct {
 	basecmd.AdapterBase
 }
 
-// Run is a blocking function that configures and start the metric adapter.
-func Run(ctx context.Context, options Options) error {
-	adapter := adapter{}
+// Adapter represents adapter functionality.
+type Adapter interface {
+	Run(<-chan struct{}) error
+}
+
+// NewAdapter validates given adapter options and creates new runnable adapter instance.
+func NewAdapter(options Options) (Adapter, error) {
+	adapter := &adapter{}
 	adapter.Name = adapterName
 
 	adapter.OpenAPIConfig = genericapiserver.DefaultOpenAPIConfig(
@@ -47,17 +51,12 @@ func Run(ctx context.Context, options Options) error {
 	adapter.OpenAPIConfig.Info.Version = version
 
 	if err := adapter.initFlags(options.Args); err != nil {
-		return fmt.Errorf("initiating flags: %w", err)
+		return nil, fmt.Errorf("initiating flags: %w", err)
 	}
 
-	p := &provider.Provider{}
-	adapter.WithExternalMetrics(p)
+	adapter.WithExternalMetrics(&provider.Provider{})
 
-	if err := adapter.Run(ctx.Done()); err != nil {
-		return fmt.Errorf("running the adapter: %w", err)
-	}
-
-	return nil
+	return adapter, nil
 }
 
 func (a *adapter) initFlags(args []string) error {

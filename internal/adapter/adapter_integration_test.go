@@ -39,94 +39,39 @@ const (
 	kubeconfigEnv        = "KUBECONFIG"
 )
 
-//nolint:funlen // Just a lot of subtests.
-func Test_adapter_Run(t *testing.T) {
+func Test_Adapter_responds_to(t *testing.T) {
 	t.Parallel()
 
-	t.Run("exits_gracefully_when_given_context_is_cancelled", func(t *testing.T) {
-		t.Parallel()
+	securePort := fmt.Sprintf("%d", randomUnprivilegedPort(t))
 
-		ch := make(chan error)
+	options := adapter.Options{
+		Args: []string{
+			"--secure-port=" + securePort,
+			"--v=2",
+		},
+	}
 
-		ctxWithDeadline := contextWithDeadline(t)
+	ctx, restConfig := runAdapter(t, options)
 
-		ctx, cancel := context.WithTimeout(ctxWithDeadline, 1*time.Second)
+	httpClient := authorizedHTTPClient(t, restConfig)
 
-		useExistingCluster := true
-		testEnv := &envtest.Environment{
-			UseExistingCluster: &useExistingCluster,
-		}
+	cases := map[string]string{
+		"health_checks":  "/healthz",
+		"openAPI":        "/openapi/v2",
+		"metric_request": "/apis/external.metrics.k8s.io/v1beta1",
+	}
 
-		if _, err := testEnv.Start(); err != nil {
-			t.Fatalf("Starting test environment: %v", err)
-		}
+	for name, uri := range cases { //nolint:paralleltest // False positive.
+		uri := uri
 
-		t.Cleanup(func() {
-			cancel()
-			if err := testEnv.Stop(); err != nil {
-				t.Logf("Stopping test environment: %v", err)
-			}
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			url := fmt.Sprintf("https://%s:%s%s", testHost, securePort, uri)
+
+			checkStatusCodeOK(ctx, t, httpClient, url)
 		})
-
-		kubeconfig := os.Getenv(kubeconfigEnv)
-		options := adapter.Options{
-			Args: []string{
-				"--authentication-kubeconfig=" + kubeconfig,
-				"--authorization-kubeconfig=" + kubeconfig,
-				"--secure-port=" + fmt.Sprintf("%d", randomUnprivilegedPort(t)),
-				"--cert-dir=" + t.TempDir(),
-				"--v=2",
-			},
-		}
-
-		go func() {
-			ch <- adapter.Run(ctx, options)
-		}()
-
-		select {
-		case err := <-ch:
-			if err != nil {
-				t.Fatalf("Unexpected error from running adapter: %v", err)
-			}
-		case <-ctxWithDeadline.Done():
-			t.Fatal("Timed out waiting for operator to shutdown")
-		}
-	})
-
-	t.Run("responds_to", func(t *testing.T) {
-		t.Parallel()
-
-		securePort := fmt.Sprintf("%d", randomUnprivilegedPort(t))
-
-		options := adapter.Options{
-			Args: []string{
-				"--secure-port=" + securePort,
-				"--v=2",
-			},
-		}
-
-		ctx, restConfig := runAdapter(t, options)
-
-		httpClient := authorizedHTTPClient(t, restConfig)
-
-		cases := map[string]string{
-			"health_checks":  "/healthz",
-			"openAPI":        "/openapi/v2",
-			"metric_request": "/apis/external.metrics.k8s.io/v1beta1",
-		}
-
-		for name, uri := range cases {
-			uri := uri
-
-			t.Run(name, func(t *testing.T) {
-				t.Parallel()
-
-				url := fmt.Sprintf("https://%s:%s%s", testHost, securePort, uri)
-
-				checkStatusCodeOK(ctx, t, httpClient, url)
-			})
-		}
-	})
+	}
 }
 
 func checkStatusCodeOK(ctx context.Context, t *testing.T, httpClient http.Client, url string) {
@@ -212,8 +157,13 @@ func runAdapter(t *testing.T, options adapter.Options) (context.Context, *rest.C
 	}
 	options.Args = append(options.Args, args...)
 
+	adapter, err := adapter.NewAdapter(options)
+	if err != nil {
+		t.Fatalf("Creating adapter: %v", err)
+	}
+
 	go func() {
-		if err := adapter.Run(ctx, options); err != nil {
+		if err := adapter.Run(ctx.Done()); err != nil {
 			t.Logf("Running operator: %v\n", err)
 			t.Fail()
 		}

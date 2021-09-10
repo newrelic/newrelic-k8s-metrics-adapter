@@ -22,7 +22,13 @@ func main() {
 	options := adapter.Options{
 		Args: os.Args,
 	}
-	if err := adapter.Run(signals.SetupSignalHandler(), options); err != nil {
+
+	adapter, err := adapter.NewAdapter(options)
+	if err != nil {
+		klog.Fatalf("Initializing adapter: %v", err)
+	}
+
+	if err := adapter.Run(signals.SetupSignalHandler().Done()); err != nil {
 		klog.Fatalf("Running adapter: %v", err)
 	}
 }
