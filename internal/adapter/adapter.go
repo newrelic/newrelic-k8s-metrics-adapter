@@ -20,7 +20,8 @@ import (
 	"github.com/gsanchezgavier/metrics-adapter/internal/provider"
 )
 
-const adapterName = "newrelic-k8s-metrics-adapter"
+// Name of the adapter.
+const Name = "newrelic-k8s-metrics-adapter"
 
 var version = "dev" //nolint:gochecknoglobal // Version is set at building time.
 
@@ -41,7 +42,7 @@ type Adapter interface {
 // NewAdapter validates given adapter options and creates new runnable adapter instance.
 func NewAdapter(options Options) (Adapter, error) {
 	adapter := &adapter{}
-	adapter.Name = adapterName
+	adapter.Name = Name
 
 	adapter.OpenAPIConfig = genericapiserver.DefaultOpenAPIConfig(
 		generatedopenapi.GetOpenAPIDefinitions,
