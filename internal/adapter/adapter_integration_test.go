@@ -13,6 +13,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/json"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -57,25 +58,44 @@ func Test_Adapter_responds_to(t *testing.T) {
 
 	httpClient := authorizedHTTPClient(t, restConfig)
 
-	cases := map[string]string{
-		"openAPI":        "/openapi/v2",
-		"metric_request": "/apis/external.metrics.k8s.io/v1beta1",
-	}
+	t.Run("metric_request", func(t *testing.T) {
+		t.Parallel()
 
-	for name, uri := range cases { //nolint:paralleltest // False positive.
-		uri := uri
+		url := fmt.Sprintf("https://%s:%s/apis/external.metrics.k8s.io/v1beta1", testHost, securePort)
 
-		t.Run(name, func(t *testing.T) {
+		checkStatusCodeOK(ctx, t, httpClient, url)
+	})
+
+	t.Run("openAPI", func(t *testing.T) {
+		t.Parallel()
+
+		url := fmt.Sprintf("https://%s:%s/openapi/v2", testHost, securePort)
+
+		body := checkStatusCodeOK(ctx, t, httpClient, url)
+
+		t.Run("with_valid_title", func(t *testing.T) {
 			t.Parallel()
 
-			url := fmt.Sprintf("https://%s:%s%s", testHost, securePort, uri)
+			openAPISpec := &struct {
+				Info struct {
+					Title string
+				}
+			}{}
 
-			checkStatusCodeOK(ctx, t, httpClient, url)
+			if err := json.Unmarshal(body, openAPISpec); err != nil {
+				t.Fatalf("OpenAPI spec is not a valid JSON: %v", err)
+			}
+
+			expectedTitle := adapter.Name
+
+			if openAPISpec.Info.Title != expectedTitle {
+				t.Fatalf("Expected OpenAPI spec title %q, got %q", expectedTitle, openAPISpec.Info.Title)
+			}
 		})
-	}
+	})
 }
 
-func checkStatusCodeOK(ctx context.Context, t *testing.T, httpClient http.Client, url string) {
+func checkStatusCodeOK(ctx context.Context, t *testing.T, httpClient http.Client, url string) []byte {
 	t.Helper()
 
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
@@ -84,6 +104,8 @@ func checkStatusCodeOK(ctx context.Context, t *testing.T, httpClient http.Client
 	}
 
 	req.Header = http.Header{"Content-Type": []string{"application/json"}}
+
+	body := []byte{}
 
 	retryUntilFinished(func() bool {
 		resp, err := httpClient.Do(req) //nolint:bodyclose // Done via closeResponseBody().
@@ -110,6 +132,13 @@ func checkStatusCodeOK(ctx context.Context, t *testing.T, httpClient http.Client
 
 			return false
 		case http.StatusOK:
+			data, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Fatalf("Reading response body: %v", err)
+			}
+
+			body = data
+
 			return true
 		default:
 			t.Fatalf("Got %d response code, expected %d: %v", resp.StatusCode, http.StatusOK, resp)
@@ -117,6 +146,8 @@ func checkStatusCodeOK(ctx context.Context, t *testing.T, httpClient http.Client
 
 		return false
 	})
+
+	return body
 }
 
 func runAdapter(t *testing.T, options adapter.Options) (context.Context, *rest.Config) {
