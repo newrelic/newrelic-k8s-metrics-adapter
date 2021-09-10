@@ -1,8 +1,8 @@
 // Copyright 2021 New Relic Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-// Package provider implements the external provider interface.
-package provider
+// Package mock implements the external provider interface.
+package mock
 
 import (
 	"context"

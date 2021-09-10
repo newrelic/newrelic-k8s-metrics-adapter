@@ -29,6 +29,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
 	"github.com/gsanchezgavier/metrics-adapter/internal/adapter"
+	"github.com/gsanchezgavier/metrics-adapter/internal/provider/mock"
 )
 
 const (
@@ -49,6 +50,7 @@ func Test_Adapter_responds_to(t *testing.T) {
 			"--secure-port=" + securePort,
 			"--v=2",
 		},
+		ExternalMetricsProvider: &mock.Provider{},
 	}
 
 	ctx, restConfig := runAdapter(t, options)

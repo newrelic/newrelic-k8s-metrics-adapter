@@ -11,6 +11,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 
 	"github.com/gsanchezgavier/metrics-adapter/internal/adapter"
+	"github.com/gsanchezgavier/metrics-adapter/internal/provider/mock"
 )
 
 func main() {
@@ -20,7 +21,8 @@ func main() {
 	klog.Infof("Starting NewRelic metrics adapter")
 
 	options := adapter.Options{
-		Args: os.Args,
+		Args:                    os.Args,
+		ExternalMetricsProvider: &mock.Provider{},
 	}
 
 	adapter, err := adapter.NewAdapter(options)

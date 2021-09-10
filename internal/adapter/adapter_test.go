@@ -38,6 +38,21 @@ func Test_Creating_adapter(t *testing.T) { //nolint:funlen // Just a lot of test
 			t.Fatalf("Expected adapter to accept klog flags like %q, got: %v", verbosityFlag, err)
 		}
 	})
+
+	t.Run("returns_error_when", func(t *testing.T) {
+		t.Parallel()
+
+		t.Run("no_external_metrics_provider_is_configured", func(t *testing.T) {
+			t.Parallel()
+
+			options := testOptions()
+			options.ExternalMetricsProvider = nil
+
+			if _, err := adapter.NewAdapter(options); err == nil {
+				t.Fatalf("Expected error")
+			}
+		})
+	})
 }
 
 func testOptions() adapter.Options {

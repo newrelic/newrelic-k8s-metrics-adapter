@@ -15,9 +15,9 @@ import (
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/custom-metrics-apiserver/pkg/apiserver"
 	basecmd "sigs.k8s.io/custom-metrics-apiserver/pkg/cmd"
+	"sigs.k8s.io/custom-metrics-apiserver/pkg/provider"
 
 	generatedopenapi "github.com/gsanchezgavier/metrics-adapter/internal/generated/openapi"
-	"github.com/gsanchezgavier/metrics-adapter/internal/provider"
 )
 
 // Name of the adapter.
@@ -27,7 +27,8 @@ var version = "dev" //nolint:gochecknoglobal // Version is set at building time.
 
 // Options holds the configuration for the adapter.
 type Options struct {
-	Args []string
+	Args                    []string
+	ExternalMetricsProvider provider.ExternalMetricsProvider
 }
 
 type adapter struct {
@@ -55,7 +56,11 @@ func NewAdapter(options Options) (Adapter, error) {
 		return nil, fmt.Errorf("initiating flags: %w", err)
 	}
 
-	adapter.WithExternalMetrics(&provider.Provider{})
+	if options.ExternalMetricsProvider == nil {
+		return nil, fmt.Errorf("external metrics provider must be configured")
+	}
+
+	adapter.WithExternalMetrics(options.ExternalMetricsProvider)
 
 	return adapter, nil
 }
