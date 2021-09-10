@@ -43,6 +43,7 @@ type Adapter interface {
 // NewAdapter validates given adapter options and creates new runnable adapter instance.
 func NewAdapter(options Options) (Adapter, error) {
 	adapter := &adapter{}
+	// Used as identifier in logs with -v=6, defaults to "custom-metrics-adapter", so we want to override that.
 	adapter.Name = Name
 
 	adapter.OpenAPIConfig = genericapiserver.DefaultOpenAPIConfig(
