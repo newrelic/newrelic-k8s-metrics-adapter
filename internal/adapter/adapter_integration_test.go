@@ -58,7 +58,6 @@ func Test_Adapter_responds_to(t *testing.T) {
 	httpClient := authorizedHTTPClient(t, restConfig)
 
 	cases := map[string]string{
-		"health_checks":  "/healthz",
 		"openAPI":        "/openapi/v2",
 		"metric_request": "/apis/external.metrics.k8s.io/v1beta1",
 	}
