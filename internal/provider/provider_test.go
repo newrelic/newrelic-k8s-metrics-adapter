@@ -86,13 +86,13 @@ func Test_query_fails_when(t *testing.T) {
 				NRDBClient:       &client,
 			}
 
-			r, err := p.GetExternalMetric(context.Background(), "", nil, provider.ExternalMetricInfo{Metric: "test"})
+			r, err := p.GetValueDirectly(context.Background(), "test", nil)
 			if err == nil {
 				t.Errorf("we were expecting an error")
 			}
 
-			if r != nil {
-				t.Errorf("we were not expecting a result %v", r)
+			if r != 0 {
+				t.Errorf("we were not expecting a result: %v", r)
 			}
 		})
 	}
@@ -190,21 +190,13 @@ func Test_query_succeeds_when(t *testing.T) {
 				NRDBClient:       &client,
 			}
 
-			r, err := p.GetExternalMetric(context.Background(), "", nil, provider.ExternalMetricInfo{Metric: "test"})
+			r, err := p.GetValueDirectly(context.Background(), "test", nil)
 			if err != nil {
 				t.Errorf("we were not expecting an error: %v", err)
 			}
 
-			if r == nil {
+			if r == 0 {
 				t.Fatal("we were expecting a no nil result")
-			}
-
-			if len(r.Items) != 1 {
-				t.Errorf("we were expecting exactly one item, %d", len(r.Items))
-			}
-
-			if r.Items[0].Value.String() != "15m" {
-				t.Errorf("we were expecting a different value: '%s'!=15m", r.Items[0].Value.String())
 			}
 		})
 	}

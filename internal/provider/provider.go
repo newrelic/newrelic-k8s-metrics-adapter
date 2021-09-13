@@ -47,12 +47,7 @@ type NRDBClient interface {
 
 // GetExternalMetric implemented from external provider interface.
 func (p *Provider) GetExternalMetric(ctx context.Context, _ string, match labels.Selector, info provider.ExternalMetricInfo) (*external_metrics.ExternalMetricValueList, error) { //nolint:lll // External interface requirement.
-	m, ok := p.MetricsSupported[info.Metric]
-	if !ok {
-		return nil, fmt.Errorf("metric not supported")
-	}
-
-	value, err := p.getValue(ctx, m, match)
+	value, err := p.GetValueDirectly(ctx, info.Metric, match)
 	if err != nil {
 		return nil, fmt.Errorf("error getting external metrics: '%w'", err)
 	}
@@ -87,7 +82,13 @@ func (p *Provider) ListAllExternalMetrics() []provider.ExternalMetricInfo {
 	return em
 }
 
-func (p *Provider) getValue(ctx context.Context, metric Metric, match labels.Selector) (float64, error) {
+// GetValueDirectly is a function allowing to fetch a value directly.
+func (p *Provider) GetValueDirectly(ctx context.Context, metricName string, match labels.Selector) (float64, error) {
+	metric, ok := p.MetricsSupported[metricName]
+	if !ok {
+		return 0, fmt.Errorf("metric not supported")
+	}
+
 	query := metric.Query
 	if metric.AddClusterFilter {
 		query = addClusterFilter(p.ClusterName, query)

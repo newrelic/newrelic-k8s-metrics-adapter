@@ -12,7 +12,6 @@ import (
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
-	"sigs.k8s.io/custom-metrics-apiserver/pkg/provider"
 
 	nrprovider "github.com/gsanchezgavier/metrics-adapter/internal/provider"
 )
@@ -97,7 +96,7 @@ func Test_query_builder_with(t *testing.T) {
 				ClusterName:      "testCluster",
 			}
 
-			_, err := a.GetExternalMetric(context.Background(), "", sl, provider.ExternalMetricInfo{Metric: "test"})
+			_, err := a.GetValueDirectly(context.Background(), "test", sl)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -135,7 +134,7 @@ func Test_query_adding_cluster_name_clause(t *testing.T) {
 		ClusterName: "testCluster",
 	}
 
-	_, err := a.GetExternalMetric(context.Background(), "", sl, provider.ExternalMetricInfo{Metric: "test"})
+	_, err := a.GetValueDirectly(context.Background(), "test", sl)
 	if err != nil {
 		t.Fatal(err)
 	}
