@@ -8,7 +8,6 @@ import (
 	"context"
 	"fmt"
 	"reflect"
-	"strings"
 	"time"
 
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
@@ -121,7 +120,12 @@ func (p *directProvider) getValueDirectly(ctx context.Context, metricName string
 		return 0, fmt.Errorf("metric '%s' not supported", metricName)
 	}
 
-	query := p.decorateQueryWithClauses(metric, sl)
+	q := query{nrql: metric.Query}
+	query := q.addClusterFilter(p.clusterName, metric.AddClusterFilter).
+		addMatchFilter(sl).
+		addLimit().nrql
+
+	klog.Infof("Executing query account %q, query %q", p.accountID, query)
 
 	answer, err := p.nrdbClient.QueryWithContext(ctx, int(p.accountID), nrdb.NRQL(query))
 	if err != nil {
@@ -138,23 +142,6 @@ func (p *directProvider) getValueDirectly(ctx context.Context, metricName string
 	}
 
 	return f, nil
-}
-
-func (p *directProvider) decorateQueryWithClauses(metric Metric, sl labels.Selector) string {
-	query := metric.Query
-	if metric.AddClusterFilter {
-		query = addClusterFilter(p.clusterName, query)
-	}
-
-	if sl != nil {
-		query = addMatchFilter(sl, query)
-	}
-
-	if !strings.Contains(strings.ToLower(query), limitClause) {
-		query = addLimit(query)
-	}
-
-	return query
 }
 
 func (p *directProvider) extractReturnValue(answer *nrdb.NRDBResultContainer, query string) (float64, error) {

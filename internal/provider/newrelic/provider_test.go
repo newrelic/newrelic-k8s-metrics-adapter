@@ -54,7 +54,7 @@ func Test_query_fails_when_is_returned(t *testing.T) {
 				Results: []nrdb.NRDBResult{
 					{
 						"one":       float64(1),
-						"timestamp": float64(time.Now().Add(time.Duration(-15)*time.Hour).UnixNano() / 1000000),
+						"timestamp": float64(time.Now().Add(-time.Hour).Unix() * 1000),
 					},
 				},
 			}, nil
@@ -262,7 +262,7 @@ func Test_contrastror_fails_when(t *testing.T) {
 			t.Parallel()
 
 			p, err := newrelic.NewDirectProvider(options)
-			if err != nil {
+			if err == nil {
 				t.Errorf("We were expecting an error")
 			}
 

@@ -6,6 +6,7 @@ package newrelic
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
@@ -13,20 +14,38 @@ import (
 
 const limitClause = " limit "
 
-func addLimit(query string) string {
-	query = fmt.Sprintf("%s limit 1", query)
-
-	return query
+type query struct {
+	nrql string
 }
 
-func addClusterFilter(clusterName string, query string) string {
-	return fmt.Sprintf("%s where clusterName='%s'", query, clusterName)
+func (q *query) addLimit() *query {
+	if strings.Contains(strings.ToLower(q.nrql), limitClause) {
+		return q
+	}
+
+	q.nrql = fmt.Sprintf("%s limit 1", q.nrql)
+
+	return q
 }
 
-func addMatchFilter(match labels.Selector, query string) string {
+func (q *query) addClusterFilter(clusterName string, addClusterFilter bool) *query {
+	if !addClusterFilter {
+		return q
+	}
+
+	q.nrql = fmt.Sprintf("%s where clusterName='%s'", q.nrql, clusterName)
+
+	return q
+}
+
+func (q *query) addMatchFilter(match labels.Selector) *query {
+	if match == nil {
+		return q
+	}
+
 	requirements, ok := match.Requirements()
 	if !ok || len(requirements) == 0 {
-		return query
+		return q
 	}
 
 	whereClause := "where"
@@ -42,7 +61,7 @@ func addMatchFilter(match labels.Selector, query string) string {
 			whereClause = buildINClause(whereClause, key, r.Operator(), r.Values().List())
 
 		case selection.DoesNotExist, selection.Exists:
-			whereClause = fmt.Sprintf("%s %s %s", whereClause, key, transform[r.Operator()])
+			whereClause = fmt.Sprintf("%s %s %s", whereClause, key, transformOperator(r.Operator()))
 		}
 
 		if index != len(requirements)-1 {
@@ -50,7 +69,9 @@ func addMatchFilter(match labels.Selector, query string) string {
 		}
 	}
 
-	return fmt.Sprintf("%s %s", query, whereClause)
+	q.nrql = fmt.Sprintf("%s %s", q.nrql, whereClause)
+
+	return q
 }
 
 func buildINClause(whereClause string, key string, operator selection.Operator, values []string) string {
@@ -71,7 +92,7 @@ func buildINClause(whereClause string, key string, operator selection.Operator, 
 
 	inClause = fmt.Sprintf("%s)", inClause)
 
-	return fmt.Sprintf("%s %s %s %s", whereClause, key, transform[operator], inClause)
+	return fmt.Sprintf("%s %s %s %s", whereClause, key, transformOperator(operator), inClause)
 }
 
 func buildSimpleCondition(whereClause string, key string, operator selection.Operator, value string) string {
@@ -79,21 +100,24 @@ func buildSimpleCondition(whereClause string, key string, operator selection.Ope
 	// Es: systemMemoryBytes is a number and reported as a string
 	// nolint: gomnd
 	if _, errNoNumber := strconv.ParseFloat(value, 64); errNoNumber != nil {
-		return fmt.Sprintf("%s %s %s '%s'", whereClause, key, transform[operator], value)
+		return fmt.Sprintf("%s %s %s '%s'", whereClause, key, transformOperator(operator), value)
 	}
 
-	return fmt.Sprintf("%s %s %s %s", whereClause, key, transform[operator], value)
+	return fmt.Sprintf("%s %s %s %s", whereClause, key, transformOperator(operator), value)
 }
 
-// nolint: gochecknoglobals
-var transform = map[selection.Operator]string{
-	selection.NotEquals:    "!=",
-	selection.Equals:       "=",
-	selection.GreaterThan:  ">",
-	selection.DoubleEquals: "=",
-	selection.LessThan:     ",",
-	selection.Exists:       "IS NOT NULL",
-	selection.DoesNotExist: "IS NULL",
-	selection.In:           "IN",
-	selection.NotIn:        "NOT IN",
+func transformOperator(op selection.Operator) string {
+	m := map[selection.Operator]string{
+		selection.NotEquals:    "!=",
+		selection.Equals:       "=",
+		selection.GreaterThan:  ">",
+		selection.DoubleEquals: "=",
+		selection.LessThan:     ",",
+		selection.Exists:       "IS NOT NULL",
+		selection.DoesNotExist: "IS NULL",
+		selection.In:           "IN",
+		selection.NotIn:        "NOT IN",
+	}
+
+	return m[op]
 }
