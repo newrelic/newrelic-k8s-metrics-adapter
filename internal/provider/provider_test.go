@@ -1,7 +1,6 @@
 // Copyright 2021 New Relic Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-// Package provider implements the external provider interface.
 package provider_test
 
 import (
@@ -88,11 +87,11 @@ func Test_query_fails_when_is_returned(t *testing.T) {
 
 			r, err := p.GetValueDirectly(context.Background(), "test", nil)
 			if err == nil {
-				t.Errorf("we were expecting an error")
+				t.Errorf("We were expecting an error")
 			}
 
 			if r != 0 {
-				t.Errorf("we were not expecting a result: %v", r)
+				t.Errorf("We were not expecting a result: %v", r)
 			}
 		})
 	}
@@ -112,12 +111,12 @@ func Test_list_available_metrics(t *testing.T) {
 	list := p.ListAllExternalMetrics()
 
 	if len(list) != 2 {
-		t.Errorf("two elements in the list expected")
+		t.Errorf("Two elements in the list expected, got %d", len(list))
 	}
 
 	for _, l := range list {
 		if _, ok := m[l.Metric]; !ok {
-			t.Errorf("the metric was not intended to be supported")
+			t.Errorf("The metric %q was not intended to be supported", l.Metric)
 		}
 	}
 }
@@ -138,14 +137,15 @@ func Test_query_fail_when_metric_is_not_supported(t *testing.T) {
 		},
 	}
 
-	r, err := p.GetExternalMetric(context.Background(), "", nil,
-		provider.ExternalMetricInfo{Metric: "not_existing_metric"})
+	metricInfo := provider.ExternalMetricInfo{Metric: "not_existing_metric"}
+
+	r, err := p.GetExternalMetric(context.Background(), "", nil, metricInfo)
 	if err == nil {
-		t.Errorf("we were expecting an error")
+		t.Errorf("We were expecting an error")
 	}
 
 	if r != nil {
-		t.Errorf("we were not expecting a result %v", r)
+		t.Errorf("We were not expecting a result %v", r)
 	}
 }
 
@@ -158,7 +158,7 @@ func Test_query_succeeds_when(t *testing.T) {
 				Results: []nrdb.NRDBResult{
 					{
 						"one":       float64(0.015),
-						"timestamp": float64(time.Now().Add(time.Duration(-15)*time.Second).UnixNano() / 1000000),
+						"timestamp": float64(time.Now().UnixNano() / 1000000),
 					},
 				},
 			}
@@ -193,11 +193,11 @@ func Test_query_succeeds_when(t *testing.T) {
 
 			r, err := p.GetValueDirectly(context.Background(), "test", nil)
 			if err != nil {
-				t.Errorf("we were not expecting an error: %v", err)
+				t.Errorf("We were not expecting an error: %v", err)
 			}
 
 			if r == 0 {
-				t.Fatal("we were expecting a result != 0")
+				t.Fatal("We were expecting a result != 0")
 			}
 		})
 	}

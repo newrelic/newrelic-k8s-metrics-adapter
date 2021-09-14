@@ -1,7 +1,6 @@
 // Copyright 2021 New Relic Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-// Package provider implements the external provider interface.
 package provider_test
 
 import (
@@ -96,18 +95,17 @@ func Test_query_builder_with(t *testing.T) {
 				ClusterName:      "testCluster",
 			}
 
-			_, err := a.GetValueDirectly(context.Background(), "test", sl)
-			if err != nil {
-				t.Fatal(err)
+			if _, err := a.GetValueDirectly(context.Background(), "test", sl); err != nil {
+				t.Fatalf("Unexpected error while getting value: %v", err)
 			}
 			if client.query != result {
-				t.Errorf("the query expected is different from the one returned '%s'!='%s'", client.query, result)
+				t.Errorf("Expected query %q, got %q", client.query, result)
 			}
 		})
 	}
 }
 
-func Test_query_adding_cluster_name_clause(t *testing.T) {
+func Test_query_is_getting_cluster_name_clause_added(t *testing.T) {
 	t.Parallel()
 
 	sl := labels.NewSelector()
@@ -134,14 +132,13 @@ func Test_query_adding_cluster_name_clause(t *testing.T) {
 		ClusterName: "testCluster",
 	}
 
-	_, err := a.GetValueDirectly(context.Background(), "test", sl)
-	if err != nil {
-		t.Fatal(err)
+	if _, err := a.GetValueDirectly(context.Background(), "test", sl); err != nil {
+		t.Fatalf("Unexpected error while getting value: %v", err)
 	}
 
 	result := "select test from testSample where clusterName='testCluster' where key IS NOT NULL limit 1"
 	if client.query != result {
-		t.Errorf("the query expected is different from the one returned '%s'!='%s'", client.query, result)
+		t.Errorf("Expected query %q, got %q", client.query, result)
 	}
 }
 

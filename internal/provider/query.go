@@ -1,7 +1,6 @@
 // Copyright 2021 New Relic Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-// Package provider implements the external provider interface.
 package provider
 
 import (
@@ -79,8 +78,7 @@ func buildSimpleCondition(whereClause string, key string, operator selection.Ope
 	// Note that this is a simplification since it is possible that we have a valid number, but we want it as a string.
 	// Es: systemMemoryBytes is a number and reported as a string
 	// nolint: gomnd
-	_, errNoNumber := strconv.ParseFloat(value, 64)
-	if errNoNumber != nil {
+	if _, errNoNumber := strconv.ParseFloat(value, 64); errNoNumber != nil {
 		return fmt.Sprintf("%s %s %s '%s'", whereClause, key, transform[operator], value)
 	}
 

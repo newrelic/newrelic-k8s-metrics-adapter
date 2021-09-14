@@ -9,10 +9,10 @@ import (
 	"os"
 
 	"github.com/newrelic/newrelic-client-go/newrelic"
-	"gopkg.in/yaml.v3"
 	"k8s.io/component-base/logs"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
+	"sigs.k8s.io/yaml"
 
 	"github.com/gsanchezgavier/metrics-adapter/internal/adapter"
 	"github.com/gsanchezgavier/metrics-adapter/internal/provider"
@@ -28,13 +28,13 @@ func main() {
 
 	config, err := loadConfiguration()
 	if err != nil {
-		klog.Fatalf("loading configuration: %v", err)
+		klog.Fatalf("Loading configuration: %v", err)
 	}
 
 	// The NEWRELIC_API_KEY is read from an envVar populated thanks to a k8s secret.
 	c, err := newrelic.New(newrelic.ConfigPersonalAPIKey(os.Getenv("NEWRELIC_API_KEY")))
 	if err != nil {
-		klog.Fatalf("creating the client: %v", err)
+		klog.Fatalf("Creating NewRelic client: %v", err)
 	}
 
 	externalProvider := provider.Provider{
@@ -62,21 +62,18 @@ func main() {
 func loadConfiguration() (*configOptions, error) {
 	b, err := ioutil.ReadFile(configFileName)
 	if err != nil {
-		return nil, fmt.Errorf("reading config file %s: %w", configFileName, err)
+		return nil, fmt.Errorf("reading config file %q: %w", configFileName, err)
 	}
 
-	config := configOptions{}
-
-	err = yaml.Unmarshal(b, &config)
-	if err != nil {
+	config := &configOptions{}
+	if err = yaml.Unmarshal(b, config); err != nil {
 		return nil, fmt.Errorf("unmarshalling config: %w", err)
 	}
 
-	return &config, nil
+	return config, nil
 }
 
 type configOptions struct {
-	//nolint:tagliatelle
-	AccountID int64                      `yaml:"accountID"`
-	Metrics   map[string]provider.Metric `yaml:"metrics"`
+	AccountID int64                      `json:"accountID"`
+	Metrics   map[string]provider.Metric `json:"metrics"`
 }

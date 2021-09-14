@@ -36,9 +36,9 @@ type Provider struct {
 
 // Metric holds the config needed to retrieve a supported metric.
 type Metric struct {
-	Query               string `yaml:"query"`
-	AddClusterFilter    bool   `yaml:"addClusterFilter"`
-	OldestSampleAllowed int64  `yaml:"oldestSampleAllowed"`
+	Query               string `json:"query"`
+	AddClusterFilter    bool   `json:"addClusterFilter"`
+	OldestSampleAllowed int64  `json:"oldestSampleAllowed"`
 }
 
 // NRDBClient is the interface a client should respect to be used in the provider to retrieve metrics.
@@ -50,10 +50,12 @@ type NRDBClient interface {
 func (p *Provider) GetExternalMetric(ctx context.Context, _ string, match labels.Selector, info provider.ExternalMetricInfo) (*external_metrics.ExternalMetricValueList, error) { //nolint:lll // External interface requirement.
 	value, err := p.GetValueDirectly(ctx, info.Metric, match)
 	if err != nil {
-		return nil, fmt.Errorf("error getting external metrics: '%w'", err)
+		return nil, fmt.Errorf("getting metric value: %w", err)
 	}
 
-	quantity, err := resource.ParseQuantity(fmt.Sprintf("%f", value))
+	valueToBeParsed := fmt.Sprintf("%f", value)
+
+	quantity, err := resource.ParseQuantity(valueToBeParsed)
 	if err != nil {
 		return nil, fmt.Errorf("parsing quantity: '%w'", err)
 	}
@@ -94,11 +96,10 @@ func (p *Provider) GetValueDirectly(ctx context.Context, metricName string, matc
 
 	answer, err := p.NRDBClient.QueryWithContext(ctx, int(p.AccountID), nrdb.NRQL(query))
 	if err != nil {
-		return 0, fmt.Errorf("executing query '%s' in account '%d', %w", query, p.AccountID, err)
+		return 0, fmt.Errorf("executing query %q in account '%d': %w", query, p.AccountID, err)
 	}
 
-	err = p.validateAnswer(answer, metric.OldestSampleAllowed, query)
-	if err != nil {
+	if err = p.validateAnswer(answer, metric.OldestSampleAllowed, query); err != nil {
 		return 0, fmt.Errorf("validating answer, '%w'", err)
 	}
 
@@ -128,7 +129,7 @@ func (p *Provider) decorateQueryWithClauses(metric Metric, match labels.Selector
 }
 
 func (p *Provider) extractReturnValue(answer *nrdb.NRDBResultContainer, query string) (float64, error) {
-	// depending on the function used in the NRQL query the map key has different values, es latest.cpu.used,
+	// Depending on the function used in the NRQL query the map key has different values, es latest.cpu.used,
 	// average.cpu.usage, therefore we need to range to get the single element in that map.
 	var returnValue interface{}
 	for _, v := range answer.Results[0] {
