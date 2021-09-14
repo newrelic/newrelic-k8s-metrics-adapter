@@ -8,14 +8,14 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/newrelic/newrelic-client-go/newrelic"
+	nrClient "github.com/newrelic/newrelic-client-go/newrelic"
 	"k8s.io/component-base/logs"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 	"sigs.k8s.io/yaml"
 
 	"github.com/gsanchezgavier/metrics-adapter/internal/adapter"
-	"github.com/gsanchezgavier/metrics-adapter/internal/provider"
+	"github.com/gsanchezgavier/metrics-adapter/internal/provider/newrelic"
 )
 
 const configFileName = "/etc/newrelic/adapter/config.yaml"
@@ -32,21 +32,26 @@ func main() {
 	}
 
 	// The NEWRELIC_API_KEY is read from an envVar populated thanks to a k8s secret.
-	c, err := newrelic.New(newrelic.ConfigPersonalAPIKey(os.Getenv("NEWRELIC_API_KEY")))
+	c, err := nrClient.New(nrClient.ConfigPersonalAPIKey(os.Getenv("NEWRELIC_API_KEY")))
 	if err != nil {
 		klog.Fatalf("Creating NewRelic client: %v", err)
 	}
 
-	externalProvider := provider.Provider{
+	providerOptions := newrelic.ProviderOptions{
 		MetricsSupported: config.Metrics,
 		NRDBClient:       &c.Nrdb,
 		AccountID:        config.AccountID,
 		ClusterName:      os.Getenv("CLUSTER_NAME"),
 	}
 
+	directProvider, err := newrelic.NewDirectProvider(providerOptions)
+	if err != nil {
+		klog.Fatalf("Creating direct provider: %v", err)
+	}
+
 	options := adapter.Options{
 		Args:                    os.Args,
-		ExternalMetricsProvider: &externalProvider,
+		ExternalMetricsProvider: directProvider,
 	}
 
 	a, err := adapter.NewAdapter(options)
@@ -75,5 +80,5 @@ func loadConfiguration() (*configOptions, error) {
 
 type configOptions struct {
 	AccountID int64                      `json:"accountID"`
-	Metrics   map[string]provider.Metric `json:"metrics"`
+	Metrics   map[string]newrelic.Metric `json:"metrics"`
 }

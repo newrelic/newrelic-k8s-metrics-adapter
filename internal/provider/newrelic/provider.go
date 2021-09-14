@@ -1,8 +1,8 @@
 // Copyright 2021 New Relic Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-// Package provider implements the external provider interface.
-package provider
+// Package newrelic implements the external provider interface retrieving the data directly from the backend.
+package newrelic
 
 import (
 	"context"
@@ -26,12 +26,41 @@ const defaultOldestSampleAllowed = 360
 // NewRelic reports timestamp in millisecond, whereas the library supports seconds and nanoseconds.
 const newrelicTimestampFactor = 1000
 
-// Provider holds the config options of the provider.
-type Provider struct {
+type directProvider struct {
+	metricsSupported map[string]Metric
+	nrdbClient       NRDBClient
+	accountID        int64
+	clusterName      string
+}
+
+// ProviderOptions holds the configOptions of the provider.
+type ProviderOptions struct {
 	MetricsSupported map[string]Metric
 	NRDBClient       NRDBClient
 	AccountID        int64
 	ClusterName      string
+}
+
+// NewDirectProvider is the constructor for the direct provider.
+func NewDirectProvider(options ProviderOptions) (provider.ExternalMetricsProvider, error) {
+	if options.AccountID == 0 {
+		return nil, fmt.Errorf("building a directProvider the accountID cannot be 0")
+	}
+
+	if options.NRDBClient == nil {
+		return nil, fmt.Errorf("building a directProvider NRDBClient cannot be nil")
+	}
+
+	if options.ClusterName == "" {
+		return nil, fmt.Errorf("building a directProvider ClusterName cannot be an empty string")
+	}
+
+	return &directProvider{
+		metricsSupported: options.MetricsSupported,
+		nrdbClient:       options.NRDBClient,
+		accountID:        options.AccountID,
+		clusterName:      options.ClusterName,
+	}, nil
 }
 
 // Metric holds the config needed to retrieve a supported metric.
@@ -47,8 +76,8 @@ type NRDBClient interface {
 }
 
 // GetExternalMetric returns the requested metric.
-func (p *Provider) GetExternalMetric(ctx context.Context, _ string, match labels.Selector, info provider.ExternalMetricInfo) (*external_metrics.ExternalMetricValueList, error) { //nolint:lll // External interface requirement.
-	value, err := p.GetValueDirectly(ctx, info.Metric, match)
+func (p *directProvider) GetExternalMetric(ctx context.Context, _ string, match labels.Selector, info provider.ExternalMetricInfo) (*external_metrics.ExternalMetricValueList, error) { //nolint:lll // External interface requirement.
+	value, err := p.getValueDirectly(ctx, info.Metric, match)
 	if err != nil {
 		return nil, fmt.Errorf("getting metric value: %w", err)
 	}
@@ -73,10 +102,10 @@ func (p *Provider) GetExternalMetric(ctx context.Context, _ string, match labels
 }
 
 // ListAllExternalMetrics returns the list of external metrics supported by this provider.
-func (p *Provider) ListAllExternalMetrics() []provider.ExternalMetricInfo {
+func (p *directProvider) ListAllExternalMetrics() []provider.ExternalMetricInfo {
 	em := []provider.ExternalMetricInfo{}
 
-	for k := range p.MetricsSupported {
+	for k := range p.metricsSupported {
 		em = append(em, provider.ExternalMetricInfo{
 			Metric: k,
 		})
@@ -86,17 +115,17 @@ func (p *Provider) ListAllExternalMetrics() []provider.ExternalMetricInfo {
 }
 
 // GetValueDirectly fetches a value of a metric calling QueryWithContext of NRDBClient .
-func (p *Provider) GetValueDirectly(ctx context.Context, metricName string, match labels.Selector) (float64, error) {
-	metric, ok := p.MetricsSupported[metricName]
+func (p *directProvider) getValueDirectly(ctx context.Context, metricName string, sl labels.Selector) (float64, error) {
+	metric, ok := p.metricsSupported[metricName]
 	if !ok {
 		return 0, fmt.Errorf("metric '%s' not supported", metricName)
 	}
 
-	query := p.decorateQueryWithClauses(metric, match)
+	query := p.decorateQueryWithClauses(metric, sl)
 
-	answer, err := p.NRDBClient.QueryWithContext(ctx, int(p.AccountID), nrdb.NRQL(query))
+	answer, err := p.nrdbClient.QueryWithContext(ctx, int(p.accountID), nrdb.NRQL(query))
 	if err != nil {
-		return 0, fmt.Errorf("executing query %q in account '%d': %w", query, p.AccountID, err)
+		return 0, fmt.Errorf("executing query %q in account '%d': %w", query, p.accountID, err)
 	}
 
 	if err = p.validateAnswer(answer, metric.OldestSampleAllowed, query); err != nil {
@@ -111,14 +140,14 @@ func (p *Provider) GetValueDirectly(ctx context.Context, metricName string, matc
 	return f, nil
 }
 
-func (p *Provider) decorateQueryWithClauses(metric Metric, match labels.Selector) string {
+func (p *directProvider) decorateQueryWithClauses(metric Metric, sl labels.Selector) string {
 	query := metric.Query
 	if metric.AddClusterFilter {
-		query = addClusterFilter(p.ClusterName, query)
+		query = addClusterFilter(p.clusterName, query)
 	}
 
-	if match != nil {
-		query = addMatchFilter(match, query)
+	if sl != nil {
+		query = addMatchFilter(sl, query)
 	}
 
 	if !strings.Contains(strings.ToLower(query), limitClause) {
@@ -128,7 +157,7 @@ func (p *Provider) decorateQueryWithClauses(metric Metric, match labels.Selector
 	return query
 }
 
-func (p *Provider) extractReturnValue(answer *nrdb.NRDBResultContainer, query string) (float64, error) {
+func (p *directProvider) extractReturnValue(answer *nrdb.NRDBResultContainer, query string) (float64, error) {
 	// Depending on the function used in the NRQL query the map key has different values, es latest.cpu.used,
 	// average.cpu.usage, therefore we need to range to get the single element in that map.
 	var returnValue interface{}
@@ -144,7 +173,7 @@ func (p *Provider) extractReturnValue(answer *nrdb.NRDBResultContainer, query st
 	return f, nil
 }
 
-func (p *Provider) validateAnswer(answer *nrdb.NRDBResultContainer, oldestSampleAllowed int64, query string) error {
+func (p *directProvider) validateAnswer(answer *nrdb.NRDBResultContainer, oldestValidSample int64, query string) error {
 	if answer == nil {
 		return fmt.Errorf("no error present, but the answer is nil, query: '%s'", query)
 	}
@@ -155,7 +184,7 @@ func (p *Provider) validateAnswer(answer *nrdb.NRDBResultContainer, oldestSample
 
 	nrdbResult := answer.Results[0]
 
-	err := p.validateTimestamp(nrdbResult, oldestSampleAllowed, query)
+	err := p.validateTimestamp(nrdbResult, oldestValidSample, query)
 	if err != nil {
 		return fmt.Errorf("validating timestamp: %w", err)
 	}
@@ -172,7 +201,7 @@ func (p *Provider) validateAnswer(answer *nrdb.NRDBResultContainer, oldestSample
 }
 
 // If we are not able to parse the timestamp, or if it is not present we do not trigger an error.
-func (p *Provider) validateTimestamp(nrdbResult nrdb.NRDBResult, oldestSampleAllowed int64, query string) error {
+func (p *directProvider) validateTimestamp(nrdbResult nrdb.NRDBResult, oldestSampleAllowed int64, query string) error {
 	t, ok := nrdbResult["timestamp"]
 	if !ok {
 		klog.Infof("The query '%s' returns samples without the timestamp "+

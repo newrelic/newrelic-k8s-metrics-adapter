@@ -1,7 +1,7 @@
 // Copyright 2021 New Relic Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-package provider_test
+package newrelic_test
 
 import (
 	"context"
@@ -11,8 +11,9 @@ import (
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
+	"sigs.k8s.io/custom-metrics-apiserver/pkg/provider"
 
-	nrprovider "github.com/gsanchezgavier/metrics-adapter/internal/provider"
+	"github.com/gsanchezgavier/metrics-adapter/internal/provider/newrelic"
 )
 
 // nolint:funlen
@@ -89,13 +90,20 @@ func Test_query_builder_with(t *testing.T) {
 				},
 			}
 
-			a := nrprovider.Provider{
-				MetricsSupported: map[string]nrprovider.Metric{"test": {Query: "select test from testSample"}},
+			providerOptions := newrelic.ProviderOptions{
+				MetricsSupported: map[string]newrelic.Metric{"test": {Query: "select test from testSample"}},
 				NRDBClient:       &client,
+				AccountID:        1,
 				ClusterName:      "testCluster",
 			}
+			p, err := newrelic.NewDirectProvider(providerOptions)
+			if err != nil {
+				t.Fatalf("We were not expecting an error creating the provider %v", err)
+			}
 
-			if _, err := a.GetValueDirectly(context.Background(), "test", sl); err != nil {
+			metricInfo := provider.ExternalMetricInfo{Metric: "test"}
+
+			if _, err := p.GetExternalMetric(context.Background(), "", sl, metricInfo); err != nil {
 				t.Fatalf("Unexpected error while getting value: %v", err)
 			}
 			if client.query != result {
@@ -123,16 +131,24 @@ func Test_query_is_getting_cluster_name_clause_added(t *testing.T) {
 		},
 	}
 
-	a := nrprovider.Provider{
-		MetricsSupported: map[string]nrprovider.Metric{"test": {
+	providerOptions := newrelic.ProviderOptions{
+		MetricsSupported: map[string]newrelic.Metric{"test": {
 			Query:            "select test from testSample",
 			AddClusterFilter: true,
 		}},
 		NRDBClient:  &client,
+		AccountID:   1,
 		ClusterName: "testCluster",
 	}
 
-	if _, err := a.GetValueDirectly(context.Background(), "test", sl); err != nil {
+	p, err := newrelic.NewDirectProvider(providerOptions)
+	if err != nil {
+		t.Fatalf("We were not expecting an error creating the provider %v", err)
+	}
+
+	metricInfo := provider.ExternalMetricInfo{Metric: "test"}
+
+	if _, err := p.GetExternalMetric(context.Background(), "", sl, metricInfo); err != nil {
 		t.Fatalf("Unexpected error while getting value: %v", err)
 	}
 

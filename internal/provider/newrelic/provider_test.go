@@ -1,7 +1,7 @@
 // Copyright 2021 New Relic Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-package provider_test
+package newrelic_test
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
 	"sigs.k8s.io/custom-metrics-apiserver/pkg/provider"
 
-	nrprovider "github.com/gsanchezgavier/metrics-adapter/internal/provider"
+	"github.com/gsanchezgavier/metrics-adapter/internal/provider/newrelic"
 )
 
 // nolint: funlen, unparam
@@ -80,17 +80,26 @@ func Test_query_fails_when_is_returned(t *testing.T) {
 				err:    errToReturn,
 			}
 
-			p := nrprovider.Provider{
-				MetricsSupported: map[string]nrprovider.Metric{"test": {Query: "select test from testSample"}},
+			providerOptions := newrelic.ProviderOptions{
+				MetricsSupported: map[string]newrelic.Metric{"test": {Query: "select test from testSample"}},
 				NRDBClient:       &client,
+				ClusterName:      "test",
+				AccountID:        1,
 			}
 
-			r, err := p.GetValueDirectly(context.Background(), "test", nil)
+			p, err := newrelic.NewDirectProvider(providerOptions)
+			if err != nil {
+				t.Fatalf("We were not expecting an error creating the provider %v", err)
+			}
+
+			metricInfo := provider.ExternalMetricInfo{Metric: "test"}
+
+			r, err := p.GetExternalMetric(context.Background(), "", nil, metricInfo)
 			if err == nil {
 				t.Errorf("We were expecting an error")
 			}
 
-			if r != 0 {
+			if r != nil {
 				t.Errorf("We were not expecting a result: %v", r)
 			}
 		})
@@ -100,14 +109,23 @@ func Test_query_fails_when_is_returned(t *testing.T) {
 func Test_list_available_metrics(t *testing.T) {
 	t.Parallel()
 
-	m := map[string]nrprovider.Metric{
+	m := map[string]newrelic.Metric{
 		"test":  {Query: "select test from testSample"},
 		"test2": {Query: "select test from testSample"},
 	}
-	p := nrprovider.Provider{
+
+	providerOptions := newrelic.ProviderOptions{
 		MetricsSupported: m,
 		NRDBClient:       &fakeQuery{},
+		ClusterName:      "test",
+		AccountID:        1,
 	}
+
+	p, err := newrelic.NewDirectProvider(providerOptions)
+	if err != nil {
+		t.Fatalf("We were not expecting an error creating the provider %v", err)
+	}
+
 	list := p.ListAllExternalMetrics()
 
 	if len(list) != 2 {
@@ -124,8 +142,8 @@ func Test_list_available_metrics(t *testing.T) {
 func Test_query_fail_when_metric_is_not_supported(t *testing.T) {
 	t.Parallel()
 
-	p := nrprovider.Provider{
-		MetricsSupported: map[string]nrprovider.Metric{"test": {Query: "select test from testSample"}},
+	providerOptions := newrelic.ProviderOptions{
+		MetricsSupported: map[string]newrelic.Metric{"test": {Query: "select test from testSample"}},
 		NRDBClient: &fakeQuery{
 			result: &nrdb.NRDBResultContainer{
 				Results: []nrdb.NRDBResult{
@@ -135,6 +153,13 @@ func Test_query_fail_when_metric_is_not_supported(t *testing.T) {
 				},
 			},
 		},
+		ClusterName: "test",
+		AccountID:   1,
+	}
+
+	p, err := newrelic.NewDirectProvider(providerOptions)
+	if err != nil {
+		t.Fatalf("We were not expecting an error creating the provider %v", err)
 	}
 
 	metricInfo := provider.ExternalMetricInfo{Metric: "not_existing_metric"}
@@ -180,24 +205,69 @@ func Test_query_succeeds_when(t *testing.T) {
 		t.Run(testCaseName, func(t *testing.T) {
 			t.Parallel()
 
-			result := valuesF()
-			client := fakeQuery{
-				result: result,
-				err:    nil,
+			providerOptions := newrelic.ProviderOptions{
+				MetricsSupported: map[string]newrelic.Metric{"test": {Query: "select test from testSample"}},
+				NRDBClient: &fakeQuery{
+					result: valuesF(),
+				},
+				ClusterName: "test",
+				AccountID:   1,
 			}
 
-			p := nrprovider.Provider{
-				MetricsSupported: map[string]nrprovider.Metric{"test": {Query: "select test from testSample"}},
-				NRDBClient:       &client,
+			p, err := newrelic.NewDirectProvider(providerOptions)
+			if err != nil {
+				t.Fatalf("We were not expecting an error creating the provider %v", err)
 			}
 
-			r, err := p.GetValueDirectly(context.Background(), "test", nil)
+			metricInfo := provider.ExternalMetricInfo{Metric: "test"}
+
+			r, err := p.GetExternalMetric(context.Background(), "", nil, metricInfo)
 			if err != nil {
 				t.Errorf("We were not expecting an error: %v", err)
 			}
 
-			if r == 0 {
-				t.Fatal("We were expecting a result != 0")
+			if len(r.Items) != 1 {
+				t.Errorf("we were expecting exactly one item, %d", len(r.Items))
+			}
+
+			if r.Items[0].Value.String() != "15m" {
+				t.Errorf("we were expecting a different value: '%s'!=15m", r.Items[0].Value.String())
+			}
+		})
+	}
+}
+
+func Test_contrastror_fails_when(t *testing.T) {
+	t.Parallel()
+
+	cases := map[string]newrelic.ProviderOptions{
+		"cluster_name_is_empty": {
+			NRDBClient: &fakeQuery{},
+			AccountID:  1,
+		},
+		"account_id_is_zero": {
+			NRDBClient:  &fakeQuery{},
+			ClusterName: "test",
+		},
+		"client_is_null": {
+			AccountID:   1,
+			ClusterName: "test",
+		},
+	}
+
+	for testCaseName, options := range cases {
+		options := options
+
+		t.Run(testCaseName, func(t *testing.T) {
+			t.Parallel()
+
+			p, err := newrelic.NewDirectProvider(options)
+			if err != nil {
+				t.Errorf("We were expecting an error")
+			}
+
+			if p != nil {
+				t.Errorf("We were not expecting an provider %v", p)
 			}
 		})
 	}
