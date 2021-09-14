@@ -7,7 +7,6 @@ package provider
 import (
 	"fmt"
 	"strconv"
-	"strings"
 
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
@@ -16,9 +15,7 @@ import (
 const limitClause = " limit "
 
 func addLimit(query string) string {
-	if !strings.Contains(strings.ToLower(query), limitClause) {
-		query = fmt.Sprintf("%s limit 1", query)
-	}
+	query = fmt.Sprintf("%s limit 1", query)
 
 	return query
 }

@@ -17,29 +17,29 @@ import (
 )
 
 // nolint: funlen, unparam
-func Test_query_fails_when(t *testing.T) {
+func Test_query_fails_when_is_returned(t *testing.T) {
 	t.Parallel()
 
 	cases := map[string]func() (result *nrdb.NRDBResultContainer, err error){
-		"everything_is_nil": func() (result *nrdb.NRDBResultContainer, err error) {
+		"everything_nil": func() (result *nrdb.NRDBResultContainer, err error) {
 			return nil, nil
 		},
-		"error_is_returned": func() (result *nrdb.NRDBResultContainer, err error) {
+		"error": func() (result *nrdb.NRDBResultContainer, err error) {
 			return nil, fmt.Errorf("random error")
 		},
-		"no_sample_is_returned": func() (result *nrdb.NRDBResultContainer, err error) {
+		"no_sample": func() (result *nrdb.NRDBResultContainer, err error) {
 			return &nrdb.NRDBResultContainer{
 				Results: []nrdb.NRDBResult{},
 			}, nil
 		},
-		"a_sample_with_no_data_is_returned": func() (result *nrdb.NRDBResultContainer, err error) {
+		"a_sample_with_no_data": func() (result *nrdb.NRDBResultContainer, err error) {
 			return &nrdb.NRDBResultContainer{
 				Results: []nrdb.NRDBResult{
 					{},
 				},
 			}, nil
 		},
-		"a_sample_with_too_much_data_is_returned": func() (result *nrdb.NRDBResultContainer, err error) {
+		"a_sample_with_too_much_data": func() (result *nrdb.NRDBResultContainer, err error) {
 			return &nrdb.NRDBResultContainer{
 				Results: []nrdb.NRDBResult{
 					{
@@ -183,6 +183,7 @@ func Test_query_succeeds_when(t *testing.T) {
 			result := valuesF()
 			client := fakeQuery{
 				result: result,
+				err:    nil,
 			}
 
 			p := nrprovider.Provider{
@@ -196,7 +197,7 @@ func Test_query_succeeds_when(t *testing.T) {
 			}
 
 			if r == 0 {
-				t.Fatal("we were expecting a no nil result")
+				t.Fatal("we were expecting a result != 0")
 			}
 		})
 	}

@@ -31,7 +31,7 @@ func main() {
 		klog.Fatalf("loading configuration: %v", err)
 	}
 
-	// The NEWRELIC_API_KEY is read from an envVar populated from a k8s secret
+	// The NEWRELIC_API_KEY is read from an envVar populated thanks to a k8s secret.
 	c, err := newrelic.New(newrelic.ConfigPersonalAPIKey(os.Getenv("NEWRELIC_API_KEY")))
 	if err != nil {
 		klog.Fatalf("creating the client: %v", err)
@@ -49,12 +49,12 @@ func main() {
 		ExternalMetricsProvider: &externalProvider,
 	}
 
-	adapter, err := adapter.NewAdapter(options)
+	a, err := adapter.NewAdapter(options)
 	if err != nil {
 		klog.Fatalf("Initializing adapter: %v", err)
 	}
 
-	if err := adapter.Run(signals.SetupSignalHandler().Done()); err != nil {
+	if err := a.Run(signals.SetupSignalHandler().Done()); err != nil {
 		klog.Fatalf("Running adapter: %v", err)
 	}
 }
