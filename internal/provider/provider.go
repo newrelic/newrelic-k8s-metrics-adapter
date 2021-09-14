@@ -83,7 +83,7 @@ func (p *Provider) ListAllExternalMetrics() []provider.ExternalMetricInfo {
 	return em
 }
 
-// GetValueDirectly fetches a value fo a metric calling QueryWithContext of NRDBClient .
+// GetValueDirectly fetches a value of a metric calling QueryWithContext of NRDBClient .
 func (p *Provider) GetValueDirectly(ctx context.Context, metricName string, match labels.Selector) (float64, error) {
 	metric, ok := p.MetricsSupported[metricName]
 	if !ok {
