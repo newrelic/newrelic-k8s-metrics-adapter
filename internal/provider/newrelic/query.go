@@ -12,33 +12,31 @@ import (
 	"k8s.io/apimachinery/pkg/selection"
 )
 
-const limitClause = " limit "
+const (
+	limitClause = " limit "
+	bitSize     = 64
+)
 
-type query struct {
-	nrql string
-}
+// Query stores user configured query for external metric and allows extending by limits or filters.
+type Query string
 
-func (q *query) addLimit() *query {
-	if strings.Contains(strings.ToLower(q.nrql), limitClause) {
+func (q Query) addLimit() Query {
+	if strings.Contains(strings.ToLower(string(q)), limitClause) {
 		return q
 	}
 
-	q.nrql = fmt.Sprintf("%s limit 1", q.nrql)
-
-	return q
+	return Query(fmt.Sprintf("%s limit 1", q))
 }
 
-func (q *query) addClusterFilter(clusterName string, addClusterFilter bool) *query {
+func (q Query) addClusterFilter(clusterName string, addClusterFilter bool) Query {
 	if !addClusterFilter {
 		return q
 	}
 
-	q.nrql = fmt.Sprintf("%s where clusterName='%s'", q.nrql, clusterName)
-
-	return q
+	return Query(fmt.Sprintf("%s where clusterName='%s'", q, clusterName))
 }
 
-func (q *query) addMatchFilter(match labels.Selector) *query {
+func (q Query) addMatchFilter(match labels.Selector) Query {
 	if match == nil {
 		return q
 	}
@@ -69,17 +67,14 @@ func (q *query) addMatchFilter(match labels.Selector) *query {
 		}
 	}
 
-	q.nrql = fmt.Sprintf("%s %s", q.nrql, whereClause)
-
-	return q
+	return Query(fmt.Sprintf("%s %s", q, whereClause))
 }
 
 func buildINClause(whereClause string, key string, operator selection.Operator, values []string) string {
 	inClause := "("
 
 	for index, v := range values {
-		//nolint: gomnd
-		if _, errNoNumber := strconv.ParseFloat(v, 64); errNoNumber != nil {
+		if _, errNoNumber := strconv.ParseFloat(v, bitSize); errNoNumber != nil {
 			inClause = fmt.Sprintf("%s'%s'", inClause, v)
 		} else {
 			inClause = fmt.Sprintf("%s%s", inClause, v)
@@ -98,8 +93,7 @@ func buildINClause(whereClause string, key string, operator selection.Operator, 
 func buildSimpleCondition(whereClause string, key string, operator selection.Operator, value string) string {
 	// Note that this is a simplification since it is possible that we have a valid number, but we want it as a string.
 	// Es: systemMemoryBytes is a number and reported as a string
-	// nolint: gomnd
-	if _, errNoNumber := strconv.ParseFloat(value, 64); errNoNumber != nil {
+	if _, errNoNumber := strconv.ParseFloat(value, bitSize); errNoNumber != nil {
 		return fmt.Sprintf("%s %s %s '%s'", whereClause, key, transformOperator(operator), value)
 	}
 

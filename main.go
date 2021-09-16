@@ -38,10 +38,10 @@ func main() {
 	}
 
 	providerOptions := newrelic.ProviderOptions{
-		MetricsSupported: config.Metrics,
-		NRDBClient:       &c.Nrdb,
-		AccountID:        config.AccountID,
-		ClusterName:      os.Getenv("CLUSTER_NAME"),
+		ExternalMetrics: config.ExternalMetrics,
+		NRDBClient:      &c.Nrdb,
+		AccountID:       config.AccountID,
+		ClusterName:     os.Getenv("CLUSTER_NAME"),
 	}
 
 	directProvider, err := newrelic.NewDirectProvider(providerOptions)
@@ -79,6 +79,6 @@ func loadConfiguration() (*configOptions, error) {
 }
 
 type configOptions struct {
-	AccountID int64                      `json:"accountID"`
-	Metrics   map[string]newrelic.Metric `json:"metrics"`
+	AccountID       int64                      `json:"accountID"`
+	ExternalMetrics map[string]newrelic.Metric `json:"externalMetrics"`
 }

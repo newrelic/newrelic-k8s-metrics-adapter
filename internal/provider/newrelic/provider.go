@@ -34,10 +34,10 @@ type directProvider struct {
 
 // ProviderOptions holds the configOptions of the provider.
 type ProviderOptions struct {
-	MetricsSupported map[string]Metric
-	NRDBClient       NRDBClient
-	AccountID        int64
-	ClusterName      string
+	ExternalMetrics map[string]Metric
+	NRDBClient      NRDBClient
+	AccountID       int64
+	ClusterName     string
 }
 
 // NewDirectProvider is the constructor for the direct provider.
@@ -54,8 +54,10 @@ func NewDirectProvider(options ProviderOptions) (provider.ExternalMetricsProvide
 		return nil, fmt.Errorf("building a directProvider ClusterName cannot be an empty string")
 	}
 
+	klog.Infof("All queries will be executing for account %d", options.AccountID)
+
 	return &directProvider{
-		metricsSupported: options.MetricsSupported,
+		metricsSupported: options.ExternalMetrics,
 		nrdbClient:       options.NRDBClient,
 		accountID:        options.AccountID,
 		clusterName:      options.ClusterName,
@@ -64,9 +66,9 @@ func NewDirectProvider(options ProviderOptions) (provider.ExternalMetricsProvide
 
 // Metric holds the config needed to retrieve a supported metric.
 type Metric struct {
-	Query               string `json:"query"`
-	AddClusterFilter    bool   `json:"addClusterFilter"`
-	OldestSampleAllowed int64  `json:"oldestSampleAllowed"`
+	Query               Query `json:"query"`
+	AddClusterFilter    bool  `json:"addClusterFilter"`
+	OldestSampleAllowed int64 `json:"oldestSampleAllowed"`
 }
 
 // NRDBClient is the interface a client should respect to be used in the provider to retrieve metrics.
@@ -76,7 +78,7 @@ type NRDBClient interface {
 
 // GetExternalMetric returns the requested metric.
 func (p *directProvider) GetExternalMetric(ctx context.Context, _ string, match labels.Selector, info provider.ExternalMetricInfo) (*external_metrics.ExternalMetricValueList, error) { //nolint:lll // External interface requirement.
-	value, err := p.getValueDirectly(ctx, info.Metric, match)
+	value, timestamp, err := p.getValueDirectly(ctx, info.Metric, match)
 	if err != nil {
 		return nil, fmt.Errorf("getting metric value: %w", err)
 	}
@@ -85,15 +87,21 @@ func (p *directProvider) GetExternalMetric(ctx context.Context, _ string, match 
 
 	quantity, err := resource.ParseQuantity(valueToBeParsed)
 	if err != nil {
-		return nil, fmt.Errorf("parsing quantity: '%w'", err)
+		return nil, fmt.Errorf("parsing quantity: %w", err)
+	}
+
+	t := metav1.Now()
+
+	if timestamp != nil {
+		t = metav1.NewTime(*timestamp)
 	}
 
 	return &external_metrics.ExternalMetricValueList{
 		Items: []external_metrics.ExternalMetricValue{
 			{
-				MetricName:   "info.Metric",
+				MetricName:   info.Metric,
 				MetricLabels: map[string]string{},
-				Timestamp:    metav1.Now(),
+				Timestamp:    t,
 				Value:        quantity,
 			},
 		},
@@ -113,38 +121,45 @@ func (p *directProvider) ListAllExternalMetrics() []provider.ExternalMetricInfo 
 	return em
 }
 
-// GetValueDirectly fetches a value of a metric calling QueryWithContext of NRDBClient .
-func (p *directProvider) getValueDirectly(ctx context.Context, metricName string, sl labels.Selector) (float64, error) {
+// getValueDirectly fetches a value of a metric calling QueryWithContext of NRDBClient.
+func (p *directProvider) getValueDirectly(ctx context.Context, metricName string, sl labels.Selector) (float64, *time.Time, error) {
 	metric, ok := p.metricsSupported[metricName]
 	if !ok {
-		return 0, fmt.Errorf("metric '%s' not supported", metricName)
+		return 0, nil, fmt.Errorf("metric %q not configured", metricName)
 	}
 
-	q := query{nrql: metric.Query}
+	q := metric.Query
 	query := q.addClusterFilter(p.clusterName, metric.AddClusterFilter).
 		addMatchFilter(sl).
-		addLimit().nrql
+		addLimit()
 
-	klog.Infof("Executing query account %q, query %q", p.accountID, query)
+	klog.Infof("Executing %q", query)
+
+	// Define inline so it can be used only from a single place in code for consistency,
+	// to avoid possibly adding query to error message twice.
+	errWithQuery := func(format string, a ...interface{}) error {
+		return fmt.Errorf("query %q: %w", query, fmt.Errorf(format, a...))
+	}
 
 	answer, err := p.nrdbClient.QueryWithContext(ctx, int(p.accountID), nrdb.NRQL(query))
 	if err != nil {
-		return 0, fmt.Errorf("executing query %q in account '%d': %w", query, p.accountID, err)
+		return 0, nil, errWithQuery("executing query: %w", err)
 	}
 
-	if err = p.validateAnswer(answer, metric.OldestSampleAllowed, query); err != nil {
-		return 0, fmt.Errorf("validating answer, '%w'", err)
-	}
-
-	f, err := p.extractReturnValue(answer, query)
+	timestamp, err := p.validateAnswer(answer, metric.OldestSampleAllowed, query)
 	if err != nil {
-		return 0, fmt.Errorf("extracting return value, '%w'", err)
+		return 0, nil, errWithQuery("validating result: %w", err)
 	}
 
-	return f, nil
+	f, err := p.extractReturnValue(answer)
+	if err != nil {
+		return 0, nil, errWithQuery("extracting return value: %w", err)
+	}
+
+	return f, timestamp, nil
 }
 
-func (p *directProvider) extractReturnValue(answer *nrdb.NRDBResultContainer, query string) (float64, error) {
+func (p *directProvider) extractReturnValue(answer *nrdb.NRDBResultContainer) (float64, error) {
 	// Depending on the function used in the NRQL query the map key has different values, es latest.cpu.used,
 	// average.cpu.usage, therefore we need to range to get the single element in that map.
 	var returnValue interface{}
@@ -154,54 +169,53 @@ func (p *directProvider) extractReturnValue(answer *nrdb.NRDBResultContainer, qu
 
 	f, ok := returnValue.(float64)
 	if !ok {
-		return 0, fmt.Errorf("query result '%v' is not a float64: %s", query, reflect.TypeOf(returnValue))
+		return 0, fmt.Errorf("expected first value to be of type %q, got %q", "float64", reflect.TypeOf(returnValue))
 	}
 
 	return f, nil
 }
 
-func (p *directProvider) validateAnswer(answer *nrdb.NRDBResultContainer, oldestValidSample int64, query string) error {
+func (p *directProvider) validateAnswer(answer *nrdb.NRDBResultContainer, oldestValidSample int64, query Query) (*time.Time, error) {
 	if answer == nil {
-		return fmt.Errorf("no error present, but the answer is nil, query: '%s'", query)
+		return nil, fmt.Errorf("no error present, but the answer is nil")
 	}
 
 	if len(answer.Results) != 1 {
-		return fmt.Errorf("the query '%s' did not return exactly 1 sample: %d", query, len(answer.Results))
+		return nil, fmt.Errorf("expected exactly 1 sample, got %d", len(answer.Results))
 	}
 
 	nrdbResult := answer.Results[0]
 
-	err := p.validateTimestamp(nrdbResult, oldestValidSample, query)
+	timestamp, err := p.validateTimestamp(nrdbResult, oldestValidSample, query)
 	if err != nil {
-		return fmt.Errorf("validating timestamp: %w", err)
+		return nil, fmt.Errorf("validating timestamp: %w", err)
 	}
 
 	// We expect 1 samples since in case there was a timestamp field we removed it.
 	delete(nrdbResult, "timestamp")
 
 	if len(nrdbResult) != 1 {
-		return fmt.Errorf("the sample returned by the query '%s'"+
-			" does not contain exactly 1 field: %d", query, len(nrdbResult))
+		return nil, fmt.Errorf("expected sample to contain exactly 1 field, got %d", len(nrdbResult))
 	}
 
-	return nil
+	return timestamp, nil
 }
 
 // If we are not able to parse the timestamp, or if it is not present we do not trigger an error.
-func (p *directProvider) validateTimestamp(nrdbResult nrdb.NRDBResult, oldestSampleAllowed int64, query string) error {
+func (p *directProvider) validateTimestamp(nrdbResult nrdb.NRDBResult, oldestSampleAllowed int64, query Query) (*time.Time, error) {
 	t, ok := nrdbResult["timestamp"]
 	if !ok {
-		klog.Infof("The query '%s' returns samples without the timestamp "+
+		klog.Infof("The query %q returns samples without the timestamp "+
 			"useful to validate the sample, possibly is due to latest function", query)
 
-		return nil
+		return nil, nil
 	}
 
 	tf, okCast := t.(float64)
 	if !okCast {
-		klog.Infof("The query '%s' returns samples with a 'no float64' timestamp", query)
+		klog.Infof("The query %q returns samples with a 'no float64' timestamp", query)
 
-		return nil
+		return nil, nil
 	}
 
 	if oldestSampleAllowed == 0 {
@@ -213,9 +227,8 @@ func (p *directProvider) validateTimestamp(nrdbResult nrdb.NRDBResult, oldestSam
 	oldestSample := time.Now().Add(-validWindow)
 
 	if !timestamp.After(oldestSample) {
-		return fmt.Errorf("the query returned a timestamp too old: '%s' %s<%s",
-			query, timestamp.String(), oldestSample.String())
+		return nil, fmt.Errorf("timestamp too old: %s<%s", timestamp.String(), oldestSample.String())
 	}
 
-	return nil
+	return &timestamp, nil
 }
