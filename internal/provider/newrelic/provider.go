@@ -78,7 +78,7 @@ type NRDBClient interface {
 
 // GetExternalMetric returns the requested metric.
 func (p *directProvider) GetExternalMetric(ctx context.Context, _ string, match labels.Selector, info provider.ExternalMetricInfo) (*external_metrics.ExternalMetricValueList, error) { //nolint:lll // External interface requirement.
-	value, timestamp, err := p.getValueDirectly(ctx, info.Metric, match)
+	value, timestamp, err := p.getMetric(ctx, info.Metric, match)
 	if err != nil {
 		return nil, fmt.Errorf("getting metric value: %w", err)
 	}
@@ -121,11 +121,11 @@ func (p *directProvider) ListAllExternalMetrics() []provider.ExternalMetricInfo 
 	return em
 }
 
-// getValueDirectly fetches a value of a metric calling QueryWithContext of NRDBClient.
-func (p *directProvider) getValueDirectly(ctx context.Context, metricName string, sl labels.Selector) (float64, *time.Time, error) {
-	metric, ok := p.metricsSupported[metricName]
+// GetMetric fetches a value of a metric calling QueryWithContext of NRDBClient.
+func (p *directProvider) getMetric(ctx context.Context, name string, sl labels.Selector) (float64, *time.Time, error) {
+	metric, ok := p.metricsSupported[name]
 	if !ok {
-		return 0, nil, fmt.Errorf("metric %q not configured", metricName)
+		return 0, nil, fmt.Errorf("metric %q not configured", name)
 	}
 
 	q := metric.Query
@@ -141,17 +141,21 @@ func (p *directProvider) getValueDirectly(ctx context.Context, metricName string
 		return fmt.Errorf("query %q: %w", query, fmt.Errorf(format, a...))
 	}
 
-	answer, err := p.nrdbClient.QueryWithContext(ctx, int(p.accountID), nrdb.NRQL(query))
+	queryResult, err := p.nrdbClient.QueryWithContext(ctx, int(p.accountID), nrdb.NRQL(query))
 	if err != nil {
 		return 0, nil, errWithQuery("executing query: %w", err)
 	}
 
-	timestamp, err := p.validateAnswer(answer, metric.OldestSampleAllowed, query)
-	if err != nil {
+	if err := p.validateQueryResult(queryResult); err != nil {
 		return 0, nil, errWithQuery("validating result: %w", err)
 	}
 
-	f, err := p.extractReturnValue(answer)
+	timestamp, err := timestampFromResult(queryResult.Results[0], metric.OldestSampleAllowed, query)
+	if err != nil {
+		return 0, nil, fmt.Errorf("getting timestamp: %w", err)
+	}
+
+	f, err := p.extractReturnValue(queryResult)
 	if err != nil {
 		return 0, nil, errWithQuery("extracting return value: %w", err)
 	}
@@ -159,51 +163,32 @@ func (p *directProvider) getValueDirectly(ctx context.Context, metricName string
 	return f, timestamp, nil
 }
 
-func (p *directProvider) extractReturnValue(answer *nrdb.NRDBResultContainer) (float64, error) {
-	// Depending on the function used in the NRQL query the map key has different values, es latest.cpu.used,
-	// average.cpu.usage, therefore we need to range to get the single element in that map.
-	var returnValue interface{}
-	for _, v := range answer.Results[0] {
-		returnValue = v
-	}
-
-	f, ok := returnValue.(float64)
-	if !ok {
-		return 0, fmt.Errorf("expected first value to be of type %q, got %q", "float64", reflect.TypeOf(returnValue))
-	}
-
-	return f, nil
-}
-
-func (p *directProvider) validateAnswer(answer *nrdb.NRDBResultContainer, oldestValidSample int64, query Query) (*time.Time, error) {
+func (p *directProvider) validateQueryResult(answer *nrdb.NRDBResultContainer) error {
 	if answer == nil {
-		return nil, fmt.Errorf("no error present, but the answer is nil")
+		return fmt.Errorf("no error present, but the answer is nil")
 	}
 
 	if len(answer.Results) != 1 {
-		return nil, fmt.Errorf("expected exactly 1 sample, got %d", len(answer.Results))
+		return fmt.Errorf("expected exactly 1 sample, got %d", len(answer.Results))
 	}
 
 	nrdbResult := answer.Results[0]
+	expectedSamples := 1
 
-	timestamp, err := p.validateTimestamp(nrdbResult, oldestValidSample, query)
-	if err != nil {
-		return nil, fmt.Errorf("validating timestamp: %w", err)
+	if _, hasTimestamp := nrdbResult["timestamp"]; hasTimestamp {
+		expectedSamples = 2
 	}
 
-	// We expect 1 samples since in case there was a timestamp field we removed it.
-	delete(nrdbResult, "timestamp")
-
-	if len(nrdbResult) != 1 {
-		return nil, fmt.Errorf("expected sample to contain exactly 1 field, got %d", len(nrdbResult))
+	if len(nrdbResult) != expectedSamples {
+		return fmt.Errorf("expected %d sample(s), got %d", expectedSamples, len(nrdbResult))
 	}
 
-	return timestamp, nil
+	return nil
 }
 
 // If we are not able to parse the timestamp, or if it is not present we do not trigger an error.
-func (p *directProvider) validateTimestamp(nrdbResult nrdb.NRDBResult, oldestSampleAllowed int64, query Query) (*time.Time, error) {
-	t, ok := nrdbResult["timestamp"]
+func timestampFromResult(nrdbResult nrdb.NRDBResult, oldestSampleAllowed int64, query Query) (*time.Time, error) {
+	timestampRaw, ok := nrdbResult["timestamp"]
 	if !ok {
 		klog.Infof("The query %q returns samples without the timestamp "+
 			"useful to validate the sample, possibly is due to latest function", query)
@@ -211,8 +196,8 @@ func (p *directProvider) validateTimestamp(nrdbResult nrdb.NRDBResult, oldestSam
 		return nil, nil
 	}
 
-	tf, okCast := t.(float64)
-	if !okCast {
+	timestampFloat, ok := timestampRaw.(float64)
+	if !ok {
 		klog.Infof("The query %q returns samples with a 'no float64' timestamp", query)
 
 		return nil, nil
@@ -222,7 +207,7 @@ func (p *directProvider) validateTimestamp(nrdbResult nrdb.NRDBResult, oldestSam
 		oldestSampleAllowed = defaultOldestSampleAllowed
 	}
 
-	timestamp := time.Unix(int64(tf/newrelicTimestampFactor), 0)
+	timestamp := time.Unix(int64(timestampFloat/newrelicTimestampFactor), 0)
 	validWindow := time.Duration(oldestSampleAllowed) * time.Second
 	oldestSample := time.Now().Add(-validWindow)
 
@@ -231,4 +216,25 @@ func (p *directProvider) validateTimestamp(nrdbResult nrdb.NRDBResult, oldestSam
 	}
 
 	return &timestamp, nil
+}
+
+func (p *directProvider) extractReturnValue(answer *nrdb.NRDBResultContainer) (float64, error) {
+	// Depending on the function used in the NRQL query the map key has different values, es latest.cpu.used,
+	// average.cpu.usage, therefore we need to range to get the single element in that map.
+	var returnValue interface{}
+
+	for k, v := range answer.Results[0] {
+		if k == "timestamp" {
+			continue
+		}
+
+		returnValue = v
+	}
+
+	f, ok := returnValue.(float64)
+	if !ok {
+		return 0, fmt.Errorf("expected first value to be of type %q, got %q", "float64", reflect.TypeOf(returnValue))
+	}
+
+	return f, nil
 }

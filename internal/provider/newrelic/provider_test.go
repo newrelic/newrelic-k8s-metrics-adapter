@@ -31,14 +31,18 @@ func Test_Getting_external_metric(t *testing.T) {
 	t.Run("without_error_returns_exactly_one_metric", func(t *testing.T) {
 		t.Parallel()
 
-		testTimestamp := time.Now()
+		testTimestampMilli := time.Now().UnixNano() / 1000000
+
+		// NewRelic only supports millisecond precision, so we need to drop all nanoseconds, otherwise time comparison
+		// will not work.
+		testTimestamp := time.Unix(testTimestampMilli/1000, 0)
 
 		providerOptions, client := testProviderOptions()
 		client.response = &nrdb.NRDBResultContainer{
 			Results: []nrdb.NRDBResult{
 				{
 					"one":       float64(0.015),
-					"timestamp": float64(testTimestamp.UnixNano() / 1000000),
+					"timestamp": float64(testTimestampMilli),
 				},
 			},
 		}
@@ -47,7 +51,7 @@ func Test_Getting_external_metric(t *testing.T) {
 
 		r, err := p.GetExternalMetric(context.Background(), "", nil, provider.ExternalMetricInfo{Metric: testMetricName})
 		if err != nil {
-			t.Errorf("Unexpected error while getting external metric: %v", err)
+			t.Fatalf("Unexpected error while getting external metric: %v", err)
 		}
 
 		if len(r.Items) != 1 {
@@ -237,8 +241,10 @@ func Test_Getting_external_metric(t *testing.T) {
 				"has_a_sample_with_data_too_old": {
 					Results: []nrdb.NRDBResult{
 						{
-							"one":       float64(1),
-							"timestamp": float64(time.Now().Add(-time.Hour).Unix() * 1000),
+							"one": float64(1),
+							// NewRelic returns timestamp in milliseconds, so get nanosecond precision, then raise to
+							// milliseconds to avoid losing precision.
+							"timestamp": float64(time.Now().Add(-time.Hour).UnixNano() / 1000000),
 						},
 					},
 				},
@@ -357,8 +363,8 @@ func testProviderOptions() (newrelic.ProviderOptions, *testClient) {
 		response: &nrdb.NRDBResultContainer{
 			Results: []nrdb.NRDBResult{
 				{
-					"timestamp": time.Now(),
 					"value":     float64(1),
+					"timestamp": float64(time.Now().UnixNano() / 1000000),
 				},
 			},
 		},
