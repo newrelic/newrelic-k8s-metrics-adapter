@@ -120,6 +120,97 @@ func Test_Getting_external_metric(t *testing.T) {
 		}
 	})
 
+	t.Run("with_label_selector", func(t *testing.T) {
+		t.Parallel()
+
+		cases := map[string]struct {
+			selector      func() labels.Selector
+			expectedQuery string
+		}{
+			"does_not_modify_metric_query_when_no_selector_is_received": {
+				selector:      func() labels.Selector { return nil },
+				expectedQuery: "select test from testSample limit 1",
+			},
+			"does_not_modify_metric_query_when_empty_selector_is_received": {
+				selector:      labels.NewSelector,
+				expectedQuery: "select test from testSample limit 1",
+			},
+			"adds_IN_selector_to_query_when_defined": {
+				selector: func() labels.Selector {
+					s := labels.NewSelector()
+					r1, _ := labels.NewRequirement("key", selection.In, []string{"value", "15", "18"})
+
+					return s.Add(*r1)
+				},
+				expectedQuery: "select test from testSample where key IN (15, 18, 'value') limit 1",
+			},
+			"adds_NOT_IN_selector_to_query_when_defined": {
+				selector: func() labels.Selector {
+					s := labels.NewSelector()
+					r1, _ := labels.NewRequirement("key", selection.NotIn, []string{"value", "16", "17"})
+
+					return s.Add(*r1)
+				},
+				expectedQuery: "select test from testSample where key NOT IN (16, 17, 'value') limit 1",
+			},
+			"adds_IS_NOT_NULL_to_query_when_defined": {
+				selector: func() labels.Selector {
+					s := labels.NewSelector()
+					r1, _ := labels.NewRequirement("key1", selection.DoesNotExist, []string{})
+
+					return s.Add(*r1)
+				},
+				expectedQuery: "select test from testSample where key1 IS NULL limit 1",
+			},
+			"adds_IS_NULL_to_query_when_defined": {
+				selector: func() labels.Selector {
+					s := labels.NewSelector()
+					r1, _ := labels.NewRequirement("key", selection.Exists, []string{})
+
+					return s.Add(*r1)
+				},
+				expectedQuery: "select test from testSample where key IS NOT NULL limit 1",
+			},
+			"adds_all_defined_selectors_to_query": {
+				selector: func() labels.Selector {
+					s := labels.NewSelector()
+					r1, _ := labels.NewRequirement("key", selection.Exists, []string{})
+					r2, _ := labels.NewRequirement("key2", selection.DoesNotExist, []string{})
+					r3, _ := labels.NewRequirement("key3", selection.In, []string{"value", "1", "2"})
+					r4, _ := labels.NewRequirement("key4", selection.NotIn, []string{"value2", "3"})
+
+					return s.Add(*r1).Add(*r2).Add(*r3).Add(*r4)
+				},
+				expectedQuery: "select test from testSample where " +
+					"key IS NOT NULL and key2 IS NULL and " +
+					"key3 IN (1, 2, 'value') and key4 NOT IN (3, 'value2') " +
+					"limit 1",
+			},
+		}
+
+		for testCaseName, testData := range cases {
+			testData := testData
+
+			t.Run(testCaseName, func(t *testing.T) {
+				t.Parallel()
+
+				providerOptions, client := testProviderOptions()
+
+				p := testProvider(t, providerOptions)
+
+				metricInfo := provider.ExternalMetricInfo{Metric: testMetricName}
+
+				if _, err := p.GetExternalMetric(context.Background(), "", testData.selector(), metricInfo); err != nil {
+					t.Fatalf("Unexpected error getting external metric: %v", err)
+				}
+
+				if client.query != testData.expectedQuery {
+					t.Errorf("Expected query %q, got %q", client.query, testData.expectedQuery)
+				}
+			})
+		}
+	})
+
 	t.Run("returns_metric_without_error_when_query_returns", func(t *testing.T) {
 		t.Parallel()
 

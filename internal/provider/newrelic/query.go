@@ -106,11 +106,6 @@ func buildSimpleCondition(whereClause string, key string, operator selection.Ope
 
 func transformOperator(op selection.Operator) string {
 	m := map[selection.Operator]string{
-		selection.NotEquals:    "!=",
-		selection.Equals:       "=",
-		selection.GreaterThan:  ">",
-		selection.DoubleEquals: "=",
-		selection.LessThan:     ",",
 		selection.Exists:       "IS NOT NULL",
 		selection.DoesNotExist: "IS NULL",
 		selection.In:           "IN",
