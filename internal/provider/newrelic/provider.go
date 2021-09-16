@@ -43,15 +43,15 @@ type ProviderOptions struct {
 // NewDirectProvider is the constructor for the direct provider.
 func NewDirectProvider(options ProviderOptions) (provider.ExternalMetricsProvider, error) {
 	if options.AccountID == 0 {
-		return nil, fmt.Errorf("building a directProvider the accountID cannot be 0")
+		return nil, fmt.Errorf("an accountID cannot be 0")
 	}
 
 	if options.NRDBClient == nil {
-		return nil, fmt.Errorf("building a directProvider NRDBClient cannot be nil")
+		return nil, fmt.Errorf("a NRDBClient cannot be nil")
 	}
 
 	if options.ClusterName == "" {
-		return nil, fmt.Errorf("building a directProvider ClusterName cannot be an empty string")
+		return nil, fmt.Errorf("a ClusterName cannot be an empty")
 	}
 
 	for name, metric := range options.ExternalMetrics {
@@ -60,7 +60,7 @@ func NewDirectProvider(options ProviderOptions) (provider.ExternalMetricsProvide
 		}
 	}
 
-	klog.Infof("All queries will be executing for account %d", options.AccountID)
+	klog.Infof("All queries will be executed for account ID %d", options.AccountID)
 
 	return &directProvider{
 		metricsSupported: options.ExternalMetrics,
