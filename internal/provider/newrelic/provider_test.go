@@ -6,8 +6,10 @@ package newrelic_test
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"testing"
 	"time"
+	"unicode"
 
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -312,6 +314,22 @@ func Test_Creating_provider_returns_error_when(t *testing.T) {
 		"cluster_name_is_empty": func(o *newrelic.ProviderOptions) { o.ClusterName = "" },
 		"account_id_is_zero":    func(o *newrelic.ProviderOptions) { o.AccountID = 0 },
 		"client_is_not_set":     func(o *newrelic.ProviderOptions) { o.NRDBClient = nil },
+		"any_of_configured_queries_include_limit_clause_with_any_case": func(o *newrelic.ProviderOptions) {
+			rand.Seed(time.Now().UnixNano())
+
+			limit := ""
+			for _, letter := range "limit" {
+				if rand.Float64() < 0.5 {
+					letter = unicode.ToUpper(letter)
+				}
+
+				limit += string(letter)
+			}
+
+			o.ExternalMetrics["foo"] = newrelic.Metric{
+				Query: newrelic.Query(fmt.Sprintf("%s %s 2", testQuery, limit)),
+			}
+		},
 	}
 
 	for testCaseName, mutateF := range cases {

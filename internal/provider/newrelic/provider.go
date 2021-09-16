@@ -54,6 +54,12 @@ func NewDirectProvider(options ProviderOptions) (provider.ExternalMetricsProvide
 		return nil, fmt.Errorf("building a directProvider ClusterName cannot be an empty string")
 	}
 
+	for name, metric := range options.ExternalMetrics {
+		if err := metric.Query.validate(); err != nil {
+			return nil, fmt.Errorf("validating query for metric %q: %w", name, err)
+		}
+	}
+
 	klog.Infof("All queries will be executing for account %d", options.AccountID)
 
 	return &directProvider{
