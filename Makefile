@@ -39,8 +39,9 @@ build: ## Compiles metrics-adapter binary.
 	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) $(GO_CMD) build -o $(BINARY_NAME) -v -buildmode=exe -ldflags $(LD_FLAGS) .
 
 .PHONY: build-test
+build-test: GO_TESTS=nonexistent
 build-test: ## Compiles unit tests.
-	$(GO_TEST) -run=nonexistent -tags integration,e2e $(GO_PACKAGES)
+	$(GO_TEST) -tags integration,e2e $(GO_PACKAGES)
 
 .PHONY: test
 test: ## Runs all unit tests.
