@@ -143,6 +143,16 @@ func Test_Getting_external_metric(t *testing.T) {
 					},
 				}
 			},
+			"a_single_sample_with_malformed_timestamp": func() (result *nrdb.NRDBResultContainer) {
+				return &nrdb.NRDBResultContainer{
+					Results: []nrdb.NRDBResult{
+						{
+							"one":       float64(0.015),
+							"timestamp": 1,
+						},
+					},
+				}
+			},
 		}
 
 		for testCaseName, valuesF := range cases {
