@@ -429,9 +429,8 @@ func Test_Creating_provider_returns_error_when(t *testing.T) {
 	t.Parallel()
 
 	cases := map[string]func(o *newrelic.ProviderOptions){
-		"cluster_name_is_empty": func(o *newrelic.ProviderOptions) { o.ClusterName = "" },
-		"account_id_is_zero":    func(o *newrelic.ProviderOptions) { o.AccountID = 0 },
-		"client_is_not_set":     func(o *newrelic.ProviderOptions) { o.NRDBClient = nil },
+		"account_id_is_zero": func(o *newrelic.ProviderOptions) { o.AccountID = 0 },
+		"client_is_not_set":  func(o *newrelic.ProviderOptions) { o.NRDBClient = nil },
 	}
 
 	for testCaseName, mutateF := range cases {

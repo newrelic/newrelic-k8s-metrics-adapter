@@ -1,6 +1,9 @@
 // Copyright 2021 New Relic Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+//go:build integration
+// +build integration
+
 package main_test
 
 import (

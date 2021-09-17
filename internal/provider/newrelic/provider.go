@@ -50,10 +50,6 @@ func NewDirectProvider(options ProviderOptions) (provider.ExternalMetricsProvide
 		return nil, fmt.Errorf("a NRDBClient cannot be nil")
 	}
 
-	if options.ClusterName == "" {
-		return nil, fmt.Errorf("a ClusterName cannot be an empty")
-	}
-
 	klog.Infof("All queries will be executed for account ID %d", options.AccountID)
 
 	return &directProvider{
