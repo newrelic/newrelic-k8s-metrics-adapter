@@ -14,6 +14,11 @@ issues:
   exclude-use-default: false
   max-same-issues: 0
   max-issues-per-linter: 0
+  exclude-rules:
+    # False positive: https://github.com/kunwardeep/paralleltest/issues/8.
+    - linters:
+        - paralleltest
+      text: "does not use range value in test Run"
 
 linters-settings:
   exhaustive:
@@ -24,6 +29,10 @@ linters-settings:
       SPDX-License-Identifier: Apache-2.0
   gci:
     local-prefixes: github.com/gsanchezgavier/metrics-adapter
+  tagliatelle:
+    case:
+      rules:
+        json: goCamel
 
 # Update list of enabled linters using 'make update-linters'.
 linters:
