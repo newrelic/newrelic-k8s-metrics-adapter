@@ -135,9 +135,12 @@ func (p *directProvider) getMetric(ctx context.Context, name string, sl labels.S
 	}
 
 	q := metric.Query
-	query := q.addClusterFilter(p.clusterName, metric.AddClusterFilter).
-		addMatchFilter(sl).
-		addLimit()
+	query, err := q.addClusterFilter(p.clusterName, metric.AddClusterFilter).addMatchFilter(sl)
+	if err != nil {
+		return 0, nil, fmt.Errorf("building query: %w", err)
+	}
+
+	query = query.addLimit()
 
 	klog.Infof("Executing %q", query)
 

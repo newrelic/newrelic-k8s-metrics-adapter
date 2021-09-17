@@ -40,14 +40,14 @@ func (q Query) addClusterFilter(clusterName string, addClusterFilter bool) Query
 	return Query(fmt.Sprintf("%s where clusterName='%s'", q, clusterName))
 }
 
-func (q Query) addMatchFilter(match labels.Selector) Query {
+func (q Query) addMatchFilter(match labels.Selector) (Query, error) {
 	if match == nil {
-		return q
+		return q, nil
 	}
 
 	requirements, ok := match.Requirements()
 	if !ok || len(requirements) == 0 {
-		return q
+		return q, nil
 	}
 
 	whereClause := "where"
@@ -56,14 +56,13 @@ func (q Query) addMatchFilter(match labels.Selector) Query {
 		key := r.Key()
 
 		switch r.Operator() {
-		case selection.Equals, selection.DoubleEquals, selection.GreaterThan, selection.LessThan, selection.NotEquals:
-			whereClause = buildSimpleCondition(whereClause, key, r.Operator(), r.Values().List()[0])
-
 		case selection.In, selection.NotIn:
 			whereClause = buildINClause(whereClause, key, r.Operator(), r.Values().List())
 
 		case selection.DoesNotExist, selection.Exists:
 			whereClause = fmt.Sprintf("%s %s %s", whereClause, key, transformOperator(r.Operator()))
+		default:
+			return "", fmt.Errorf("requirement %d use unsupported operator %q", index, r.Operator())
 		}
 
 		if index != len(requirements)-1 {
@@ -71,7 +70,7 @@ func (q Query) addMatchFilter(match labels.Selector) Query {
 		}
 	}
 
-	return Query(fmt.Sprintf("%s %s", q, whereClause))
+	return Query(fmt.Sprintf("%s %s", q, whereClause)), nil
 }
 
 func buildINClause(whereClause string, key string, operator selection.Operator, values []string) string {
@@ -92,16 +91,6 @@ func buildINClause(whereClause string, key string, operator selection.Operator, 
 	inClause = fmt.Sprintf("%s)", inClause)
 
 	return fmt.Sprintf("%s %s %s %s", whereClause, key, transformOperator(operator), inClause)
-}
-
-func buildSimpleCondition(whereClause string, key string, operator selection.Operator, value string) string {
-	// Note that this is a simplification since it is possible that we have a valid number, but we want it as a string.
-	// Es: systemMemoryBytes is a number and reported as a string
-	if _, errNoNumber := strconv.ParseFloat(value, bitSize); errNoNumber != nil {
-		return fmt.Sprintf("%s %s %s '%s'", whereClause, key, transformOperator(operator), value)
-	}
-
-	return fmt.Sprintf("%s %s %s %s", whereClause, key, transformOperator(operator), value)
 }
 
 func transformOperator(op selection.Operator) string {

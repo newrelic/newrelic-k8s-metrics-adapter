@@ -286,12 +286,12 @@ func Test_Getting_external_metric(t *testing.T) {
 	t.Run("fails_when", func(t *testing.T) {
 		t.Parallel()
 
-		expectGetFails := func(t *testing.T, providerOptions newrelic.ProviderOptions, info provider.ExternalMetricInfo) {
+		expectGetFails := func(t *testing.T, providerOptions newrelic.ProviderOptions, selector labels.Selector, info provider.ExternalMetricInfo) {
 			t.Helper()
 
 			p := testProvider(t, providerOptions)
 
-			r, err := p.GetExternalMetric(context.Background(), "", nil, info)
+			r, err := p.GetExternalMetric(context.Background(), "", selector, info)
 			if err == nil {
 				t.Errorf("Expected error getting external metric")
 			}
@@ -308,7 +308,7 @@ func Test_Getting_external_metric(t *testing.T) {
 			client.err = fmt.Errorf("new error")
 			client.response = nil
 
-			expectGetFails(t, providerOptions, provider.ExternalMetricInfo{Metric: testMetricName})
+			expectGetFails(t, providerOptions, nil, provider.ExternalMetricInfo{Metric: testMetricName})
 		})
 
 		t.Run("query_result", func(t *testing.T) {
@@ -367,7 +367,7 @@ func Test_Getting_external_metric(t *testing.T) {
 					providerOptions, client := testProviderOptions()
 					client.response = response
 
-					expectGetFails(t, providerOptions, provider.ExternalMetricInfo{Metric: testMetricName})
+					expectGetFails(t, providerOptions, nil, provider.ExternalMetricInfo{Metric: testMetricName})
 				})
 			}
 		})
@@ -377,7 +377,22 @@ func Test_Getting_external_metric(t *testing.T) {
 
 			providerOptions, _ := testProviderOptions()
 
-			expectGetFails(t, providerOptions, provider.ExternalMetricInfo{Metric: "not_existing_metric"})
+			expectGetFails(t, providerOptions, nil, provider.ExternalMetricInfo{Metric: "not_existing_metric"})
+		})
+
+		t.Run("metric_request_use_unsupported_operator_in_selector", func(t *testing.T) {
+			t.Parallel()
+
+			providerOptions, _ := testProviderOptions()
+
+			s := labels.NewSelector()
+
+			r1, err := labels.NewRequirement("key", selection.Equals, []string{"value"})
+			if err != nil {
+				t.Fatalf("Unexpected error building requirement: %v", err)
+			}
+
+			expectGetFails(t, providerOptions, s.Add(*r1), provider.ExternalMetricInfo{Metric: testMetricName})
 		})
 	})
 }
