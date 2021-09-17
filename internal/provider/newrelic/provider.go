@@ -135,6 +135,7 @@ func (p *directProvider) getMetric(ctx context.Context, name string, sl labels.S
 	}
 
 	q := metric.Query
+
 	query, err := q.addClusterFilter(p.clusterName, metric.AddClusterFilter).addMatchFilter(sl)
 	if err != nil {
 		return 0, nil, fmt.Errorf("building query: %w", err)

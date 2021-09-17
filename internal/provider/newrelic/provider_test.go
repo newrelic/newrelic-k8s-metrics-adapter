@@ -286,7 +286,12 @@ func Test_Getting_external_metric(t *testing.T) {
 	t.Run("fails_when", func(t *testing.T) {
 		t.Parallel()
 
-		expectGetFails := func(t *testing.T, providerOptions newrelic.ProviderOptions, selector labels.Selector, info provider.ExternalMetricInfo) {
+		expectGetFails := func(
+			t *testing.T,
+			providerOptions newrelic.ProviderOptions,
+			selector labels.Selector,
+			info provider.ExternalMetricInfo,
+		) {
 			t.Helper()
 
 			p := testProvider(t, providerOptions)
