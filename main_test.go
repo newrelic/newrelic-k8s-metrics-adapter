@@ -54,7 +54,7 @@ func Test_Run_fails_when(t *testing.T) {
 		t.Parallel()
 
 		configPath := filepath.Join(t.TempDir(), "config.yaml")
-		if err := ioutil.WriteFile(configPath, []byte("notavalidyaml"), 0o600); err != nil {
+		if err := ioutil.WriteFile(configPath, []byte("badKey: 1"), 0o600); err != nil {
 			t.Fatalf("Error writing test config file: %v", err)
 		}
 

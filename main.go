@@ -93,7 +93,7 @@ func loadConfiguration(configPath string) (*ConfigOptions, error) {
 	}
 
 	config := &ConfigOptions{}
-	if err = yaml.Unmarshal(b, config); err != nil {
+	if err = yaml.UnmarshalStrict(b, config); err != nil {
 		return nil, fmt.Errorf("unmarshalling config: %w", err)
 	}
 
