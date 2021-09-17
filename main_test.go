@@ -25,13 +25,15 @@ func Test_Run_reads_API_key_and_cluster_name_from_environment_variable(t *testin
 		t.Fatalf("Error writing test config file: %v", err)
 	}
 
-	err := adapter.Run(testContext(t), configPath, []string{"--cert-dir=" + t.TempDir()})
+	err := adapter.Run(testContext(t), configPath, []string{"--cert-dir=" + t.TempDir(), "--secure-port=0"})
 	if err == nil {
 		t.Fatalf("Expected error running adapter")
 	}
 
-	if !strings.Contains(err.Error(), "failed to listen") {
-		t.Fatalf("Expected error %v, got %v", context.DeadlineExceeded, err)
+	expectedError := "failed to get delegated authentication kubeconfig"
+
+	if !strings.Contains(err.Error(), expectedError) {
+		t.Fatalf("Expected error %v, got: %v", expectedError, err)
 	}
 }
 
