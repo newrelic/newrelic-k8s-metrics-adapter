@@ -54,12 +54,6 @@ func NewDirectProvider(options ProviderOptions) (provider.ExternalMetricsProvide
 		return nil, fmt.Errorf("a ClusterName cannot be an empty")
 	}
 
-	for name, metric := range options.ExternalMetrics {
-		if err := metric.Query.validate(); err != nil {
-			return nil, fmt.Errorf("validating query for metric %q: %w", name, err)
-		}
-	}
-
 	klog.Infof("All queries will be executed for account ID %d", options.AccountID)
 
 	return &directProvider{
@@ -141,8 +135,6 @@ func (p *directProvider) getMetric(ctx context.Context, name string, sl labels.S
 		return 0, nil, fmt.Errorf("building query: %w", err)
 	}
 
-	query = query.addLimit()
-
 	klog.Infof("Executing %q", query)
 
 	// Define inline so it can be used only from a single place in code for consistency,
@@ -201,7 +193,7 @@ func timestampFromResult(nrdbResult nrdb.NRDBResult, oldestSampleAllowed int64, 
 	timestampRaw, ok := nrdbResult["timestamp"]
 	if !ok {
 		klog.Infof("The query %q returns samples without the timestamp "+
-			"useful to validate the sample, possibly is due to latest function", query)
+			"useful to validate the sample", query)
 
 		return nil, nil
 	}

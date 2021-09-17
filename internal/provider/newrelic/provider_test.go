@@ -6,10 +6,8 @@ package newrelic_test
 import (
 	"context"
 	"fmt"
-	"math/rand"
 	"testing"
 	"time"
-	"unicode"
 
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -23,7 +21,7 @@ import (
 const (
 	testClusterName = "testCluster"
 	testMetricName  = "testMetric"
-	testQuery       = "select test from testSample"
+	testQuery       = "select test from testSample limit 1"
 )
 
 //nolint:funlen,gocognit,cyclop // Just a large test suite.
@@ -113,7 +111,7 @@ func Test_Getting_external_metric(t *testing.T) {
 			t.Fatalf("Unexpected error getting external metric: %v", err)
 		}
 
-		expectedQuery := "select test from testSample where clusterName='testCluster' where key IS NOT NULL limit 1"
+		expectedQuery := "select test from testSample limit 1 where clusterName='testCluster' where key IS NOT NULL"
 
 		if client.query != expectedQuery {
 			t.Errorf("Expected query %q, got %q", expectedQuery, client.query)
@@ -142,7 +140,7 @@ func Test_Getting_external_metric(t *testing.T) {
 
 					return s.Add(*r1)
 				},
-				expectedQuery: "select test from testSample where key IN (15, 18, 'value') limit 1",
+				expectedQuery: "select test from testSample limit 1 where key IN (15, 18, 'value')",
 			},
 			"adds_NOT_IN_selector_to_query_when_defined": {
 				selector: func() labels.Selector {
@@ -151,7 +149,7 @@ func Test_Getting_external_metric(t *testing.T) {
 
 					return s.Add(*r1)
 				},
-				expectedQuery: "select test from testSample where key NOT IN (16, 17, 'value') limit 1",
+				expectedQuery: "select test from testSample limit 1 where key NOT IN (16, 17, 'value')",
 			},
 			"adds_IS_NOT_NULL_to_query_when_defined": {
 				selector: func() labels.Selector {
@@ -160,7 +158,7 @@ func Test_Getting_external_metric(t *testing.T) {
 
 					return s.Add(*r1)
 				},
-				expectedQuery: "select test from testSample where key1 IS NULL limit 1",
+				expectedQuery: "select test from testSample limit 1 where key1 IS NULL",
 			},
 			"adds_IS_NULL_to_query_when_defined": {
 				selector: func() labels.Selector {
@@ -169,7 +167,7 @@ func Test_Getting_external_metric(t *testing.T) {
 
 					return s.Add(*r1)
 				},
-				expectedQuery: "select test from testSample where key IS NOT NULL limit 1",
+				expectedQuery: "select test from testSample limit 1 where key IS NOT NULL",
 			},
 			"adds_all_defined_selectors_to_query": {
 				selector: func() labels.Selector {
@@ -181,10 +179,9 @@ func Test_Getting_external_metric(t *testing.T) {
 
 					return s.Add(*r1).Add(*r2).Add(*r3).Add(*r4)
 				},
-				expectedQuery: "select test from testSample where " +
+				expectedQuery: "select test from testSample limit 1 where " +
 					"key IS NOT NULL and key2 IS NULL and " +
-					"key3 IN (1, 2, 'value') and key4 NOT IN (3, 'value2') " +
-					"limit 1",
+					"key3 IN (1, 2, 'value') and key4 NOT IN (3, 'value2')",
 			},
 		}
 
@@ -435,22 +432,6 @@ func Test_Creating_provider_returns_error_when(t *testing.T) {
 		"cluster_name_is_empty": func(o *newrelic.ProviderOptions) { o.ClusterName = "" },
 		"account_id_is_zero":    func(o *newrelic.ProviderOptions) { o.AccountID = 0 },
 		"client_is_not_set":     func(o *newrelic.ProviderOptions) { o.NRDBClient = nil },
-		"any_of_configured_queries_include_limit_clause_with_any_case": func(o *newrelic.ProviderOptions) {
-			rand.Seed(time.Now().UnixNano())
-
-			limit := ""
-			for _, letter := range "limit" {
-				if rand.Float64() < 0.5 {
-					letter = unicode.ToUpper(letter)
-				}
-
-				limit += string(letter)
-			}
-
-			o.ExternalMetrics["foo"] = newrelic.Metric{
-				Query: newrelic.Query(fmt.Sprintf("%s %s 2", testQuery, limit)),
-			}
-		},
 	}
 
 	for testCaseName, mutateF := range cases {

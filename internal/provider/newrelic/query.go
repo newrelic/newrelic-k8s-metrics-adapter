@@ -6,31 +6,17 @@ package newrelic
 import (
 	"fmt"
 	"strconv"
-	"strings"
 
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
 )
 
 const (
-	limitClause = " limit "
-	bitSize     = 64
+	bitSize = 64
 )
 
 // Query stores user configured query for external metric and allows extending by limits or filters.
 type Query string
-
-func (q Query) validate() error {
-	if strings.Contains(strings.ToLower(string(q)), limitClause) {
-		return fmt.Errorf("includes forbidden %q clause", limitClause)
-	}
-
-	return nil
-}
-
-func (q Query) addLimit() Query {
-	return Query(fmt.Sprintf("%s limit 1", q))
-}
 
 func (q Query) addClusterFilter(clusterName string, addClusterFilter bool) Query {
 	if !addClusterFilter {
