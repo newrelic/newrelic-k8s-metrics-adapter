@@ -6,6 +6,7 @@ package newrelic_test
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"testing"
 	"time"
 
@@ -277,6 +278,30 @@ func Test_Getting_external_metric(t *testing.T) {
 					t.Errorf("Expected value %q, got %q", expectedValue, r.Items[0].Value.String())
 				}
 			})
+		}
+	})
+
+	t.Run("returns_metric_with_current_timestamp_when_query_result_has_no_timestamp", func(t *testing.T) {
+		t.Parallel()
+
+		providerOptions, client := testProviderOptions()
+		client.response = &nrdb.NRDBResultContainer{
+			Results: []nrdb.NRDBResult{
+				{
+					"one": float64(0.015),
+				},
+			},
+		}
+
+		p := testProvider(t, providerOptions)
+
+		r, err := p.GetExternalMetric(context.Background(), "", nil, provider.ExternalMetricInfo{Metric: testMetricName})
+		if err != nil {
+			t.Fatalf("Unexpected error while getting external metric: %v", err)
+		}
+
+		if reflect.DeepEqual(r.Items[0].Timestamp, metav1.Time{}) {
+			t.Fatalf("Expected metric timestamp to not be empty")
 		}
 	})
 
