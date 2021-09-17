@@ -50,6 +50,10 @@ func NewDirectProvider(options ProviderOptions) (provider.ExternalMetricsProvide
 		return nil, fmt.Errorf("a NRDBClient cannot be nil")
 	}
 
+	for name := range options.ExternalMetrics {
+		klog.Infof("Registering metric %q", name)
+	}
+
 	klog.Infof("All queries will be executed for account ID %d", options.AccountID)
 
 	return &directProvider{
