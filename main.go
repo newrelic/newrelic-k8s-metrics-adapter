@@ -10,6 +10,7 @@ import (
 	"os"
 
 	nrClient "github.com/newrelic/newrelic-client-go/newrelic"
+	"github.com/newrelic/newrelic-client-go/pkg/region"
 	"k8s.io/component-base/logs"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
@@ -35,6 +36,7 @@ const (
 type ConfigOptions struct {
 	AccountID       int64                      `json:"accountID"`
 	ExternalMetrics map[string]newrelic.Metric `json:"externalMetrics"`
+	Region          string                     `json:"region"`
 }
 
 // Run reads configuration file and environment variables to configure and run the adapter.
@@ -44,8 +46,19 @@ func Run(ctx context.Context, configPath string, args []string) error {
 		return fmt.Errorf("loading configuration: %w", err)
 	}
 
+	if config.Region != "" {
+		if _, err := region.Parse(config.Region); err != nil {
+			return fmt.Errorf("parsing region %q: %w", config.Region, err)
+		}
+	}
+
+	clientOptions := []nrClient.ConfigOption{
+		nrClient.ConfigPersonalAPIKey(os.Getenv(NewRelicAPIKeyEnv)),
+		nrClient.ConfigRegion(config.Region),
+	}
+
 	// The NEWRELIC_API_KEY is read from an envVar populated thanks to a k8s secret.
-	c, err := nrClient.New(nrClient.ConfigPersonalAPIKey(os.Getenv(NewRelicAPIKeyEnv)))
+	c, err := nrClient.New(clientOptions...)
 	if err != nil {
 		return fmt.Errorf("creating NewRelic client: %w", err)
 	}

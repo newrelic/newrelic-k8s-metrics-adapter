@@ -35,7 +35,7 @@ func Test_Run_reads_API_key_and_cluster_name_from_environment_variable(t *testin
 	}
 }
 
-//nolint:funlen // Just many test cases.
+//nolint:funlen,cyclop // Just many test cases.
 func Test_Run_fails_when(t *testing.T) {
 	t.Parallel()
 
@@ -100,6 +100,21 @@ func Test_Run_fails_when(t *testing.T) {
 		}
 
 		if err := adapter.Run(testContext(t), configPath, []string{"-help"}); err == nil {
+			t.Fatalf("Expected error running adapter")
+		}
+	})
+
+	//nolint:paralleltest // We manipulate environment variables here which are global.
+	t.Run("invalid_region_is_configured", func(t *testing.T) {
+		setenv(t, adapter.NewRelicAPIKeyEnv, "foo")
+		setenv(t, adapter.ClusterNameEnv, "bar")
+
+		configPath := filepath.Join(t.TempDir(), "config.yaml")
+		if err := ioutil.WriteFile(configPath, []byte("accountID: 1\nregion: BAR"), 0o600); err != nil {
+			t.Fatalf("Error writing test config file: %v", err)
+		}
+
+		if err := adapter.Run(testContext(t), configPath, []string{"--cert-dir=" + t.TempDir()}); err == nil {
 			t.Fatalf("Expected error running adapter")
 		}
 	})
