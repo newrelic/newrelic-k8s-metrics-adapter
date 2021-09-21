@@ -49,15 +49,8 @@ if settings.get('live_reload'):
 else:
   docker_build(project_name, '.')
 
-values = ['values-dev.yaml']
-
-local_values_file = 'values-local.yaml'
-
-if os.path.exists(local_values_file):
-  values += [local_values_file]
-
 # Deploying Kubernetes resources.
-k8s_yaml(helm(settings.get('chart_path'), name=project_name, values=values))
+k8s_yaml(helm(settings.get('chart_path'), name=project_name, values=['values-dev.yaml', 'values-local.yaml']))
 
 # Tracking the deployment.
 k8s_resource(project_name)

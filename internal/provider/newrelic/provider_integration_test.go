@@ -7,7 +7,6 @@
 package newrelic_test
 
 import (
-	"context"
 	"os"
 	"strconv"
 	"testing"
@@ -18,120 +17,120 @@ import (
 	"sigs.k8s.io/custom-metrics-apiserver/pkg/provider"
 
 	"github.com/newrelic/newrelic-k8s-metrics-adapter/internal/provider/newrelic"
+	"github.com/newrelic/newrelic-k8s-metrics-adapter/internal/testutil"
+)
+
+const (
+	testIntegrationQuery = "select 0.123 from NrUsage"
 )
 
 //nolint:funlen
-func Test_Get_External_metrics(t *testing.T) {
+func Test_Getting_external_metric_generates_a_query_not_rejected_by_backend(t *testing.T) {
 	t.Parallel()
 
-	p := setupNewrelicProvider(t)
+	ctx := testutil.ContextWithDeadline(t)
 
-	t.Run("fails_when_a_query_returns", func(t *testing.T) {
+	t.Run("when_using_cluster_filter", func(t *testing.T) {
 		t.Parallel()
 
-		cases := []string{
-			"error",
-			"not_found",
-			"string",
-			"multiple_floats",
-		}
+		p := newrelicProviderWithMetric(t, newrelic.Metric{
+			Query:            testIntegrationQuery,
+			AddClusterFilter: true,
+		})
 
-		for _, queryName := range cases {
-			queryName := queryName
+		m := provider.ExternalMetricInfo{Metric: testMetricName}
 
-			t.Run(queryName, func(t *testing.T) {
-				t.Parallel()
-
-				m := provider.ExternalMetricInfo{Metric: queryName}
-
-				r, err := p.GetExternalMetric(context.Background(), "", nil, m)
-				if err == nil {
-					t.Errorf("Error expected")
-				}
-
-				if r != nil {
-					t.Errorf("Unexpected result: %v", r)
-				}
-			})
+		if _, err := p.GetExternalMetric(ctx, "", nil, m); err != nil {
+			t.Fatalf("Unexpected error: %v", err)
 		}
 	})
 
-	t.Run("succeeds_when_query", func(t *testing.T) {
+	t.Run("when_using_label_selector", func(t *testing.T) {
 		t.Parallel()
 
-		cases := map[string]func() testData{
-			"with_no_selectors_returns_a_float": func() testData {
-				return testData{
-					metric:    "float",
-					selectors: nil,
-				}
+		p := newrelicProviderWithMetric(t, newrelic.Metric{
+			Query: testIntegrationQuery,
+		})
+
+		cases := map[string]func() labels.Selector{
+			"with_no_selectors_defined": func() labels.Selector { return nil },
+			"with_IN_selector": func() labels.Selector {
+				s := labels.NewSelector()
+				r1, _ := labels.NewRequirement("key", selection.In, []string{"value", "15", "18"})
+
+				return s.Add(*r1)
 			},
-			"with_selectors_returns_a_float": func() testData {
+			"with_NOT_IN_selector": func() labels.Selector {
+				s := labels.NewSelector()
+				r1, _ := labels.NewRequirement("key", selection.NotIn, []string{"value", "16", "17"})
+
+				return s.Add(*r1)
+			},
+			"with_DOES_NOT_EXIST_selector": func() labels.Selector {
+				s := labels.NewSelector()
+				r1, _ := labels.NewRequirement("key1", selection.DoesNotExist, []string{})
+
+				return s.Add(*r1)
+			},
+			"with_EXISTS_selector": func() labels.Selector {
+				s := labels.NewSelector()
+				r1, _ := labels.NewRequirement("key", selection.Exists, []string{})
+
+				return s.Add(*r1)
+			},
+			"with_all_supported_selectors": func() labels.Selector {
 				s := labels.NewSelector()
 				r1, _ := labels.NewRequirement("key", selection.Exists, []string{})
 				r2, _ := labels.NewRequirement("key2", selection.DoesNotExist, []string{})
 				r3, _ := labels.NewRequirement("key3", selection.In, []string{"value", "1", "2"})
 				r4, _ := labels.NewRequirement("key4", selection.NotIn, []string{"value2", "3"})
 
-				return testData{
-					metric:    "float",
-					selectors: s.Add(*r1).Add(*r2).Add(*r3).Add(*r4),
-				}
+				return s.Add(*r1).Add(*r2).Add(*r3).Add(*r4)
 			},
 		}
 
-		for testCaseName, testDataf := range cases {
-			testData := testDataf()
+		for testCaseName, selector := range cases {
+			selector := selector()
 
 			t.Run(testCaseName, func(t *testing.T) {
 				t.Parallel()
 
-				m := provider.ExternalMetricInfo{Metric: testData.metric}
+				m := provider.ExternalMetricInfo{Metric: testMetricName}
 
-				r, err := p.GetExternalMetric(context.Background(), "", testData.selectors, m)
-				if err != nil {
+				if _, err := p.GetExternalMetric(ctx, "", selector, m); err != nil {
 					t.Fatalf("Unexpected error: %v", err)
-				}
-
-				if len(r.Items) != 1 {
-					t.Errorf("Expected exactly one item, got %d", len(r.Items))
-				}
-
-				expectedValue := "123m"
-				if r.Items[0].Value.String() != expectedValue {
-					t.Errorf("Expected value %q, got %q", expectedValue, r.Items[0].Value.String())
 				}
 			})
 		}
 	})
 }
 
-func setupNewrelicProvider(t *testing.T) provider.ExternalMetricsProvider {
+func newrelicProviderWithMetric(t *testing.T, metric newrelic.Metric) provider.ExternalMetricsProvider {
 	t.Helper()
 
-	c, err := nrClient.New(nrClient.ConfigPersonalAPIKey(os.Getenv("NEWRELIC_API_KEY")))
+	clientOptions := []nrClient.ConfigOption{
+		nrClient.ConfigPersonalAPIKey(os.Getenv("NEWRELIC_API_KEY")),
+		nrClient.ConfigRegion(os.Getenv("NEWRELIC_REGION")),
+	}
+
+	c, err := nrClient.New(clientOptions...)
 	if err != nil {
 		t.Fatalf("Unexpected error creating the client: %v", err)
 	}
 
-	accountID, err := strconv.ParseInt(os.Getenv("NEWRELIC_ACCOUNT_ID"), 10, 64)
+	accountIDRaw := os.Getenv("NEWRELIC_ACCOUNT_ID")
+
+	accountID, err := strconv.ParseInt(accountIDRaw, 10, 64)
 	if err != nil {
-		t.Fatalf("Unexpected error parsing accountID: %v", err)
+		t.Fatalf("Unexpected error parsing accountID %q: %v", accountIDRaw, err)
 	}
 
 	providerOptions := newrelic.ProviderOptions{
 		ExternalMetrics: map[string]newrelic.Metric{
-			"float": {
-				Query:            "select 0.123 from K8sClusterSample",
-				AddClusterFilter: true,
-			},
-			"multiple_floats": {Query: "SELECT average(1),average(2) from K8sClusterSample"},
-			"string":          {Query: "SELECT latest('casa') from K8sClusterSample"},
-			"not_found":       {Query: "select notExisting from K8sClusterSample"},
-			"error":           {Query: "@!#$%^%#&%"},
+			testMetricName: metric,
 		},
 		NRDBClient:  &c.Nrdb,
-		ClusterName: "test",
+		ClusterName: testClusterName,
 		AccountID:   accountID,
 	}
 
@@ -141,9 +140,4 @@ func setupNewrelicProvider(t *testing.T) provider.ExternalMetricsProvider {
 	}
 
 	return p
-}
-
-type testData struct {
-	metric    string
-	selectors labels.Selector
 }
