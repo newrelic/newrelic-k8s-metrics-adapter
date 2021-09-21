@@ -23,7 +23,7 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: '1.16'
-      
+
       # A cache entry is will be generated for `key`, and attempted to restore.
       # If `key` is not found, any partial match for `restore-keys` will be attempted.
       # Regardless of whether `key` was found or not, it will be created at the end of the run.
@@ -55,7 +55,7 @@ jobs:
         run: make ci
 
   integration:
-    name: Integration tests
+    name: Integration and e2e tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -104,6 +104,26 @@ jobs:
           NEWRELIC_API_KEY: "${{ secrets.NEWRELIC_API_KEY }}"
           NEWRELIC_ACCOUNT_ID: "${{ secrets.NEWRELIC_ACCOUNT_ID }}"
         run: make -C newrelic-k8s-metrics-adapter test-integration
+
+      - name: Build Docker image
+        run: make -C newrelic-k8s-metrics-adapter image-push IMAGE_REPO=localhost:5000/newrelic-k8s-metrics-adapter
+
+      - name: Create Helm release
+        env:
+          KUBECONFIG: ./newrelic-k8s-metrics-adapter/kubeconfig
+          NEWRELIC_API_KEY: "${{ secrets.NEWRELIC_API_KEY }}"
+          NEWRELIC_ACCOUNT_ID: "${{ secrets.NEWRELIC_ACCOUNT_ID }}"
+        run: |
+          make -C newrelic-k8s-metrics-adapter generate-local-values
+          helm install newrelic-k8s-metrics-adapter ./helm-charts-newrelic/charts/newrelic-k8s-metrics-adapter \
+          --values ./newrelic-k8s-metrics-adapter/values-dev.yaml \
+          --values ./newrelic-k8s-metrics-adapter/values-local.yaml \
+          --set image.repository=localhost:5000/newrelic-k8s-metrics-adapter \
+          --set image.pullPolicy=IfNotPresent \
+          --wait
+
+      - name: Run e2e tests
+        run: make -C newrelic-k8s-metrics-adapter test-e2e
 
   lint:
     name: Lint

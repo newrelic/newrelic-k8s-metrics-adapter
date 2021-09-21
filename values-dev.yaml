@@ -8,5 +8,6 @@ restartPolicy: Never
 
 config:
   externalMetrics:
-    test1:
+    # This metric is used in e2e tests.
+    e2e:
       query: "select 0.123 from NrUsage"
