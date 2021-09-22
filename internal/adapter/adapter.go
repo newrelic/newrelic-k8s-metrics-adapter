@@ -42,18 +42,18 @@ type Adapter interface {
 
 // NewAdapter validates given adapter options and creates new runnable adapter instance.
 func NewAdapter(options Options) (Adapter, error) {
-	adapter := &adapter{}
+	a := &adapter{}
 	// Used as identifier in logs with -v=6, defaults to "custom-metrics-adapter", so we want to override that.
-	adapter.Name = Name
+	a.Name = Name
 
-	adapter.OpenAPIConfig = genericapiserver.DefaultOpenAPIConfig(
+	a.OpenAPIConfig = genericapiserver.DefaultOpenAPIConfig(
 		generatedopenapi.GetOpenAPIDefinitions,
 		openapinamer.NewDefinitionNamer(apiserver.Scheme),
 	)
-	adapter.OpenAPIConfig.Info.Title = adapter.Name
-	adapter.OpenAPIConfig.Info.Version = version
+	a.OpenAPIConfig.Info.Title = a.Name
+	a.OpenAPIConfig.Info.Version = version
 
-	if err := adapter.initFlags(options.Args); err != nil {
+	if err := a.initFlags(options.Args); err != nil {
 		return nil, fmt.Errorf("initiating flags: %w", err)
 	}
 
@@ -61,9 +61,9 @@ func NewAdapter(options Options) (Adapter, error) {
 		return nil, fmt.Errorf("external metrics provider must be configured")
 	}
 
-	adapter.WithExternalMetrics(options.ExternalMetricsProvider)
+	a.WithExternalMetrics(options.ExternalMetricsProvider)
 
-	return adapter, nil
+	return a, nil
 }
 
 func (a *adapter) initFlags(args []string) error {
