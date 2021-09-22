@@ -24,7 +24,7 @@ func Test_Creating_adapter(t *testing.T) { //nolint:funlen // Just a lot of test
 		securePortFlag := "--secure-port"
 
 		options := testOptions()
-		options.Args = []string{securePortFlag + "=6443"}
+		options.Args = []string{securePortFlag + "=12345"}
 
 		if _, err := adapter.NewAdapter(options); err != nil {
 			t.Fatalf("Expected adapter to accept API server flags like %q, got: %v", securePortFlag, err)
