@@ -15,13 +15,18 @@ import (
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/custom-metrics-apiserver/pkg/apiserver"
 	basecmd "sigs.k8s.io/custom-metrics-apiserver/pkg/cmd"
+	"sigs.k8s.io/custom-metrics-apiserver/pkg/cmd/server"
 	"sigs.k8s.io/custom-metrics-apiserver/pkg/provider"
 
 	generatedopenapi "github.com/newrelic/newrelic-k8s-metrics-adapter/internal/generated/openapi"
 )
 
-// Name of the adapter.
-const Name = "newrelic-k8s-metrics-adapter"
+const (
+	// Name of the adapter.
+	Name = "newrelic-k8s-metrics-adapter"
+	// DefaultSecurePort is a default port adapter will be listening on using HTTPS.
+	DefaultSecurePort = 6443
+)
 
 var version = "dev" //nolint:gochecknoglobal // Version is set at building time.
 
@@ -52,6 +57,11 @@ func NewAdapter(options Options) (Adapter, error) {
 	)
 	a.OpenAPIConfig.Info.Title = a.Name
 	a.OpenAPIConfig.Info.Version = version
+
+	// Initialize part of the struct by hand to be able to specify default secure port.
+	a.CustomMetricsAdapterServerOptions = server.NewCustomMetricsAdapterServerOptions()
+	a.CustomMetricsAdapterServerOptions.OpenAPIConfig = a.OpenAPIConfig
+	a.SecureServing.BindPort = DefaultSecurePort
 
 	if err := a.initFlags(options.Args); err != nil {
 		return nil, fmt.Errorf("initiating flags: %w", err)

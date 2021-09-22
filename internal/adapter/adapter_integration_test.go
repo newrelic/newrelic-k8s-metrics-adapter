@@ -95,6 +95,27 @@ func Test_Adapter_responds_to(t *testing.T) {
 	})
 }
 
+func Test_Adapter_listens_on_non_privileged_port_by_default(t *testing.T) {
+	t.Parallel()
+
+	if expectedMinPort := 1024; adapter.DefaultSecurePort < expectedMinPort {
+		t.Fatalf("Default adapter port use privileged port, got %d, expected >%d",
+			adapter.DefaultSecurePort, expectedMinPort)
+	}
+
+	options := adapter.Options{
+		ExternalMetricsProvider: &mock.Provider{},
+	}
+
+	ctx, restConfig := runAdapter(t, options)
+
+	httpClient := authorizedHTTPClient(t, restConfig)
+
+	url := fmt.Sprintf("https://%s:%d/healthz", testHost, adapter.DefaultSecurePort)
+
+	checkStatusCodeOK(ctx, t, httpClient, url)
+}
+
 func checkStatusCodeOK(ctx context.Context, t *testing.T, httpClient http.Client, url string) []byte {
 	t.Helper()
 
