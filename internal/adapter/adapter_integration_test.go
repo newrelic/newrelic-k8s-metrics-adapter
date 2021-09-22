@@ -31,11 +31,10 @@ import (
 
 	"github.com/newrelic/newrelic-k8s-metrics-adapter/internal/adapter"
 	"github.com/newrelic/newrelic-k8s-metrics-adapter/internal/provider/mock"
+	"github.com/newrelic/newrelic-k8s-metrics-adapter/internal/testutil"
 )
 
 const (
-	// Arbitrary amount of time to let tests exit cleanly before main process terminates.
-	timeoutGracePeriod   = 10 * time.Second
 	certValidityDuration = 1 * time.Hour
 	testHost             = "127.0.0.1"
 	kubeconfigEnv        = "KUBECONFIG"
@@ -174,7 +173,7 @@ func checkStatusCodeOK(ctx context.Context, t *testing.T, httpClient http.Client
 func runAdapter(t *testing.T, options adapter.Options) (context.Context, *rest.Config) {
 	t.Helper()
 
-	ctxWithDeadline := contextWithDeadline(t)
+	ctxWithDeadline := testutil.ContextWithDeadline(t)
 
 	ctx, cancel := context.WithCancel(ctxWithDeadline)
 
@@ -223,22 +222,6 @@ func runAdapter(t *testing.T, options adapter.Options) (context.Context, *rest.C
 	}()
 
 	return ctx, restConfig
-}
-
-// contextWithDeadline returns context which will timeout before t.Deadline().
-func contextWithDeadline(t *testing.T) context.Context {
-	t.Helper()
-
-	deadline, ok := t.Deadline()
-	if !ok {
-		return context.Background()
-	}
-
-	ctx, cancel := context.WithDeadline(context.Background(), deadline.Truncate(timeoutGracePeriod))
-
-	t.Cleanup(cancel)
-
-	return ctx
 }
 
 func retryUntilFinished(f func() bool) {

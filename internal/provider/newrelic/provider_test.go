@@ -17,6 +17,7 @@ import (
 	"sigs.k8s.io/custom-metrics-apiserver/pkg/provider"
 
 	"github.com/newrelic/newrelic-k8s-metrics-adapter/internal/provider/newrelic"
+	"github.com/newrelic/newrelic-k8s-metrics-adapter/internal/testutil"
 )
 
 const (
@@ -28,6 +29,8 @@ const (
 //nolint:funlen,gocognit,cyclop // Just a large test suite.
 func Test_Getting_external_metric(t *testing.T) {
 	t.Parallel()
+
+	ctx := testutil.ContextWithDeadline(t)
 
 	t.Run("without_error_returns_exactly_one_metric", func(t *testing.T) {
 		t.Parallel()
@@ -50,7 +53,7 @@ func Test_Getting_external_metric(t *testing.T) {
 
 		p := testProvider(t, providerOptions)
 
-		r, err := p.GetExternalMetric(context.Background(), "", nil, provider.ExternalMetricInfo{Metric: testMetricName})
+		r, err := p.GetExternalMetric(ctx, "", nil, provider.ExternalMetricInfo{Metric: testMetricName})
 		if err != nil {
 			t.Fatalf("Unexpected error while getting external metric: %v", err)
 		}
@@ -108,7 +111,7 @@ func Test_Getting_external_metric(t *testing.T) {
 
 		metricInfo := provider.ExternalMetricInfo{Metric: testMetricName}
 
-		if _, err := p.GetExternalMetric(context.Background(), "", sl, metricInfo); err != nil {
+		if _, err := p.GetExternalMetric(ctx, "", sl, metricInfo); err != nil {
 			t.Fatalf("Unexpected error getting external metric: %v", err)
 		}
 
@@ -198,7 +201,7 @@ func Test_Getting_external_metric(t *testing.T) {
 
 				metricInfo := provider.ExternalMetricInfo{Metric: testMetricName}
 
-				if _, err := p.GetExternalMetric(context.Background(), "", testData.selector(), metricInfo); err != nil {
+				if _, err := p.GetExternalMetric(ctx, "", testData.selector(), metricInfo); err != nil {
 					t.Fatalf("Unexpected error getting external metric: %v", err)
 				}
 
@@ -263,7 +266,7 @@ func Test_Getting_external_metric(t *testing.T) {
 
 				metricInfo := provider.ExternalMetricInfo{Metric: testMetricName}
 
-				r, err := p.GetExternalMetric(context.Background(), "", nil, metricInfo)
+				r, err := p.GetExternalMetric(ctx, "", nil, metricInfo)
 				if err != nil {
 					t.Errorf("Unexpected error: %v", err)
 				}
@@ -295,7 +298,7 @@ func Test_Getting_external_metric(t *testing.T) {
 
 		p := testProvider(t, providerOptions)
 
-		r, err := p.GetExternalMetric(context.Background(), "", nil, provider.ExternalMetricInfo{Metric: testMetricName})
+		r, err := p.GetExternalMetric(ctx, "", nil, provider.ExternalMetricInfo{Metric: testMetricName})
 		if err != nil {
 			t.Fatalf("Unexpected error while getting external metric: %v", err)
 		}
@@ -318,7 +321,7 @@ func Test_Getting_external_metric(t *testing.T) {
 
 			p := testProvider(t, providerOptions)
 
-			r, err := p.GetExternalMetric(context.Background(), "", selector, info)
+			r, err := p.GetExternalMetric(ctx, "", selector, info)
 			if err == nil {
 				t.Errorf("Expected error getting external metric")
 			}
