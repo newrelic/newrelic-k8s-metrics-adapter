@@ -9,5 +9,7 @@ restartPolicy: Never
 config:
   externalMetrics:
     # This metric is used in e2e tests.
+    # The sub-query is added to allow adding where conditions over the attribute.
+    # The latest func is added to remove timestamp on the result since timestamp from const values have undefined behavior.
     e2e:
-      query: "select 0.123 from NrUsage"
+      query: "SELECT latest(attributeName) FROM (SELECT 0.123 AS 'attributeName' FROM NrUsage)"

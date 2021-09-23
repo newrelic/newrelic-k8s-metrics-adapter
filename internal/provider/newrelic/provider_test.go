@@ -173,6 +173,24 @@ func Test_Getting_external_metric(t *testing.T) {
 				},
 				expectedQuery: "select test from testSample limit 1 where key IS NOT NULL",
 			},
+			"adds_EQUALS_string_value_to_query_when_defined": {
+				selector: func() labels.Selector {
+					s := labels.NewSelector()
+					r1, _ := labels.NewRequirement("key", selection.Equals, []string{"value"})
+
+					return s.Add(*r1)
+				},
+				expectedQuery: "select test from testSample limit 1 where key = 'value'",
+			},
+			"adds_EQUALS_number_value_to_query_when_defined": {
+				selector: func() labels.Selector {
+					s := labels.NewSelector()
+					r1, _ := labels.NewRequirement("key", selection.Equals, []string{"1.5"})
+
+					return s.Add(*r1)
+				},
+				expectedQuery: "select test from testSample limit 1 where key = 1.5",
+			},
 			"adds_all_defined_selectors_to_query": {
 				selector: func() labels.Selector {
 					s := labels.NewSelector()
@@ -206,7 +224,7 @@ func Test_Getting_external_metric(t *testing.T) {
 				}
 
 				if client.query != testData.expectedQuery {
-					t.Errorf("Expected query %q, got %q", client.query, testData.expectedQuery)
+					t.Errorf("Expected query %q, got %q", testData.expectedQuery, client.query)
 				}
 			})
 		}
@@ -417,7 +435,7 @@ func Test_Getting_external_metric(t *testing.T) {
 
 			s := labels.NewSelector()
 
-			r1, err := labels.NewRequirement("key", selection.Equals, []string{"value"})
+			r1, err := labels.NewRequirement("key", selection.GreaterThan, []string{"1"})
 			if err != nil {
 				t.Fatalf("Unexpected error building requirement: %v", err)
 			}
