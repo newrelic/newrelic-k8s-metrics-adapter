@@ -32,6 +32,13 @@ KIND_CMD ?= kind
 KIND_SCRIPT ?= hack/kind-with-registry.sh
 KIND_IMAGE ?= kindest/node:v1.22.1
 
+NEWRELIC_REGION ?= $(shell (grep NEWRELIC_REGION .env 2>/dev/null) | cut -d= -f2 2>/dev/null)
+NEWRELIC_API_KEY ?= $(shell (grep NEWRELIC_API_KEY .env 2>/dev/null || echo "X") | cut -d= -f2 2>/dev/null)
+NEWRELIC_ACCOUNT_ID ?= $(shell (grep NEWRELIC_ACCOUNT_ID .env 2>/dev/null || echo "1") | cut -d= -f2 2>/dev/null)
+NEWRELIC_CLUSTER_NAME ?= $(shell (grep NEWRELIC_CLUSTER_NAME .env 2>/dev/null || echo "testing") | cut -d= -f2 2>/dev/null)
+
+LOCAL_VALUES_FILE ?= values-local.yaml
+
 .PHONY: build
 build: BINARY_NAME := $(if $(GOOS),$(BINARY_NAME)-$(GOOS),$(BINARY_NAME))
 build: BINARY_NAME := $(if $(GOARCH),$(BINARY_NAME)-$(GOARCH),$(BINARY_NAME))
@@ -48,8 +55,15 @@ test: ## Runs all unit tests.
 	$(GO_TEST) $(GO_PACKAGES)
 
 .PHONY: test-integration
+test-integration: ENV := $(ENV) KUBECONFIG=$(TEST_KUBECONFIG)
+test-integration: ENV := $(ENV) USE_EXISTING_CLUSTER=true
+test-integration: ENV := $(ENV) NEWRELIC_REGION=$(NEWRELIC_REGION)
+test-integration: ENV := $(ENV) NEWRELIC_API_KEY=$(NEWRELIC_API_KEY)
+test-integration: ENV := $(ENV) NEWRELIC_ACCOUNT_ID=$(NEWRELIC_ACCOUNT_ID)
 test-integration: ## Runs all integration tests.
-	KUBECONFIG=$(TEST_KUBECONFIG) USE_EXISTING_CLUSTER=true $(GO_TEST) -tags integration $(GO_PACKAGES)
+	@test ! -z "$(NEWRELIC_API_KEY)" || (echo "NEWRELIC_API_KEY must be set as environment variable or in .env file before running this target"; exit 1)
+	@test ! -z "$(NEWRELIC_ACCOUNT_ID)" || (echo "NEWRELIC_ACCOUNT_ID must be set as environment variable or in .env file before running this target"; exit 1)
+	@$(ENV) $(GO_TEST) -tags integration $(GO_PACKAGES)
 
 .PHONY: test-e2e
 test-e2e: ## Runs all e2e tests. Expects metrics-adapter to be installed on the cluster using Helm chart.
@@ -122,12 +136,20 @@ update-kind: ## Updates hack/kind-with-registry.sh file.
 kind-down: ## Cleans up local Kind cluster.
 	$(KIND_CMD) delete cluster
 
+.PHONY: generate-local-values
+generate-local-values: ## Generate values-local.yaml file using environment variables or data from .env file.
+	@echo "personalAPIKey: $(NEWRELIC_API_KEY)" > $(LOCAL_VALUES_FILE)
+	@echo "cluster: $(NEWRELIC_CLUSTER_NAME)" >> $(LOCAL_VALUES_FILE)
+	@echo "config:" >> $(LOCAL_VALUES_FILE)
+	@echo "  accountID: $(NEWRELIC_ACCOUNT_ID)" >> $(LOCAL_VALUES_FILE)
+	@echo "  region: $(NEWRELIC_REGION)" >> $(LOCAL_VALUES_FILE)
+
 .PHONY: tilt-up
-tilt-up: ## Builds project and deploys it to local Kind cluster.
+tilt-up: generate-local-values ## Builds project and deploys it to local Kind cluster.
 	env KUBECONFIG=$(TEST_KUBECONFIG) $(TILT_CMD) up
 
 .PHONY: tilt-down
-tilt-down: ## Cleans up resources created by Tilt.
+tilt-down: generate-local-values ## Cleans up resources created by Tilt.
 	env KUBECONFIG=$(TEST_KUBECONFIG) $(TILT_CMD) down
 
 .PHONY: help

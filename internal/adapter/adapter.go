@@ -15,13 +15,18 @@ import (
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/custom-metrics-apiserver/pkg/apiserver"
 	basecmd "sigs.k8s.io/custom-metrics-apiserver/pkg/cmd"
+	"sigs.k8s.io/custom-metrics-apiserver/pkg/cmd/server"
 	"sigs.k8s.io/custom-metrics-apiserver/pkg/provider"
 
 	generatedopenapi "github.com/newrelic/newrelic-k8s-metrics-adapter/internal/generated/openapi"
 )
 
-// Name of the adapter.
-const Name = "newrelic-k8s-metrics-adapter"
+const (
+	// Name of the adapter.
+	Name = "newrelic-k8s-metrics-adapter"
+	// DefaultSecurePort is a default port adapter will be listening on using HTTPS.
+	DefaultSecurePort = 6443
+)
 
 var version = "dev" //nolint:gochecknoglobal // Version is set at building time.
 
@@ -42,18 +47,23 @@ type Adapter interface {
 
 // NewAdapter validates given adapter options and creates new runnable adapter instance.
 func NewAdapter(options Options) (Adapter, error) {
-	adapter := &adapter{}
+	a := &adapter{}
 	// Used as identifier in logs with -v=6, defaults to "custom-metrics-adapter", so we want to override that.
-	adapter.Name = Name
+	a.Name = Name
 
-	adapter.OpenAPIConfig = genericapiserver.DefaultOpenAPIConfig(
+	a.OpenAPIConfig = genericapiserver.DefaultOpenAPIConfig(
 		generatedopenapi.GetOpenAPIDefinitions,
 		openapinamer.NewDefinitionNamer(apiserver.Scheme),
 	)
-	adapter.OpenAPIConfig.Info.Title = adapter.Name
-	adapter.OpenAPIConfig.Info.Version = version
+	a.OpenAPIConfig.Info.Title = a.Name
+	a.OpenAPIConfig.Info.Version = version
 
-	if err := adapter.initFlags(options.Args); err != nil {
+	// Initialize part of the struct by hand to be able to specify default secure port.
+	a.CustomMetricsAdapterServerOptions = server.NewCustomMetricsAdapterServerOptions()
+	a.CustomMetricsAdapterServerOptions.OpenAPIConfig = a.OpenAPIConfig
+	a.SecureServing.BindPort = DefaultSecurePort
+
+	if err := a.initFlags(options.Args); err != nil {
 		return nil, fmt.Errorf("initiating flags: %w", err)
 	}
 
@@ -61,9 +71,9 @@ func NewAdapter(options Options) (Adapter, error) {
 		return nil, fmt.Errorf("external metrics provider must be configured")
 	}
 
-	adapter.WithExternalMetrics(options.ExternalMetricsProvider)
+	a.WithExternalMetrics(options.ExternalMetricsProvider)
 
-	return adapter, nil
+	return a, nil
 }
 
 func (a *adapter) initFlags(args []string) error {

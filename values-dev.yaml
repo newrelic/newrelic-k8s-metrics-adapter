@@ -6,12 +6,8 @@ image:
 
 restartPolicy: Never
 
-# Extra values, required by newrelic-k8s-metrics-adapter chart.
-cluster: testing
-
-accountID: 1
-personalAPIKey: X
-externalMetrics:
-  test1:
-    query: "SELECT latest(cpuUsedCores) from K8sContainerSample"
-    addClusterFilter: true
+config:
+  externalMetrics:
+    # This metric is used in e2e tests.
+    e2e:
+      query: "select 0.123 from NrUsage"

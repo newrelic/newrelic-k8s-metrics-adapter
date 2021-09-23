@@ -2,3 +2,4 @@
 /newrelic-k8s-metrics-adapter*
 /kubeconfig
 /values-local.yaml
+/.env

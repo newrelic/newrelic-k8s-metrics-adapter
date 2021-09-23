@@ -21,7 +21,19 @@
 
 ## Testing
 
->[**Optional** - Include instructions on how to run tests if we include tests with the codebase. Remove this section if it's not needed.]
+### Running integration and e2e tests
+
+In order to run integration tests (`make test-integration`) or to test real metric queries, one must configure
+access to their NewRelic account. This can be done either via environment variable directly or by putting required
+environment variables into `.env` file, which will be read by `Makefile` and they will be used for other commands.
+
+`.env` example content looks like following:
+```sh
+NEWRELIC_API_KEY=NRAK-XXX
+NEWRELIC_ACCOUNT_ID=1
+#NEWRELIC_REGION=EU
+NEWRELIC_CLUSTER_NAME=my-cluster
+```
 
 ## Support
 

@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/newrelic/newrelic-client-go v0.62.1
 	github.com/spf13/pflag v1.0.5
+	k8s.io/api v0.22.0
 	k8s.io/apimachinery v0.22.0
 	k8s.io/apiserver v0.22.0
 	k8s.io/client-go v0.22.0
@@ -12,6 +13,7 @@ require (
 	k8s.io/klog/v2 v2.9.0
 	k8s.io/kube-openapi v0.0.0-20210421082810-95288971da7e
 	k8s.io/metrics v0.22.0
+	k8s.io/utils v0.0.0-20210802155522-efc7438f0176
 	sigs.k8s.io/controller-runtime v0.9.6
 	sigs.k8s.io/custom-metrics-apiserver v1.22.0
 	sigs.k8s.io/yaml v1.2.0
