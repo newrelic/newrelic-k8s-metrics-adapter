@@ -16,8 +16,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 	"sigs.k8s.io/yaml"
 
-	"github.com/gsanchezgavier/metrics-adapter/internal/adapter"
-	"github.com/gsanchezgavier/metrics-adapter/internal/provider/newrelic"
+	"github.com/newrelic/newrelic-k8s-metrics-adapter/internal/adapter"
+	"github.com/newrelic/newrelic-k8s-metrics-adapter/internal/provider/newrelic"
 )
 
 const (

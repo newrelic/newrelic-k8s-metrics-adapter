@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	adapter "github.com/gsanchezgavier/metrics-adapter"
+	adapter "github.com/newrelic/newrelic-k8s-metrics-adapter"
 )
 
 //nolint:paralleltest // We manipulate environment variables here which are global.

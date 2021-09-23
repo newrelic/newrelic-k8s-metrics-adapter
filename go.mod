@@ -1,4 +1,4 @@
-module github.com/gsanchezgavier/metrics-adapter
+module github.com/newrelic/newrelic-k8s-metrics-adapter
 
 go 1.16
 
