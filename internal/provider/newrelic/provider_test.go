@@ -16,7 +16,7 @@ import (
 	"k8s.io/apimachinery/pkg/selection"
 	"sigs.k8s.io/custom-metrics-apiserver/pkg/provider"
 
-	"github.com/gsanchezgavier/metrics-adapter/internal/provider/newrelic"
+	"github.com/newrelic/newrelic-k8s-metrics-adapter/internal/provider/newrelic"
 )
 
 const (

@@ -11,8 +11,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gsanchezgavier/metrics-adapter/internal/adapter"
-	"github.com/gsanchezgavier/metrics-adapter/internal/provider/mock"
+	"github.com/newrelic/newrelic-k8s-metrics-adapter/internal/adapter"
+	"github.com/newrelic/newrelic-k8s-metrics-adapter/internal/provider/mock"
 )
 
 func Test_Creating_adapter(t *testing.T) { //nolint:funlen // Just a lot of test cases.

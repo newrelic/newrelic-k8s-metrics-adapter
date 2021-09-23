@@ -29,8 +29,8 @@ import (
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
-	"github.com/gsanchezgavier/metrics-adapter/internal/adapter"
-	"github.com/gsanchezgavier/metrics-adapter/internal/provider/mock"
+	"github.com/newrelic/newrelic-k8s-metrics-adapter/internal/adapter"
+	"github.com/newrelic/newrelic-k8s-metrics-adapter/internal/provider/mock"
 )
 
 const (

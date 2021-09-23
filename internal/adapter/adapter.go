@@ -17,7 +17,7 @@ import (
 	basecmd "sigs.k8s.io/custom-metrics-apiserver/pkg/cmd"
 	"sigs.k8s.io/custom-metrics-apiserver/pkg/provider"
 
-	generatedopenapi "github.com/gsanchezgavier/metrics-adapter/internal/generated/openapi"
+	generatedopenapi "github.com/newrelic/newrelic-k8s-metrics-adapter/internal/generated/openapi"
 )
 
 // Name of the adapter.

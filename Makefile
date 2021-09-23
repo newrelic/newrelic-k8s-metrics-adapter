@@ -11,7 +11,7 @@ CGO_ENABLED ?= 0
 BINARY_NAME ?= newrelic-k8s-metrics-adapter
 
 TAG ?= "dev"
-X_LD_FLAGS ?= -X 'github.com/gsanchezgavier/metrics-adapter/internal/adapter.version=$(TAG)'
+X_LD_FLAGS ?= -X 'github.com/newrelic/newrelic-k8s-metrics-adapter/internal/adapter.version=$(TAG)'
 EXT_LD_FLAGS ?= -extldflags '-static'
 LD_FLAGS ?= "$(EXT_LD_FLAGS) $(X_LD_FLAGS)"
 
