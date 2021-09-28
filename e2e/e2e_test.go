@@ -49,10 +49,12 @@ func Test_Metrics_adapter_makes_sample_external_metric_available(t *testing.T) {
 		t.Fatalf("Unexpected error creating clientset: %v", err)
 	}
 
+	ctx := testutil.ContextWithDeadline(t)
+
 	t.Run("to_local_client", func(t *testing.T) {
 		t.Parallel()
 
-		ns := withTestNamespace(testutil.ContextWithDeadline(t), t, clientset)
+		ns := withTestNamespace(ctx, t, clientset)
 
 		externalMetricsClient, err := eclient.NewForConfig(cfg)
 		if err != nil {
@@ -67,7 +69,6 @@ func Test_Metrics_adapter_makes_sample_external_metric_available(t *testing.T) {
 	t.Run("to_HPA", func(t *testing.T) {
 		t.Parallel()
 
-		ctx := testutil.ContextWithDeadline(t)
 		ns := withTestNamespace(ctx, t, clientset)
 
 		deploymentName := withTestDeployment(ctx, t, clientset.AppsV1().Deployments(ns))
