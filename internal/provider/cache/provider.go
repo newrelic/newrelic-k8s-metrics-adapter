@@ -44,7 +44,7 @@ func NewCacheProvider(options ProviderOptions) (provider.ExternalMetricsProvider
 	}
 
 	if options.CacheTTL == 0 {
-		options.CacheTTL = defaultCacheTTL
+		klog.Infof("CacheTTL is 0. Each request will hit the backend.")
 	}
 
 	return &cacheProvider{

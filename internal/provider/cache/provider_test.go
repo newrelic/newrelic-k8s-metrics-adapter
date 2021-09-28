@@ -229,6 +229,7 @@ func testProvider(t *testing.T) (provider.ExternalMetricsProvider, *int) {
 	mockProvider, numCalls := testMockProvider(t, resource.MustParse(testQuantity), time.Now(), nil)
 	cacheOption := cache.ProviderOptions{
 		ExternalProvider: mockProvider,
+		CacheTTL:         5,
 	}
 
 	p, err := cache.NewCacheProvider(cacheOption)
