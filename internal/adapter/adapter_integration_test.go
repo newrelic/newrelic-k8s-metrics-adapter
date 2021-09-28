@@ -38,6 +38,9 @@ const (
 	certValidityDuration = 1 * time.Hour
 	testHost             = "127.0.0.1"
 	kubeconfigEnv        = "KUBECONFIG"
+	// Each of integration tests should not take more than 10 seconds to complete
+	// under normal circumstances. This should make detecting bugs faster.
+	testMaxExecutionTime = 10 * time.Second
 )
 
 func Test_Adapter_responds_to(t *testing.T) {
@@ -175,7 +178,7 @@ func runAdapter(t *testing.T, options adapter.Options) (context.Context, *rest.C
 
 	ctxWithDeadline := testutil.ContextWithDeadline(t)
 
-	ctx, cancel := context.WithCancel(ctxWithDeadline)
+	ctx, cancel := context.WithTimeout(ctxWithDeadline, testMaxExecutionTime)
 
 	useExistingCluster := true
 	testEnv := &envtest.Environment{
