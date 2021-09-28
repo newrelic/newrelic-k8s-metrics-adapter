@@ -133,6 +133,8 @@ func Test_Metrics_adapter_makes_sample_external_metric_available(t *testing.T) {
 
 			for _, condition := range hpa.Status.Conditions {
 				if condition.Status != "True" {
+					t.Logf("Ignoring false condition %q: %v", condition.Type, condition.Message)
+
 					continue
 				}
 
