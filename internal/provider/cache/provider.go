@@ -17,12 +17,9 @@ import (
 	"sigs.k8s.io/custom-metrics-apiserver/pkg/provider"
 )
 
-// defaultCacheTTL if not specified in ProviderOptions.
-const defaultCacheTTL = 30
-
 type cacheProvider struct {
 	externalProvider provider.ExternalMetricsProvider
-	cacheTTL         int64
+	ttlWindow        time.Duration
 	storage          *sync.Map
 }
 
@@ -49,7 +46,7 @@ func NewCacheProvider(options ProviderOptions) (provider.ExternalMetricsProvider
 
 	return &cacheProvider{
 		externalProvider: options.ExternalProvider,
-		cacheTTL:         options.CacheTTL,
+		ttlWindow:        time.Duration(options.CacheTTL) * time.Second,
 		storage:          &sync.Map{},
 	}, nil
 }
@@ -67,15 +64,6 @@ func (p *cacheProvider) GetExternalMetric(ctx context.Context, _ string, match l
 		return v, nil
 	}
 
-	v, err := p.fetchAndSave(ctx, match, info, id)
-	if err != nil {
-		return nil, fmt.Errorf("fetching and saving to cache %q: %w", id, err)
-	}
-
-	return v, nil
-}
-
-func (p *cacheProvider) fetchAndSave(ctx context.Context, match labels.Selector, info provider.ExternalMetricInfo, id string) (*external_metrics.ExternalMetricValueList, error) { //nolint:lll // External interface requirement.
 	v, err := p.externalProvider.GetExternalMetric(ctx, "", match, info)
 	if err != nil {
 		return nil, fmt.Errorf("getting fresh external metric value: %w", err)
@@ -119,8 +107,7 @@ func getID(metricName string, selector labels.Selector) string {
 }
 
 func (p *cacheProvider) isDataTooOld(timestamp time.Time) bool {
-	validWindow := time.Duration(p.cacheTTL) * time.Second
-	oldestSampleAllowed := time.Now().Add(-validWindow)
+	oldestSampleAllowed := time.Now().Add(-p.ttlWindow)
 
 	return !timestamp.After(oldestSampleAllowed)
 }
