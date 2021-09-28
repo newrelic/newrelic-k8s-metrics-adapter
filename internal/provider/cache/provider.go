@@ -69,7 +69,7 @@ func (p *cacheProvider) GetExternalMetric(ctx context.Context, _ string, match l
 
 	v, err := p.fetchAndSave(ctx, match, info, id)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("fetching and saving to cache %q: %w", id, err)
 	}
 
 	return v, nil
