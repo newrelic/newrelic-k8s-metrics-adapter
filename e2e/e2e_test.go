@@ -71,6 +71,11 @@ func Test_Metrics_adapter_makes_sample_external_metric_available(t *testing.T) {
 
 		ns := withTestNamespace(ctx, t, clientset)
 
+		// Under normal circumstances it should not take more than 60 seconds for HPA to converge.
+		hpaConvergenceDeadline := 60 * time.Second
+
+		ctx, cancel := context.WithTimeout(ctx, hpaConvergenceDeadline)
+
 		deploymentName := withTestDeployment(ctx, t, clientset.AppsV1().Deployments(ns))
 
 		client := clientset.AutoscalingV2beta2().HorizontalPodAutoscalers(ns)
@@ -113,6 +118,8 @@ func Test_Metrics_adapter_makes_sample_external_metric_available(t *testing.T) {
 			if err := client.Delete(ctx, hpa.Name, metav1.DeleteOptions{}); err != nil {
 				t.Logf("Failed removing HPA %q: %v", hpa.Name, err)
 			}
+
+			cancel()
 		})
 
 		if err := wait.PollImmediateUntilWithContext(ctx, 1*time.Second, func(context.Context) (bool, error) {
