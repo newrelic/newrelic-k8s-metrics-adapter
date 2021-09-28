@@ -33,7 +33,9 @@ import (
 
 const (
 	// This metric must be configured when deploying the adapter.
-	testMetric = "e2e"
+	testMetric               = "e2e"
+	testMetricAttributeKey   = "attributeName"
+	testMetricAttributeValue = "0.123"
 
 	testPrefix = "newrelic-metrics-adapter-e2e-tests-"
 )
@@ -69,88 +71,110 @@ func Test_Metrics_adapter_makes_sample_external_metric_available(t *testing.T) {
 	t.Run("to_HPA", func(t *testing.T) {
 		t.Parallel()
 
-		ns := withTestNamespace(ctx, t, clientset)
-
-		// Under normal circumstances it should not take more than 60 seconds for HPA to converge.
-		hpaConvergenceDeadline := 60 * time.Second
-
-		ctx, cancel := context.WithTimeout(ctx, hpaConvergenceDeadline)
-
-		deploymentName := withTestDeployment(ctx, t, clientset.AppsV1().Deployments(ns))
-
-		client := clientset.AutoscalingV2beta2().HorizontalPodAutoscalers(ns)
-
-		hpa := &autoscalingv2beta2.HorizontalPodAutoscaler{
-			ObjectMeta: metav1.ObjectMeta{
-				GenerateName: "newrelic-metrics-adapter-e2e-test",
-				Namespace:    ns,
+		cases := map[string]metav1.LabelSelector{
+			"when_metric_has_match_labels": {
+				MatchLabels: map[string]string{testMetricAttributeKey: testMetricAttributeValue},
 			},
-			Spec: autoscalingv2beta2.HorizontalPodAutoscalerSpec{
-				MaxReplicas: 1,
-				ScaleTargetRef: autoscalingv2beta2.CrossVersionObjectReference{
-					Kind:       "Deployment",
-					APIVersion: "apps/v1",
-					Name:       deploymentName,
-				},
-				Metrics: []autoscalingv2beta2.MetricSpec{
+			"when_metric_has_match_expression": {
+				MatchExpressions: []metav1.LabelSelectorRequirement{
 					{
-						Type: autoscalingv2beta2.ExternalMetricSourceType,
-						External: &autoscalingv2beta2.ExternalMetricSource{
-							Target: autoscalingv2beta2.MetricTarget{
-								Type:  "Value",
-								Value: resource.NewQuantity(1, resource.DecimalSI),
-							},
-							Metric: autoscalingv2beta2.MetricIdentifier{
-								Name: testMetric,
-							},
-						},
+						Key:      testMetricAttributeKey,
+						Operator: metav1.LabelSelectorOpExists,
 					},
 				},
 			},
 		}
+		for testCaseName, testData := range cases {
+			testData := testData
 
-		hpa, err = client.Create(ctx, hpa, metav1.CreateOptions{})
-		if err != nil {
-			t.Fatalf("Unexpected error creating HPA object: %v", err)
-		}
+			t.Run(testCaseName, func(t *testing.T) {
+				t.Parallel()
 
-		t.Cleanup(func() {
-			if err := client.Delete(ctx, hpa.Name, metav1.DeleteOptions{}); err != nil {
-				t.Logf("Failed removing HPA %q: %v", hpa.Name, err)
-			}
+				ns := withTestNamespace(ctx, t, clientset)
 
-			cancel()
-		})
+				// Under normal circumstances it should not take more than 60 seconds for HPA to converge.
+				hpaConvergenceDeadline := 60 * time.Second
 
-		if err := wait.PollImmediateUntilWithContext(ctx, 1*time.Second, func(context.Context) (bool, error) {
-			hpa, err = client.Get(ctx, hpa.Name, metav1.GetOptions{})
-			if err != nil {
-				t.Fatalf("Getting HPA %q: %v", hpa.Name, err)
-			}
+				ctx, cancel := context.WithTimeout(ctx, hpaConvergenceDeadline)
 
-			scalingActive := false
-			ableToScale := false
+				deploymentName := withTestDeployment(ctx, t, clientset.AppsV1().Deployments(ns))
 
-			for _, condition := range hpa.Status.Conditions {
-				if condition.Status != "True" {
-					t.Logf("Ignoring false condition %q: %v", condition.Type, condition.Message)
+				client := clientset.AutoscalingV2beta2().HorizontalPodAutoscalers(ns)
 
-					continue
+				hpa := &autoscalingv2beta2.HorizontalPodAutoscaler{
+					ObjectMeta: metav1.ObjectMeta{
+						GenerateName: "newrelic-metrics-adapter-e2e-test",
+						Namespace:    ns,
+					},
+					Spec: autoscalingv2beta2.HorizontalPodAutoscalerSpec{
+						MaxReplicas: 1,
+						ScaleTargetRef: autoscalingv2beta2.CrossVersionObjectReference{
+							Kind:       "Deployment",
+							APIVersion: "apps/v1",
+							Name:       deploymentName,
+						},
+						Metrics: []autoscalingv2beta2.MetricSpec{
+							{
+								Type: autoscalingv2beta2.ExternalMetricSourceType,
+								External: &autoscalingv2beta2.ExternalMetricSource{
+									Target: autoscalingv2beta2.MetricTarget{
+										Type:  "Value",
+										Value: resource.NewQuantity(1, resource.DecimalSI),
+									},
+									Metric: autoscalingv2beta2.MetricIdentifier{
+										Name:     testMetric,
+										Selector: &testData,
+									},
+								},
+							},
+						},
+					},
 				}
 
-				switch condition.Type {
-				case autoscalingv2beta2.ScalingActive:
-					scalingActive = true
-				case autoscalingv2beta2.AbleToScale:
-					ableToScale = true
-				default:
-					t.Logf("Ignoring condition %v", condition)
+				hpa, err = client.Create(ctx, hpa, metav1.CreateOptions{})
+				if err != nil {
+					t.Fatalf("Unexpected error creating HPA object: %v", err)
 				}
-			}
 
-			return scalingActive && ableToScale, nil
-		}); err != nil {
-			t.Fatalf("Timed out waiting for HPA to converge: %v", err)
+				t.Cleanup(func() {
+					if err := client.Delete(ctx, hpa.Name, metav1.DeleteOptions{}); err != nil {
+						t.Logf("Failed removing HPA %q: %v", hpa.Name, err)
+					}
+
+					cancel()
+				})
+
+				if err := wait.PollImmediateUntilWithContext(ctx, 1*time.Second, func(context.Context) (bool, error) {
+					hpa, err = client.Get(ctx, hpa.Name, metav1.GetOptions{})
+					if err != nil {
+						t.Fatalf("Getting HPA %q: %v", hpa.Name, err)
+					}
+
+					scalingActive := false
+					ableToScale := false
+
+					for _, condition := range hpa.Status.Conditions {
+						if condition.Status != "True" {
+							t.Logf("Ignoring false condition %q: %v", condition.Type, condition.Message)
+
+							continue
+						}
+
+						switch condition.Type {
+						case autoscalingv2beta2.ScalingActive:
+							scalingActive = true
+						case autoscalingv2beta2.AbleToScale:
+							ableToScale = true
+						default:
+							t.Logf("Ignoring condition %v", condition)
+						}
+					}
+
+					return scalingActive && ableToScale, nil
+				}); err != nil {
+					t.Fatalf("Timed out waiting for HPA to converge: %v", err)
+				}
+			})
 		}
 	})
 }

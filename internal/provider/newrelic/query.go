@@ -42,11 +42,15 @@ func (q Query) addMatchFilter(match labels.Selector) (Query, error) {
 		key := r.Key()
 
 		switch r.Operator() {
+		case selection.Equals:
+			whereClause = buildEQUALClause(whereClause, key, r.Operator(), r.Values().List())
+
 		case selection.In, selection.NotIn:
 			whereClause = buildINClause(whereClause, key, r.Operator(), r.Values().List())
 
 		case selection.DoesNotExist, selection.Exists:
 			whereClause = fmt.Sprintf("%s %s %s", whereClause, key, transformOperator(r.Operator()))
+
 		default:
 			return "", fmt.Errorf("requirement %d use unsupported operator %q", index, r.Operator())
 		}
@@ -63,12 +67,7 @@ func buildINClause(whereClause string, key string, operator selection.Operator, 
 	inClause := "("
 
 	for index, v := range values {
-		if _, errNoNumber := strconv.ParseFloat(v, bitSize); errNoNumber != nil {
-			inClause = fmt.Sprintf("%s'%s'", inClause, v)
-		} else {
-			inClause = fmt.Sprintf("%s%s", inClause, v)
-		}
-
+		inClause = fmt.Sprintf("%s%s", inClause, formatAttributeValue(v))
 		if index != len(values)-1 {
 			inClause = fmt.Sprintf("%s, ", inClause)
 		}
@@ -79,8 +78,26 @@ func buildINClause(whereClause string, key string, operator selection.Operator, 
 	return fmt.Sprintf("%s %s %s %s", whereClause, key, transformOperator(operator), inClause)
 }
 
+func buildEQUALClause(whereClause string, key string, operator selection.Operator, values []string) string {
+	// When operator is equal values contains just one value.
+	for _, v := range values {
+		whereClause = fmt.Sprintf("%s %s %s %s", whereClause, key, transformOperator(operator), formatAttributeValue(v))
+	}
+
+	return whereClause
+}
+
+func formatAttributeValue(value string) string {
+	if _, errNoNumber := strconv.ParseFloat(value, bitSize); errNoNumber == nil {
+		return value
+	}
+
+	return fmt.Sprintf("'%s'", value)
+}
+
 func transformOperator(op selection.Operator) string {
 	m := map[selection.Operator]string{
+		selection.Equals:       "=",
 		selection.Exists:       "IS NOT NULL",
 		selection.DoesNotExist: "IS NULL",
 		selection.In:           "IN",

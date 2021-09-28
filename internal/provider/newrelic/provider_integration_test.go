@@ -54,6 +54,12 @@ func Test_Getting_external_metric_generates_a_query_not_rejected_by_backend(t *t
 
 		cases := map[string]func() labels.Selector{
 			"with_no_selectors_defined": func() labels.Selector { return nil },
+			"with_EQUAL_selector": func() labels.Selector {
+				s := labels.NewSelector()
+				r1, _ := labels.NewRequirement("key", selection.Equals, []string{"value"})
+
+				return s.Add(*r1)
+			},
 			"with_IN_selector": func() labels.Selector {
 				s := labels.NewSelector()
 				r1, _ := labels.NewRequirement("key", selection.In, []string{"value", "15", "18"})
@@ -84,8 +90,9 @@ func Test_Getting_external_metric_generates_a_query_not_rejected_by_backend(t *t
 				r2, _ := labels.NewRequirement("key2", selection.DoesNotExist, []string{})
 				r3, _ := labels.NewRequirement("key3", selection.In, []string{"value", "1", "2"})
 				r4, _ := labels.NewRequirement("key4", selection.NotIn, []string{"value2", "3"})
+				r5, _ := labels.NewRequirement("key5", selection.Equals, []string{"equalVal"})
 
-				return s.Add(*r1).Add(*r2).Add(*r3).Add(*r4)
+				return s.Add(*r1).Add(*r2).Add(*r3).Add(*r4).Add(*r5)
 			},
 		}
 
