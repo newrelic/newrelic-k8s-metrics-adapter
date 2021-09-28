@@ -49,10 +49,12 @@ func Test_Metrics_adapter_makes_sample_external_metric_available(t *testing.T) {
 		t.Fatalf("Unexpected error creating clientset: %v", err)
 	}
 
+	ctx := testutil.ContextWithDeadline(t)
+
 	t.Run("to_local_client", func(t *testing.T) {
 		t.Parallel()
 
-		ns := withTestNamespace(testutil.ContextWithDeadline(t), t, clientset)
+		ns := withTestNamespace(ctx, t, clientset)
 
 		externalMetricsClient, err := eclient.NewForConfig(cfg)
 		if err != nil {
@@ -67,8 +69,12 @@ func Test_Metrics_adapter_makes_sample_external_metric_available(t *testing.T) {
 	t.Run("to_HPA", func(t *testing.T) {
 		t.Parallel()
 
-		ctx := testutil.ContextWithDeadline(t)
 		ns := withTestNamespace(ctx, t, clientset)
+
+		// Under normal circumstances it should not take more than 60 seconds for HPA to converge.
+		hpaConvergenceDeadline := 60 * time.Second
+
+		ctx, cancel := context.WithTimeout(ctx, hpaConvergenceDeadline)
 
 		deploymentName := withTestDeployment(ctx, t, clientset.AppsV1().Deployments(ns))
 
@@ -112,6 +118,8 @@ func Test_Metrics_adapter_makes_sample_external_metric_available(t *testing.T) {
 			if err := client.Delete(ctx, hpa.Name, metav1.DeleteOptions{}); err != nil {
 				t.Logf("Failed removing HPA %q: %v", hpa.Name, err)
 			}
+
+			cancel()
 		})
 
 		if err := wait.PollImmediateUntilWithContext(ctx, 1*time.Second, func(context.Context) (bool, error) {
@@ -125,6 +133,8 @@ func Test_Metrics_adapter_makes_sample_external_metric_available(t *testing.T) {
 
 			for _, condition := range hpa.Status.Conditions {
 				if condition.Status != "True" {
+					t.Logf("Ignoring false condition %q: %v", condition.Type, condition.Message)
+
 					continue
 				}
 
