@@ -74,7 +74,7 @@ func Run(ctx context.Context, configPath string, args []string) error {
 
 	directProvider, err := newrelic.NewDirectProvider(providerOptions)
 	if err != nil {
-		return fmt.Errorf("creating cache provider: %w", err)
+		return fmt.Errorf("creating direct provider: %w", err)
 	}
 
 	cacheOptions := cache.ProviderOptions{
@@ -84,7 +84,7 @@ func Run(ctx context.Context, configPath string, args []string) error {
 
 	cacheProvider, err := cache.NewCacheProvider(cacheOptions)
 	if err != nil {
-		return fmt.Errorf("creating direct provider: %w", err)
+		return fmt.Errorf("creating cache provider: %w", err)
 	}
 
 	options := adapter.Options{

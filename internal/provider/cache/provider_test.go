@@ -37,7 +37,7 @@ func Test_Getting_external_metric(t *testing.T) {
 	t.Run("returning_no_error", func(t *testing.T) {
 		t.Parallel()
 
-		t.Run("and_running_a_query_with", func(t *testing.T) {
+		t.Run("and_then_running_a_query_with", func(t *testing.T) {
 			t.Parallel()
 
 			t.Run("same_metric_and_selectors_in_cache_TTL_windows_uses_cache", func(t *testing.T) {
@@ -148,7 +148,7 @@ func Test_Getting_external_metric(t *testing.T) {
 			t.Fatalf("Error expected")
 		}
 
-		t.Run("and_running_a_query_with_same_metric_and_selectors_calls_twice_the_backend", func(t *testing.T) {
+		t.Run("and_then_running_a_query_with_same_metric_and_selectors_calls_twice_the_backend", func(t *testing.T) {
 			t.Parallel()
 
 			_, err = p.GetExternalMetric(ctx, "", nil, provider.ExternalMetricInfo{Metric: testMetricNameOne})
@@ -176,8 +176,8 @@ func Test_Listing_available_metrics_returns_all_configured_metrics_by_external_p
 	listCache := p.ListAllExternalMetrics()
 	listExternal := mockProvider.ListAllExternalMetrics()
 
-	if cmp.Diff(listCache, listExternal) != "" {
-		t.Errorf("Expecting identical lists: %q", cmp.Diff(listCache, listExternal))
+	if diff := cmp.Diff(listCache, listExternal); diff != "" {
+		t.Errorf("Expecting identical lists:\n%s", diff)
 	}
 }
 
