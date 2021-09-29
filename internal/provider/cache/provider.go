@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/klog/v2"
 	"k8s.io/metrics/pkg/apis/external_metrics"
@@ -25,7 +26,7 @@ type cacheProvider struct {
 
 type cacheEntry struct {
 	value          *external_metrics.ExternalMetricValueList
-	retrievingTime time.Time
+	retrievingTime metav1.Time
 }
 
 // ProviderOptions holds the configOptions of the provider.
@@ -71,7 +72,7 @@ func (p *cacheProvider) GetExternalMetric(ctx context.Context, _ string, match l
 
 	p.storage.Store(id, &cacheEntry{
 		value:          v,
-		retrievingTime: time.Now(),
+		retrievingTime: v.Items[0].Timestamp,
 	})
 
 	return v, nil
@@ -106,7 +107,7 @@ func getID(metricName string, selector labels.Selector) string {
 	return id
 }
 
-func (p *cacheProvider) isDataTooOld(timestamp time.Time) bool {
+func (p *cacheProvider) isDataTooOld(timestamp metav1.Time) bool {
 	oldestSampleAllowed := time.Now().Add(-p.ttlWindow)
 
 	return !timestamp.After(oldestSampleAllowed)
