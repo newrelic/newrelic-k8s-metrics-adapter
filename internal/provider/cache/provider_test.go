@@ -180,7 +180,7 @@ func Test_Getting_external_metric_returns(t *testing.T) {
 	})
 }
 
-func Test_Listing_available_external_metrics_always_gets_fresh_list_from_configured_external_provider(t *testing.T) {
+func Test_Listing_available_external_metrics_always_returns_fresh_list_from_configured_external_provider(t *testing.T) {
 	t.Parallel()
 
 	numCalls := 0
