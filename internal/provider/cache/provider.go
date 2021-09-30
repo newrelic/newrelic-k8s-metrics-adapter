@@ -70,6 +70,10 @@ func (p *cacheProvider) GetExternalMetric(ctx context.Context, _ string, match l
 		return nil, fmt.Errorf("getting fresh external metric value: %w", err)
 	}
 
+	if len(v.Items) == 0 {
+		return nil, fmt.Errorf("expecting at least 1 element for v.Items got 0: %q", id)
+	}
+
 	p.storage.Store(id, &cacheEntry{
 		value:          v,
 		retrievingTime: v.Items[0].Timestamp,

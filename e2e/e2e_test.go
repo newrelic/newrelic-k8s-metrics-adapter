@@ -40,7 +40,7 @@ const (
 	testPrefix = "newrelic-metrics-adapter-e2e-tests-"
 )
 
-//nolint:funlen,cyclop // Just many test cases.
+//nolint:funlen,cyclop,gocognit // Just many test cases.
 func Test_Metrics_adapter_makes_sample_external_metric_available(t *testing.T) {
 	t.Parallel()
 

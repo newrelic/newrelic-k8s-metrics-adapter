@@ -16,7 +16,8 @@ import (
 
 // Provider holds the config of the provider.
 type Provider struct {
-	GetMethod func(ctx context.Context, namespace string, metricSelector labels.Selector, info provider.ExternalMetricInfo) (*external_metrics.ExternalMetricValueList, error) //nolint:lll // External interface requirement.
+	GetMethod  func(ctx context.Context, namespace string, metricSelector labels.Selector, info provider.ExternalMetricInfo) (*external_metrics.ExternalMetricValueList, error) //nolint:lll // External interface requirement.
+	ListMethod func() []provider.ExternalMetricInfo
 }
 
 // GetExternalMetric implemented from external provider interface.
@@ -41,6 +42,10 @@ func (p *Provider) GetExternalMetric(ctx context.Context, namespace string, metr
 
 // ListAllExternalMetrics implemented from external provider interface.
 func (p *Provider) ListAllExternalMetrics() []provider.ExternalMetricInfo {
+	if p.ListMethod != nil {
+		return p.ListMethod()
+	}
+
 	return []provider.ExternalMetricInfo{
 		{
 			Metric: "MockMetric",
