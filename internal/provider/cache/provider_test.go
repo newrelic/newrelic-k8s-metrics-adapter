@@ -291,7 +291,6 @@ func getWorkingMockOptions() *testMockOptions {
 	return &testMockOptions{
 		sample: []external_metrics.ExternalMetricValue{
 			{Timestamp: metav1.Now(), Value: resource.Quantity{}},
-			{Timestamp: metav1.Now(), Value: resource.Quantity{}},
 		},
 	}
 }
