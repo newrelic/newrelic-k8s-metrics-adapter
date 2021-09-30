@@ -30,8 +30,8 @@ type cacheProvider struct {
 }
 
 type cacheEntry struct {
-	value          *external_metrics.ExternalMetricValueList
-	retrievingTime metav1.Time
+	value     *external_metrics.ExternalMetricValueList
+	timestamp metav1.Time
 }
 
 // NewCacheProvider is the constructor for the cache provider.
@@ -72,8 +72,8 @@ func (p *cacheProvider) GetExternalMetric(ctx context.Context, _ string, match l
 	}
 
 	p.storage.Store(id, &cacheEntry{
-		value:          v,
-		retrievingTime: v.Items[0].Timestamp,
+		value:     v,
+		timestamp: v.Items[0].Timestamp,
 	})
 
 	return v, nil
@@ -86,8 +86,7 @@ func (p *cacheProvider) getCacheEntry(id string) (*external_metrics.ExternalMetr
 	}
 
 	c := value.(*cacheEntry) //nolint:forcetypeassert
-
-	if p.isDataTooOld(c.retrievingTime) {
+	if p.isDataTooOld(c.timestamp) {
 		return nil, false
 	}
 
