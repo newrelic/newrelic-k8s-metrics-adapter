@@ -38,7 +38,7 @@ type ConfigOptions struct {
 	AccountID       int64                      `json:"accountID"`
 	ExternalMetrics map[string]newrelic.Metric `json:"externalMetrics"`
 	Region          string                     `json:"region"`
-	CacheTTL        int64                      `json:"cacheTTL"`
+	CacheTTLSeconds int64                      `json:"cacheTTLSeconds"`
 }
 
 // Run reads configuration file and environment variables to configure and run the adapter.
@@ -79,7 +79,7 @@ func Run(ctx context.Context, configPath string, args []string) error {
 
 	cacheOptions := cache.ProviderOptions{
 		ExternalProvider: directProvider,
-		CacheTTL:         config.CacheTTL,
+		CacheTTLSeconds:  config.CacheTTLSeconds,
 	}
 
 	cacheProvider, err := cache.NewCacheProvider(cacheOptions)

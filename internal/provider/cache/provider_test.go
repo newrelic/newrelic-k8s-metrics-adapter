@@ -6,6 +6,7 @@ package cache_test
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"testing"
 	"time"
 
@@ -41,7 +42,7 @@ func Test_Getting_external_metric_returns(t *testing.T) {
 
 			mockProvider, numCalls := getTestMockProvider(t, time.Now(), nil)
 
-			p, err := cache.NewCacheProvider(cache.ProviderOptions{ExternalProvider: mockProvider, CacheTTL: 1})
+			p, err := cache.NewCacheProvider(cache.ProviderOptions{ExternalProvider: mockProvider, CacheTTLSeconds: 1})
 			if err != nil {
 				t.Fatalf("Unexpected error creating the provider %v", err)
 			}
@@ -92,7 +93,7 @@ func Test_Getting_external_metric_returns(t *testing.T) {
 		expectedError := fmt.Errorf("randomError")
 		mockProvider, _ := getTestMockProvider(t, time.Now(), expectedError)
 
-		p, err := cache.NewCacheProvider(cache.ProviderOptions{ExternalProvider: mockProvider, CacheTTL: 5})
+		p, err := cache.NewCacheProvider(cache.ProviderOptions{ExternalProvider: mockProvider, CacheTTLSeconds: 5})
 		if err != nil {
 			t.Fatalf("Unexpected error creating the provider %v", err)
 		}
@@ -106,7 +107,7 @@ func Test_Getting_external_metric_returns(t *testing.T) {
 	t.Run("cached_value_when", func(t *testing.T) {
 		t.Parallel()
 
-		t.Run("same_metric_and_nil_selectors_is_requested_more_than_once_within_TTL_window", func(t *testing.T) {
+		t.Run("same_metric_with_no_selector_is_requested_more_than_once_within_TTL_window", func(t *testing.T) {
 			t.Parallel()
 			p, nCalls := getTestCacheProvider(t)
 
@@ -118,7 +119,7 @@ func Test_Getting_external_metric_returns(t *testing.T) {
 			testCache(t, p, nCalls, nil, testMetricNameOne)
 		})
 
-		t.Run("same_metric_and_selectors_is_requested_more_than_once_within_TTL_window", func(t *testing.T) {
+		t.Run("same_metric_with_same_selector_is_requested_more_than_once_within_TTL_window", func(t *testing.T) {
 			t.Parallel()
 			p, nCalls := getTestCacheProvider(t)
 			s := labels.NewSelector()
@@ -141,7 +142,7 @@ func Test_Listing_available_external_metrics_always_gets_fresh_list_from_configu
 	mockProvider, numCalls := getTestMockProvider(t, time.Now(), nil)
 	listExternal := mockProvider.ListAllExternalMetrics()
 
-	p, err := cache.NewCacheProvider(cache.ProviderOptions{ExternalProvider: mockProvider, CacheTTL: 5})
+	p, err := cache.NewCacheProvider(cache.ProviderOptions{ExternalProvider: mockProvider, CacheTTLSeconds: 5})
 	if err != nil {
 		t.Fatalf("Unexpected error creating the provider %v", err)
 	}
@@ -154,21 +155,23 @@ func Test_Listing_available_external_metrics_always_gets_fresh_list_from_configu
 		}
 
 		if *numCalls != i {
-			t.Errorf("Unexpected number of calls to external provider: %d", *numCalls)
+			t.Errorf("Expected %d calls to external provider, got %d", i, *numCalls)
 		}
 	}
 }
 
-func Test_Creating_provider_returns_error_when_TTL_is_negative(t *testing.T) {
+func Test_Creating_provider_returns_external_provider_when_TTL_is_negative(t *testing.T) {
 	t.Parallel()
 
-	p, err := cache.NewCacheProvider(cache.ProviderOptions{ExternalProvider: nil, CacheTTL: -1})
-	if err == nil {
-		t.Errorf("Expected error creating provider")
+	m, _ := getTestMockProvider(t, time.Now(), nil)
+
+	p, err := cache.NewCacheProvider(cache.ProviderOptions{ExternalProvider: m, CacheTTLSeconds: -1})
+	if err != nil {
+		t.Fatalf("Unexpected error creating the provider %v", err)
 	}
 
-	if p != nil {
-		t.Errorf("Expected provider to be nil when error occurs, got %v", p)
+	if _, ok := p.(*mock.Provider); !ok {
+		t.Errorf("Expected provider type *mock.Provider, got %q", reflect.TypeOf(p))
 	}
 }
 
@@ -178,7 +181,7 @@ func getTestMockProvider(t *testing.T, ts time.Time, errExpected error) (*mock.P
 	numCalls := 0
 
 	mockProvider := mock.Provider{
-		GetMethod: func(_ context.Context, _ string, _ labels.Selector, _ provider.ExternalMetricInfo) (*external_metrics.ExternalMetricValueList, error) { //nolint:lll // External interface requirement.
+		GetExternalMetricFunc: func(_ context.Context, _ string, _ labels.Selector, _ provider.ExternalMetricInfo) (*external_metrics.ExternalMetricValueList, error) { //nolint:lll // External interface requirement.
 			numCalls++
 
 			return &external_metrics.ExternalMetricValueList{
@@ -191,7 +194,7 @@ func getTestMockProvider(t *testing.T, ts time.Time, errExpected error) (*mock.P
 				},
 			}, errExpected
 		},
-		ListMethod: func() []provider.ExternalMetricInfo {
+		ListAllExternalMetricsFunc: func() []provider.ExternalMetricInfo {
 			numCalls++
 
 			return []provider.ExternalMetricInfo{
@@ -210,7 +213,7 @@ func getTestCacheProvider(t *testing.T) (provider.ExternalMetricsProvider, *int)
 
 	mockProvider, numCalls := getTestMockProvider(t, time.Now(), nil)
 
-	p, err := cache.NewCacheProvider(cache.ProviderOptions{ExternalProvider: mockProvider, CacheTTL: 10})
+	p, err := cache.NewCacheProvider(cache.ProviderOptions{ExternalProvider: mockProvider, CacheTTLSeconds: 10})
 	if err != nil {
 		t.Fatalf("Unexpected error creating the provider %v", err)
 	}

@@ -7,7 +7,6 @@ package cache
 import (
 	"context"
 	"fmt"
-	"reflect"
 	"sync"
 	"time"
 
@@ -17,6 +16,12 @@ import (
 	"k8s.io/metrics/pkg/apis/external_metrics"
 	"sigs.k8s.io/custom-metrics-apiserver/pkg/provider"
 )
+
+// ProviderOptions holds the configOptions of the provider.
+type ProviderOptions struct {
+	ExternalProvider provider.ExternalMetricsProvider
+	CacheTTLSeconds  int64
+}
 
 type cacheProvider struct {
 	externalProvider provider.ExternalMetricsProvider
@@ -29,25 +34,17 @@ type cacheEntry struct {
 	retrievingTime metav1.Time
 }
 
-// ProviderOptions holds the configOptions of the provider.
-type ProviderOptions struct {
-	ExternalProvider provider.ExternalMetricsProvider
-	CacheTTL         int64
-}
-
 // NewCacheProvider is the constructor for the cache provider.
 func NewCacheProvider(options ProviderOptions) (provider.ExternalMetricsProvider, error) {
-	if options.CacheTTL < 0 {
-		return nil, fmt.Errorf("cacheTTL cannot be less then 0")
-	}
+	if options.CacheTTLSeconds <= 0 {
+		klog.Infof("Cache TTL is <= 0. Cache disabled.")
 
-	if options.CacheTTL == 0 {
-		klog.Infof("CacheTTL is 0. Each request will hit the backend.")
+		return options.ExternalProvider, nil
 	}
 
 	return &cacheProvider{
 		externalProvider: options.ExternalProvider,
-		ttlWindow:        time.Duration(options.CacheTTL) * time.Second,
+		ttlWindow:        time.Duration(options.CacheTTLSeconds) * time.Second,
 		storage:          &sync.Map{},
 	}, nil
 }
@@ -88,12 +85,7 @@ func (p *cacheProvider) getCacheEntry(id string) (*external_metrics.ExternalMetr
 		return nil, false
 	}
 
-	c, ok := value.(*cacheEntry)
-	if !ok {
-		klog.Infof("unexpected format for cache entry, %s", reflect.TypeOf(value))
-
-		return nil, false
-	}
+	c := value.(*cacheEntry) //nolint:forcetypeassert
 
 	if p.isDataTooOld(c.retrievingTime) {
 		return nil, false

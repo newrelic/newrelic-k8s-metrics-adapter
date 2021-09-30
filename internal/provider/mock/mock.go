@@ -16,14 +16,14 @@ import (
 
 // Provider holds the config of the provider.
 type Provider struct {
-	GetMethod  func(ctx context.Context, namespace string, metricSelector labels.Selector, info provider.ExternalMetricInfo) (*external_metrics.ExternalMetricValueList, error) //nolint:lll // External interface requirement.
-	ListMethod func() []provider.ExternalMetricInfo
+	GetExternalMetricFunc      func(ctx context.Context, namespace string, metricSelector labels.Selector, info provider.ExternalMetricInfo) (*external_metrics.ExternalMetricValueList, error) //nolint:lll // External interface requirement.
+	ListAllExternalMetricsFunc func() []provider.ExternalMetricInfo
 }
 
 // GetExternalMetric implemented from external provider interface.
 func (p *Provider) GetExternalMetric(ctx context.Context, namespace string, metricSelector labels.Selector, info provider.ExternalMetricInfo) (*external_metrics.ExternalMetricValueList, error) { //nolint:lll // External interface requirement.
-	if p.GetMethod != nil {
-		return p.GetMethod(ctx, namespace, metricSelector, info)
+	if p.GetExternalMetricFunc != nil {
+		return p.GetExternalMetricFunc(ctx, namespace, metricSelector, info)
 	}
 
 	return &external_metrics.ExternalMetricValueList{
@@ -42,8 +42,8 @@ func (p *Provider) GetExternalMetric(ctx context.Context, namespace string, metr
 
 // ListAllExternalMetrics implemented from external provider interface.
 func (p *Provider) ListAllExternalMetrics() []provider.ExternalMetricInfo {
-	if p.ListMethod != nil {
-		return p.ListMethod()
+	if p.ListAllExternalMetricsFunc != nil {
+		return p.ListAllExternalMetricsFunc()
 	}
 
 	return []provider.ExternalMetricInfo{
