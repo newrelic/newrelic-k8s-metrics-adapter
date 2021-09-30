@@ -19,11 +19,16 @@ import (
 	"sigs.k8s.io/custom-metrics-apiserver/pkg/provider"
 )
 
-// defaultOldestSampleAllowed is the default value for the oldest sampled allowed (seconds).
-const defaultOldestSampleAllowed = 360
+const (
+	// defaultOldestSampleAllowed is the default value for the oldest sampled allowed (seconds).
+	defaultOldestSampleAllowed = 360
 
-// NewRelic reports timestamp in millisecond, whereas the library supports seconds and nanoseconds.
-const newrelicTimestampFactor = 1000
+	// NewRelic reports timestamp in millisecond, whereas the library supports seconds and nanoseconds.
+	newrelicTimestampFactor = 1000
+
+	// debug level for klog.
+	debug = klog.Level(2)
+)
 
 type directProvider struct {
 	metricsSupported map[string]Metric
@@ -135,7 +140,7 @@ func (p *directProvider) getMetric(ctx context.Context, name string, sl labels.S
 		return 0, nil, fmt.Errorf("building query: %w", err)
 	}
 
-	klog.Infof("Executing %q", query)
+	klog.V(debug).Infof("Executing %q", query)
 
 	// Define inline so it can be used only from a single place in code for consistency,
 	// to avoid possibly adding query to error message twice.
@@ -192,7 +197,7 @@ func (p *directProvider) validateQueryResult(answer *nrdb.NRDBResultContainer) e
 func timestampFromResult(nrdbResult nrdb.NRDBResult, oldestSampleAllowed int64, query Query) (*time.Time, error) {
 	timestampRaw, ok := nrdbResult["timestamp"]
 	if !ok {
-		klog.Infof("The query %q returns samples without the timestamp "+
+		klog.V(debug).Infof("The query %q returns samples without the timestamp "+
 			"useful to validate the sample", query)
 
 		return nil, nil
@@ -200,7 +205,7 @@ func timestampFromResult(nrdbResult nrdb.NRDBResult, oldestSampleAllowed int64, 
 
 	timestampFloat, ok := timestampRaw.(float64)
 	if !ok {
-		klog.Infof("The query %q returns samples with a 'no float64' timestamp", query)
+		klog.V(debug).Infof("The query %q returns samples with a 'no float64' timestamp", query)
 
 		return nil, nil
 	}
