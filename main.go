@@ -17,6 +17,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"github.com/newrelic/newrelic-k8s-metrics-adapter/internal/adapter"
+	"github.com/newrelic/newrelic-k8s-metrics-adapter/internal/provider/cache"
 	"github.com/newrelic/newrelic-k8s-metrics-adapter/internal/provider/newrelic"
 )
 
@@ -37,6 +38,7 @@ type ConfigOptions struct {
 	AccountID       int64                      `json:"accountID"`
 	ExternalMetrics map[string]newrelic.Metric `json:"externalMetrics"`
 	Region          string                     `json:"region"`
+	CacheTTLSeconds int64                      `json:"cacheTTLSeconds"`
 }
 
 // Run reads configuration file and environment variables to configure and run the adapter.
@@ -75,9 +77,19 @@ func Run(ctx context.Context, configPath string, args []string) error {
 		return fmt.Errorf("creating direct provider: %w", err)
 	}
 
+	cacheOptions := cache.ProviderOptions{
+		ExternalProvider: directProvider,
+		CacheTTLSeconds:  config.CacheTTLSeconds,
+	}
+
+	cacheProvider, err := cache.NewCacheProvider(cacheOptions)
+	if err != nil {
+		return fmt.Errorf("creating cache provider: %w", err)
+	}
+
 	options := adapter.Options{
 		Args:                    args,
-		ExternalMetricsProvider: directProvider,
+		ExternalMetricsProvider: cacheProvider,
 	}
 
 	a, err := adapter.NewAdapter(options)
