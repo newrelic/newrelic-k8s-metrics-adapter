@@ -92,7 +92,7 @@ func Test_Getting_external_metric_returns(t *testing.T) {
 		}
 	})
 
-	t.Run("error_when_fetching_fresh_value_the_external_provider_returns", func(t *testing.T) {
+	t.Run("error_when_fetching_fresh_value_from_the_external_provider_returns", func(t *testing.T) {
 		t.Parallel()
 
 		cases := map[string]func(td *testMockOptions){
