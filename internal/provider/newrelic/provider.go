@@ -58,7 +58,7 @@ func NewDirectProvider(options ProviderOptions) (provider.ExternalMetricsProvide
 	}
 
 	if err := validateExternalMetrics(options.ExternalMetrics); err != nil {
-		return nil, fmt.Errorf("validating external metric names: %w", err)
+		return nil, fmt.Errorf("validating external metrics: %w", err)
 	}
 
 	for name := range options.ExternalMetrics {
