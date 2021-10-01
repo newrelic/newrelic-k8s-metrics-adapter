@@ -22,7 +22,7 @@ import (
 
 const (
 	testClusterName = "testCluster"
-	testMetricName  = "testMetric"
+	testMetricName  = "test_metric"
 	testQuery       = "select test from testSample limit 1"
 )
 
@@ -442,6 +442,14 @@ func Test_Getting_external_metric(t *testing.T) {
 
 			expectGetFails(t, providerOptions, s.Add(*r1), provider.ExternalMetricInfo{Metric: testMetricName})
 		})
+
+		t.Run("requested_metric_has_uppercase_characters_in_name", func(t *testing.T) {
+			t.Parallel()
+
+			providerOptions, _ := testProviderOptions()
+
+			expectGetFails(t, providerOptions, nil, provider.ExternalMetricInfo{Metric: "Test"})
+		})
 	})
 }
 
@@ -477,6 +485,12 @@ func Test_Creating_provider_returns_error_when(t *testing.T) {
 	cases := map[string]func(o *newrelic.ProviderOptions){
 		"account_id_is_zero": func(o *newrelic.ProviderOptions) { o.AccountID = 0 },
 		"client_is_not_set":  func(o *newrelic.ProviderOptions) { o.NRDBClient = nil },
+		"any_of_configured_external_metric_names_is_not_a_valid_path_segment": func(o *newrelic.ProviderOptions) {
+			o.ExternalMetrics["test/"] = newrelic.Metric{}
+		},
+		"any_of_configured_external_metric_has_uppercase_characters_in_name": func(o *newrelic.ProviderOptions) {
+			o.ExternalMetrics["Test"] = newrelic.Metric{}
+		},
 	}
 
 	for testCaseName, mutateF := range cases {

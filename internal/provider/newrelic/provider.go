@@ -8,10 +8,12 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
 	"k8s.io/apimachinery/pkg/api/resource"
+	"k8s.io/apimachinery/pkg/api/validation/path"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/klog/v2"
@@ -55,6 +57,10 @@ func NewDirectProvider(options ProviderOptions) (provider.ExternalMetricsProvide
 		return nil, fmt.Errorf("a NRDBClient cannot be nil")
 	}
 
+	if err := validateExternalMetrics(options.ExternalMetrics); err != nil {
+		return nil, fmt.Errorf("validating external metric names: %w", err)
+	}
+
 	for name := range options.ExternalMetrics {
 		klog.Infof("Registering metric %q", name)
 	}
@@ -67,6 +73,28 @@ func NewDirectProvider(options ProviderOptions) (provider.ExternalMetricsProvide
 		accountID:        options.AccountID,
 		clusterName:      options.ClusterName,
 	}, nil
+}
+
+func validateExternalMetrics(externalMetrics map[string]Metric) error {
+	for name := range externalMetrics {
+		if err := isValidExternalMetricName(name); err != nil {
+			return fmt.Errorf("invalid metric name %q: %w", name, err)
+		}
+	}
+
+	return nil
+}
+
+func isValidExternalMetricName(name string) error {
+	if strings.ToLower(name) != name {
+		return fmt.Errorf("may not contain uppercase char")
+	}
+
+	if err := path.IsValidPathSegmentName(name); len(err) != 0 {
+		return fmt.Errorf("%v", err)
+	}
+
+	return nil
 }
 
 // Metric holds the config needed to retrieve a supported metric.
@@ -128,6 +156,10 @@ func (p *directProvider) ListAllExternalMetrics() []provider.ExternalMetricInfo 
 
 // GetMetric fetches a value of a metric calling QueryWithContext of NRDBClient.
 func (p *directProvider) getMetric(ctx context.Context, name string, sl labels.Selector) (float64, *time.Time, error) {
+	if err := isValidExternalMetricName(name); err != nil {
+		return 0, nil, fmt.Errorf("invalid metric name %q: %w", name, err)
+	}
+
 	metric, ok := p.metricsSupported[name]
 	if !ok {
 		return 0, nil, fmt.Errorf("metric %q not configured", name)
