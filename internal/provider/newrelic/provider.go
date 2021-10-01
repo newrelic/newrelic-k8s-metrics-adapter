@@ -90,8 +90,8 @@ func isValidExternalMetricName(name string) error {
 		return fmt.Errorf("may not contain uppercase char")
 	}
 
-	if err := path.IsValidPathSegmentName(name); len(err) != 0 {
-		return fmt.Errorf("%v", err)
+	if errs := path.IsValidPathSegmentName(name); len(errs) != 0 {
+		return fmt.Errorf("is not a valid path segment name: %v", strings.Join(errs, ","))
 	}
 
 	return nil

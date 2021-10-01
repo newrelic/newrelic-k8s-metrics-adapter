@@ -488,7 +488,7 @@ func Test_Creating_provider_returns_error_when(t *testing.T) {
 		"any_of_configured_external_metric_names_is_not_a_valid_path_segment": func(o *newrelic.ProviderOptions) {
 			o.ExternalMetrics["test/"] = newrelic.Metric{}
 		},
-		"any_of_configured_external_metric_has_uppercase_characters_in_name": func(o *newrelic.ProviderOptions) {
+		"any_of_configured_external_metrics_has_uppercase_character_in_name": func(o *newrelic.ProviderOptions) {
 			o.ExternalMetrics["Test"] = newrelic.Metric{}
 		},
 	}
