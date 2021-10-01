@@ -67,7 +67,7 @@ func NewDirectProvider(options ProviderOptions) (provider.ExternalMetricsProvide
 // Metric holds the config needed to retrieve a supported metric.
 type Metric struct {
 	Query               Query `json:"query"`
-	AddClusterFilter    bool  `json:"addClusterFilter"`
+	RemoveClusterFilter bool  `json:"removeClusterFilter"`
 	OldestSampleAllowed int64 `json:"oldestSampleAllowed"`
 }
 
@@ -130,7 +130,7 @@ func (p *directProvider) getMetric(ctx context.Context, name string, sl labels.S
 
 	q := metric.Query
 
-	query, err := q.addClusterFilter(p.clusterName, metric.AddClusterFilter).addMatchFilter(sl)
+	query, err := q.addClusterFilter(p.clusterName, metric.RemoveClusterFilter).addMatchFilter(sl)
 	if err != nil {
 		return 0, nil, fmt.Errorf("building query: %w", err)
 	}

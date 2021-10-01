@@ -13,3 +13,4 @@ config:
     # The latest func is added to remove timestamp on the result since timestamp from const values have undefined behavior.
     e2e:
       query: "SELECT latest(attributeName) FROM (SELECT 0.123 AS 'attributeName' FROM NrUsage)"
+      removeClusterFilter: true

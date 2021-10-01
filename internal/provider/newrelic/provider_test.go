@@ -92,7 +92,7 @@ func Test_Getting_external_metric(t *testing.T) {
 		})
 	})
 
-	t.Run("filters_metrics_by_configured_cluster_name_when_add_cluster_filter_is_set", func(t *testing.T) {
+	t.Run("filters_metrics_by_configured_cluster_name_when_remove_cluster_filter_is_not_set", func(t *testing.T) {
 		t.Parallel()
 
 		sl := labels.NewSelector()
@@ -102,8 +102,7 @@ func Test_Getting_external_metric(t *testing.T) {
 		providerOptions, client := testProviderOptions()
 		providerOptions.ExternalMetrics = map[string]newrelic.Metric{
 			testMetricName: {
-				Query:            testQuery,
-				AddClusterFilter: true,
+				Query: testQuery,
 			},
 		}
 
@@ -536,7 +535,7 @@ func testProviderOptions() (newrelic.ProviderOptions, *testClient) {
 	}
 
 	return newrelic.ProviderOptions{
-		ExternalMetrics: map[string]newrelic.Metric{testMetricName: {Query: testQuery}},
+		ExternalMetrics: map[string]newrelic.Metric{testMetricName: {Query: testQuery, RemoveClusterFilter: true}},
 		NRDBClient:      client,
 		AccountID:       1,
 		ClusterName:     testClusterName,
