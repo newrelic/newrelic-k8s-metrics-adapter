@@ -517,7 +517,7 @@ func testProvider(t *testing.T, options newrelic.ProviderOptions) provider.Exter
 
 	p, err := newrelic.NewDirectProvider(options)
 	if err != nil {
-		t.Fatalf("Unexpected error creating the provider %v", err)
+		t.Fatalf("Unexpected error creating the provider: %v", err)
 	}
 
 	return p

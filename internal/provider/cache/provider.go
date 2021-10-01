@@ -68,7 +68,7 @@ func (p *cacheProvider) GetExternalMetric(ctx context.Context, _ string, match l
 	}
 
 	if l := len(v.Items); l != 1 {
-		return nil, fmt.Errorf("expecting exactly 1 element for v.Items got %d: %q", l, id)
+		return nil, fmt.Errorf("expected exactly 1 metric from external provider for metric %q, got %d", id, l)
 	}
 
 	p.storage.Store(id, &cacheEntry{
@@ -85,7 +85,7 @@ func (p *cacheProvider) getCacheEntry(id string) (*external_metrics.ExternalMetr
 		return nil, false
 	}
 
-	c := value.(*cacheEntry) //nolint:forcetypeassert
+	c := value.(*cacheEntry) //nolint:forcetypeassert // Cache should always be of this type.
 	if p.isDataTooOld(c.timestamp) {
 		return nil, false
 	}
