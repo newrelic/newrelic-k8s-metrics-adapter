@@ -8,10 +8,12 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
 	"k8s.io/apimachinery/pkg/api/resource"
+	"k8s.io/apimachinery/pkg/api/validation/path"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/klog/v2"
@@ -19,11 +21,16 @@ import (
 	"sigs.k8s.io/custom-metrics-apiserver/pkg/provider"
 )
 
-// defaultOldestSampleAllowed is the default value for the oldest sampled allowed (seconds).
-const defaultOldestSampleAllowed = 360
+const (
+	// defaultOldestSampleAllowed is the default value for the oldest sampled allowed (seconds).
+	defaultOldestSampleAllowed = 360
 
-// NewRelic reports timestamp in millisecond, whereas the library supports seconds and nanoseconds.
-const newrelicTimestampFactor = 1000
+	// NewRelic reports timestamp in millisecond, whereas the library supports seconds and nanoseconds.
+	newrelicTimestampFactor = 1000
+
+	// debug level for klog.
+	debug = klog.Level(2)
+)
 
 type directProvider struct {
 	metricsSupported map[string]Metric
@@ -50,6 +57,10 @@ func NewDirectProvider(options ProviderOptions) (provider.ExternalMetricsProvide
 		return nil, fmt.Errorf("a NRDBClient cannot be nil")
 	}
 
+	if err := validateExternalMetrics(options.ExternalMetrics); err != nil {
+		return nil, fmt.Errorf("validating external metrics: %w", err)
+	}
+
 	for name := range options.ExternalMetrics {
 		klog.Infof("Registering metric %q", name)
 	}
@@ -62,6 +73,28 @@ func NewDirectProvider(options ProviderOptions) (provider.ExternalMetricsProvide
 		accountID:        options.AccountID,
 		clusterName:      options.ClusterName,
 	}, nil
+}
+
+func validateExternalMetrics(externalMetrics map[string]Metric) error {
+	for name := range externalMetrics {
+		if err := isValidExternalMetricName(name); err != nil {
+			return fmt.Errorf("invalid metric name %q: %w", name, err)
+		}
+	}
+
+	return nil
+}
+
+func isValidExternalMetricName(name string) error {
+	if strings.ToLower(name) != name {
+		return fmt.Errorf("may not contain uppercase char")
+	}
+
+	if errs := path.IsValidPathSegmentName(name); len(errs) != 0 {
+		return fmt.Errorf("is not a valid path segment name: %v", strings.Join(errs, ","))
+	}
+
+	return nil
 }
 
 // Metric holds the config needed to retrieve a supported metric.
@@ -123,6 +156,10 @@ func (p *directProvider) ListAllExternalMetrics() []provider.ExternalMetricInfo 
 
 // GetMetric fetches a value of a metric calling QueryWithContext of NRDBClient.
 func (p *directProvider) getMetric(ctx context.Context, name string, sl labels.Selector) (float64, *time.Time, error) {
+	if err := isValidExternalMetricName(name); err != nil {
+		return 0, nil, fmt.Errorf("invalid metric name %q: %w", name, err)
+	}
+
 	metric, ok := p.metricsSupported[name]
 	if !ok {
 		return 0, nil, fmt.Errorf("metric %q not configured", name)
@@ -135,7 +172,7 @@ func (p *directProvider) getMetric(ctx context.Context, name string, sl labels.S
 		return 0, nil, fmt.Errorf("building query: %w", err)
 	}
 
-	klog.Infof("Executing %q", query)
+	klog.V(debug).Infof("Executing %q", query)
 
 	// Define inline so it can be used only from a single place in code for consistency,
 	// to avoid possibly adding query to error message twice.
@@ -192,7 +229,7 @@ func (p *directProvider) validateQueryResult(answer *nrdb.NRDBResultContainer) e
 func timestampFromResult(nrdbResult nrdb.NRDBResult, oldestSampleAllowed int64, query Query) (*time.Time, error) {
 	timestampRaw, ok := nrdbResult["timestamp"]
 	if !ok {
-		klog.Infof("The query %q returns samples without the timestamp "+
+		klog.V(debug).Infof("The query %q returns samples without the timestamp "+
 			"useful to validate the sample", query)
 
 		return nil, nil
@@ -200,7 +237,7 @@ func timestampFromResult(nrdbResult nrdb.NRDBResult, oldestSampleAllowed int64, 
 
 	timestampFloat, ok := timestampRaw.(float64)
 	if !ok {
-		klog.Infof("The query %q returns samples with a 'no float64' timestamp", query)
+		klog.V(debug).Infof("The query %q returns samples with a 'no float64' timestamp", query)
 
 		return nil, nil
 	}
