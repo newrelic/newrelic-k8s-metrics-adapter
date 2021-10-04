@@ -92,7 +92,7 @@ func Test_Getting_external_metric(t *testing.T) {
 		})
 	})
 
-	t.Run("filters_metrics_by_configured_cluster_name_when_remove_cluster_filter_is_not_set", func(t *testing.T) {
+	t.Run("filters_metrics_by_configured_cluster_name_when_remove_cluster_filter_is_false", func(t *testing.T) {
 		t.Parallel()
 
 		sl := labels.NewSelector()
