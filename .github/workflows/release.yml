@@ -1,0 +1,91 @@
+name: Release
+
+on:
+  release:
+    types: [ prereleased, released ]
+
+jobs:
+  build:
+    name: Build integration for
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [ linux ]
+        goarch: [ amd64, arm64, arm ]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.16'
+
+      # A cache entry is will be generated for `key`, and attempted to restore.
+      # If `key` is not found, any partial match for `restore-keys` will be attempted.
+      # Regardless of whether `key` was found or not, it will be created at the end of the run.
+      # With this mechanism, we ensure caches are cycled regularly.
+      - name: Go modules cache
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: gomod-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            gomod-
+      - name: Build cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/go-build
+          key: gobuild-${{ matrix.goos }}-${{ matrix.goarch }}-${{ github.sha }}
+          restore-keys: |
+            gobuild-${{ matrix.goos }}-${{ matrix.goarch }}
+      - name: Build integration
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          make build
+      - name: Upload artifact for Docker build step
+        uses: actions/upload-artifact@v2
+        with:
+          retention-days: 1
+          name: newrelic-k8s-metrics-adapter-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: newrelic-k8s-metrics-adapter-${{ matrix.goos }}-${{ matrix.goarch }}
+
+  release:
+    name: Release Docker images
+    needs: [ build ]
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_IMAGE_NAME: newrelic/newrelic-k8s-metrics-adapter
+      DOCKER_PLATFORMS: "linux/amd64,linux/arm64,linux/arm" # Must be consistent with the matrix from the job above.
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Generate Docker image version from git tag
+        run: |
+          echo "${{ github.event.release.tag_name }}" | grep -E '^v[0-9.]*[0-9]$'
+          DOCKER_IMAGE_TAG=$(echo "${{ github.event.release.tag_name }}" | sed 's/^v//')
+          echo "DOCKER_IMAGE_TAG=$DOCKER_IMAGE_TAG" >> $GITHUB_ENV
+      - if: ${{ github.event.release.prerelease }}
+        run: |
+          echo "DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}-pre" >> $GITHUB_ENV
+      - uses: docker/setup-qemu-action@v1
+      - uses: docker/setup-buildx-action@v1
+
+      - name: Download all artifacts from build job
+        uses: actions/download-artifact@v2
+
+      - uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.FSI_DOCKERHUB_USERNAME }}
+          password: ${{ secrets.FSI_DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        run: |
+          docker buildx build --push --platform=$DOCKER_PLATFORMS \
+            -t $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG \
+            .
+      - name: Push :latest image
+        if: ${{ ! github.event.release.prerelease }}
+        run: |
+          docker buildx build --push --platform=$DOCKER_PLATFORMS \
+            -t $DOCKER_IMAGE_NAME:latest \
+            .
