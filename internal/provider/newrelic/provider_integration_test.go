@@ -34,8 +34,7 @@ func Test_Getting_external_metric_generates_a_query_not_rejected_by_backend(t *t
 		t.Parallel()
 
 		p := newrelicProviderWithMetric(t, newrelic.Metric{
-			Query:            testIntegrationQuery,
-			AddClusterFilter: true,
+			Query: testIntegrationQuery,
 		})
 
 		m := provider.ExternalMetricInfo{Metric: testMetricName}
@@ -49,7 +48,8 @@ func Test_Getting_external_metric_generates_a_query_not_rejected_by_backend(t *t
 		t.Parallel()
 
 		p := newrelicProviderWithMetric(t, newrelic.Metric{
-			Query: testIntegrationQuery,
+			Query:               testIntegrationQuery,
+			RemoveClusterFilter: true,
 		})
 
 		cases := map[string]func() labels.Selector{

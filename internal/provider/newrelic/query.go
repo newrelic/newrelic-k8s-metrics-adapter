@@ -18,8 +18,8 @@ const (
 // Query stores user configured query for external metric and allows extending by limits or filters.
 type Query string
 
-func (q Query) addClusterFilter(clusterName string, addClusterFilter bool) Query {
-	if !addClusterFilter {
+func (q Query) addClusterFilter(clusterName string, removeClusterFilter bool) Query {
+	if removeClusterFilter {
 		return q
 	}
 
