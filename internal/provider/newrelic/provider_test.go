@@ -4,6 +4,7 @@
 package newrelic_test
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"reflect"
@@ -14,6 +15,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
+	"k8s.io/component-base/metrics"
+	metricsTestutil "k8s.io/component-base/metrics/testutil"
 	"sigs.k8s.io/custom-metrics-apiserver/pkg/provider"
 
 	"github.com/newrelic/newrelic-k8s-metrics-adapter/internal/provider/newrelic"
@@ -32,9 +35,7 @@ func Test_Getting_external_metric(t *testing.T) {
 
 	ctx := testutil.ContextWithDeadline(t)
 
-	t.Run("without_error_returns_exactly_one_metric", func(t *testing.T) {
-		t.Parallel()
-
+	t.Run("without_error", func(t *testing.T) {
 		testTimestampMilli := time.Now().UnixNano() / 1000000
 
 		// NewRelic only supports millisecond precision, so we need to drop all nanoseconds, otherwise time comparison
@@ -51,6 +52,9 @@ func Test_Getting_external_metric(t *testing.T) {
 			},
 		}
 
+		registry := metrics.NewKubeRegistry()
+		providerOptions.RegisterFunc = registry.Register
+
 		p := testProvider(t, providerOptions)
 
 		r, err := p.GetExternalMetric(ctx, "", nil, provider.ExternalMetricInfo{Metric: testMetricName})
@@ -58,36 +62,57 @@ func Test_Getting_external_metric(t *testing.T) {
 			t.Fatalf("Unexpected error while getting external metric: %v", err)
 		}
 
-		if len(r.Items) != 1 {
-			t.Fatalf("Expected exactly one item, got %d", len(r.Items))
-		}
-
-		metric := r.Items[0]
-
-		t.Run("with_first_value_from_query_result", func(t *testing.T) {
+		t.Run("returns_exactly_one_metric", func(t *testing.T) {
 			t.Parallel()
 
-			expectedValue := "15m"
-
-			if metric.Value.String() != expectedValue {
-				t.Errorf("Expected value %q, got %q", expectedValue, metric.Value.String())
+			if len(r.Items) != 1 {
+				t.Fatalf("Expected exactly one item, got %d", len(r.Items))
 			}
+
+			metric := r.Items[0]
+
+			t.Run("with_first_value_from_query_result", func(t *testing.T) {
+				t.Parallel()
+
+				expectedValue := "15m"
+
+				if metric.Value.String() != expectedValue {
+					t.Errorf("Expected value %q, got %q", expectedValue, metric.Value.String())
+				}
+			})
+
+			t.Run("with_name_of_requested_metric", func(t *testing.T) {
+				t.Parallel()
+
+				if metric.MetricName != testMetricName {
+					t.Fatalf("Expected metric name %q, got %q", testMetricName, metric.MetricName)
+				}
+			})
+
+			t.Run("with_timestamp_from_query_result", func(t *testing.T) {
+				t.Parallel()
+
+				time := metav1.NewTime(testTimestamp)
+				if !metric.Timestamp.Equal(&time) {
+					t.Fatalf("Expected timestamp %v, got %v", testTimestamp, metric.Timestamp)
+				}
+			})
 		})
 
-		t.Run("with_name_of_requested_metric", func(t *testing.T) {
+		t.Run("increments_successful_queries_metric", func(t *testing.T) {
 			t.Parallel()
 
-			if metric.MetricName != testMetricName {
-				t.Fatalf("Expected metric name %q, got %q", testMetricName, metric.MetricName)
-			}
-		})
-
-		t.Run("with_timestamp_from_query_result", func(t *testing.T) {
-			t.Parallel()
-
-			time := metav1.NewTime(testTimestamp)
-			if !metric.Timestamp.Equal(&time) {
-				t.Fatalf("Expected timestamp %v, got %v", testTimestamp, metric.Timestamp)
+			expectedMetric := bytes.NewBufferString(`
+# HELP newrelic_adapter_external_provider_queries_total [ALPHA] Total number of queries to the NewRelic backend.
+# TYPE newrelic_adapter_external_provider_queries_total counter
+newrelic_adapter_external_provider_queries_total{result="ok"} 1
+`)
+			if err := metricsTestutil.GatherAndCompare(
+				registry,
+				expectedMetric,
+				"newrelic_adapter_external_provider_queries_total",
+			); err != nil {
+				t.Fatalf("Unexpected error while gathering cache metrics: %v", err)
 			}
 		})
 	})
@@ -322,6 +347,37 @@ func Test_Getting_external_metric(t *testing.T) {
 
 		if reflect.DeepEqual(r.Items[0].Timestamp, metav1.Time{}) {
 			t.Fatalf("Expected metric timestamp to not be empty")
+		}
+	})
+
+	t.Run("increments_failed_queries_metric_when_query_fails", func(t *testing.T) {
+		t.Parallel()
+
+		providerOptions, client := testProviderOptions()
+		client.err = fmt.Errorf("new error")
+		client.response = nil
+
+		registry := metrics.NewKubeRegistry()
+		providerOptions.RegisterFunc = registry.Register
+
+		p := testProvider(t, providerOptions)
+
+		if _, err := p.GetExternalMetric(ctx, "", nil, provider.ExternalMetricInfo{Metric: testMetricName}); err == nil {
+			t.Errorf("Expected error getting external metric")
+		}
+
+		expectedMetric := bytes.NewBufferString(`
+# HELP newrelic_adapter_external_provider_queries_total [ALPHA] Total number of queries to the NewRelic backend.
+# TYPE newrelic_adapter_external_provider_queries_total counter
+newrelic_adapter_external_provider_queries_total{result="err"} 1
+`)
+
+		if err := metricsTestutil.GatherAndCompare(
+			registry,
+			expectedMetric,
+			"newrelic_adapter_external_provider_queries_total",
+		); err != nil {
+			t.Fatalf("Unexpected error while gathering cache metrics: %v", err)
 		}
 	})
 

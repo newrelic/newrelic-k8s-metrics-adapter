@@ -16,6 +16,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/validation/path"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/component-base/metrics"
 	"k8s.io/klog/v2"
 	"k8s.io/metrics/pkg/apis/external_metrics"
 	"sigs.k8s.io/custom-metrics-apiserver/pkg/provider"
@@ -37,6 +38,7 @@ type directProvider struct {
 	nrdbClient       NRDBClient
 	accountID        int64
 	clusterName      string
+	metrics          providerMetrics
 }
 
 // ProviderOptions holds the configOptions of the provider.
@@ -45,6 +47,7 @@ type ProviderOptions struct {
 	NRDBClient      NRDBClient
 	AccountID       int64
 	ClusterName     string
+	RegisterFunc    func(metrics.Registerable) error
 }
 
 // NewDirectProvider is the constructor for the direct provider.
@@ -67,11 +70,18 @@ func NewDirectProvider(options ProviderOptions) (provider.ExternalMetricsProvide
 
 	klog.Infof("All queries will be executed for account ID %d", options.AccountID)
 
+	providerMetrics := getMetrics()
+
+	if err := registerMetrics(options.RegisterFunc, providerMetrics); err != nil {
+		return nil, fmt.Errorf("registering metrics: %w", err)
+	}
+
 	return &directProvider{
 		metricsSupported: options.ExternalMetrics,
 		nrdbClient:       options.NRDBClient,
 		accountID:        options.AccountID,
 		clusterName:      options.ClusterName,
+		metrics:          providerMetrics,
 	}, nil
 }
 
@@ -182,8 +192,12 @@ func (p *directProvider) getMetric(ctx context.Context, name string, sl labels.S
 
 	queryResult, err := p.nrdbClient.QueryWithContext(ctx, int(p.accountID), nrdb.NRQL(query))
 	if err != nil {
+		p.metrics.queriesTotal.WithLabelValues("err").Inc()
+
 		return 0, nil, errWithQuery("executing query: %w", err)
 	}
+
+	p.metrics.queriesTotal.WithLabelValues("ok").Inc()
 
 	if err := p.validateQueryResult(queryResult); err != nil {
 		return 0, nil, errWithQuery("validating result: %w", err)
