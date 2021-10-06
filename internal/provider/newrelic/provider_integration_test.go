@@ -7,7 +7,6 @@
 package newrelic_test
 
 import (
-	"os"
 	"strconv"
 	"testing"
 
@@ -115,9 +114,12 @@ func Test_Getting_external_metric_generates_a_query_not_rejected_by_backend(t *t
 func newrelicProviderWithMetric(t *testing.T, metric newrelic.Metric) provider.ExternalMetricsProvider {
 	t.Helper()
 
+	testEnv := testutil.TestEnv{}
+	testEnv.Generate(t)
+
 	clientOptions := []nrClient.ConfigOption{
-		nrClient.ConfigPersonalAPIKey(os.Getenv("NEWRELIC_API_KEY")),
-		nrClient.ConfigRegion(os.Getenv("NEWRELIC_REGION")),
+		nrClient.ConfigPersonalAPIKey(testEnv.PersonalAPIKey),
+		nrClient.ConfigRegion(testEnv.Region),
 	}
 
 	c, err := nrClient.New(clientOptions...)
@@ -125,7 +127,7 @@ func newrelicProviderWithMetric(t *testing.T, metric newrelic.Metric) provider.E
 		t.Fatalf("Unexpected error creating the client: %v", err)
 	}
 
-	accountIDRaw := os.Getenv("NEWRELIC_ACCOUNT_ID")
+	accountIDRaw := testEnv.AccountID
 
 	accountID, err := strconv.ParseInt(accountIDRaw, 10, 64)
 	if err != nil {
