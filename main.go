@@ -5,6 +5,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -53,6 +54,10 @@ func Run(ctx context.Context, args []string) error {
 
 	err := adapter.ParseFlags(args, flagSet, nil)
 	if err != nil {
+		if errors.Is(err, pflag.ErrHelp) {
+			return nil
+		}
+
 		return fmt.Errorf("parsing given flags: %w", err)
 	}
 

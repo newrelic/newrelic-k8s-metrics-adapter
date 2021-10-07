@@ -42,6 +42,14 @@ func Test_Run_reads_API_key_and_cluster_name_from_environment_variable(t *testin
 	}
 }
 
+func Test_Run_does_not_return_error_when_help_flag_is_specified(t *testing.T) {
+	t.Parallel()
+
+	if err := adapter.Run(testContext(t), []string{"--help"}); err != nil {
+		t.Fatalf("Unexpected error running adapter: %v", err)
+	}
+}
+
 //nolint:funlen,cyclop // Just many test cases.
 func Test_Run_fails_when(t *testing.T) {
 	t.Parallel()
