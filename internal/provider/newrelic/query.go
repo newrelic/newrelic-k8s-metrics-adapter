@@ -39,7 +39,7 @@ func (q Query) addMatchFilter(match labels.Selector) (Query, error) {
 	whereClause := "where"
 
 	for index, r := range requirements {
-		key := r.Key()
+		key := fmt.Sprintf("`%s`", r.Key())
 
 		switch r.Operator() {
 		case selection.Equals:
