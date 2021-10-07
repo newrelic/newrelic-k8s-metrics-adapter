@@ -28,7 +28,9 @@ func Test_Run_reads_API_key_and_cluster_name_from_environment_variable(t *testin
 		t.Fatalf("Error writing test config file: %v", err)
 	}
 
-	err := adapter.Run(testContext(t), configPath, []string{"--cert-dir=" + t.TempDir(), "--secure-port=0"})
+	flags := []string{"--cert-dir=" + t.TempDir(), "--secure-port=0", "--config-file=" + configPath}
+
+	err := adapter.Run(testContext(t), flags)
 	if err == nil {
 		t.Fatalf("Expected error running adapter")
 	}
@@ -47,7 +49,9 @@ func Test_Run_fails_when(t *testing.T) {
 	t.Run("config_file_is_not_readable", func(t *testing.T) {
 		t.Parallel()
 
-		if err := adapter.Run(testContext(t), t.TempDir(), []string{"--cert-dir=" + t.TempDir()}); err == nil {
+		flags := []string{"--cert-dir=" + t.TempDir(), "--config-file=" + t.TempDir()}
+
+		if err := adapter.Run(testContext(t), flags); err == nil {
 			t.Fatalf("Expected error running adapter")
 		}
 	})
@@ -60,7 +64,9 @@ func Test_Run_fails_when(t *testing.T) {
 			t.Fatalf("Error writing test config file: %v", err)
 		}
 
-		if err := adapter.Run(testContext(t), configPath, []string{"--cert-dir=" + t.TempDir()}); err == nil {
+		flags := []string{"--cert-dir=" + t.TempDir(), "--config-file=" + configPath}
+
+		if err := adapter.Run(testContext(t), flags); err == nil {
 			t.Fatalf("Expected error running adapter")
 		}
 	})
@@ -74,7 +80,9 @@ func Test_Run_fails_when(t *testing.T) {
 			t.Fatalf("Error writing test config file: %v", err)
 		}
 
-		if err := adapter.Run(testContext(t), configPath, []string{"--cert-dir=" + t.TempDir()}); err == nil {
+		flags := []string{"--cert-dir=" + t.TempDir(), "--config-file=" + configPath}
+
+		if err := adapter.Run(testContext(t), flags); err == nil {
 			t.Fatalf("Expected error running adapter")
 		}
 	})
@@ -90,23 +98,17 @@ func Test_Run_fails_when(t *testing.T) {
 			t.Fatalf("Error writing test config file: %v", err)
 		}
 
-		if err := adapter.Run(testContext(t), configPath, []string{"--cert-dir=" + t.TempDir()}); err == nil {
+		flags := []string{"--cert-dir=" + t.TempDir(), "--config-file=" + configPath}
+
+		if err := adapter.Run(testContext(t), flags); err == nil {
 			t.Fatalf("Expected error running adapter")
 		}
 	})
 
-	//nolint:paralleltest // We manipulate environment variables here which are global.
-	t.Run("intializing_adapter_fails", func(t *testing.T) {
-		setenv(t, adapter.NewRelicAPIKeyEnv, "foo")
-		setenv(t, adapter.ClusterNameEnv, "bar")
-		withoutGlobalMetricsRegistry(t)
+	t.Run("parsing_given_flags_fails", func(t *testing.T) {
+		t.Parallel()
 
-		configPath := filepath.Join(t.TempDir(), "config.yaml")
-		if err := ioutil.WriteFile(configPath, []byte("accountID: 1"), 0o600); err != nil {
-			t.Fatalf("Error writing test config file: %v", err)
-		}
-
-		if err := adapter.Run(testContext(t), configPath, []string{"-help"}); err == nil {
+		if err := adapter.Run(testContext(t), []string{"--secure-port=foo"}); err == nil {
 			t.Fatalf("Expected error running adapter")
 		}
 	})
@@ -121,7 +123,9 @@ func Test_Run_fails_when(t *testing.T) {
 			t.Fatalf("Error writing test config file: %v", err)
 		}
 
-		if err := adapter.Run(testContext(t), configPath, []string{"--cert-dir=" + t.TempDir()}); err == nil {
+		flags := []string{"--cert-dir=" + t.TempDir(), "--config-file=" + configPath}
+
+		if err := adapter.Run(testContext(t), flags); err == nil {
 			t.Fatalf("Expected error running adapter")
 		}
 	})

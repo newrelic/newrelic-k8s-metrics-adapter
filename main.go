@@ -10,11 +10,14 @@ import (
 	"os"
 
 	nrClient "github.com/newrelic/newrelic-client-go/newrelic"
+	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
 	"github.com/newrelic/newrelic-client-go/pkg/region"
+	"github.com/spf13/pflag"
 	"k8s.io/component-base/logs"
 	"k8s.io/component-base/metrics/legacyregistry"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
+	"sigs.k8s.io/custom-metrics-apiserver/pkg/provider"
 	"sigs.k8s.io/yaml"
 
 	"github.com/newrelic/newrelic-k8s-metrics-adapter/internal/adapter"
@@ -43,8 +46,17 @@ type ConfigOptions struct {
 }
 
 // Run reads configuration file and environment variables to configure and run the adapter.
-func Run(ctx context.Context, configPath string, args []string) error {
-	config, err := loadConfiguration(configPath)
+func Run(ctx context.Context, args []string) error {
+	flagSet := pflag.NewFlagSet(adapter.Name, pflag.ContinueOnError)
+
+	configPath := flagSet.String("config-file", DefaultConfigPath, "Path to read config file from")
+
+	err := adapter.ParseFlags(args, flagSet, nil)
+	if err != nil {
+		return fmt.Errorf("parsing given flags: %w", err)
+	}
+
+	config, err := loadConfiguration(*configPath)
 	if err != nil {
 		return fmt.Errorf("loading configuration: %w", err)
 	}
@@ -66,33 +78,15 @@ func Run(ctx context.Context, configPath string, args []string) error {
 		return fmt.Errorf("creating NewRelic client: %w", err)
 	}
 
-	providerOptions := newrelic.ProviderOptions{
-		ExternalMetrics: config.ExternalMetrics,
-		NRDBClient:      &c.Nrdb,
-		AccountID:       config.AccountID,
-		ClusterName:     os.Getenv(ClusterNameEnv),
-		RegisterFunc:    legacyregistry.Register,
-	}
-
-	directProvider, err := newrelic.NewDirectProvider(providerOptions)
+	externalMetricsProvider, err := externalMetricsProvider(config, &c.Nrdb)
 	if err != nil {
-		return fmt.Errorf("creating direct provider: %w", err)
-	}
-
-	cacheOptions := cache.ProviderOptions{
-		ExternalProvider: directProvider,
-		CacheTTLSeconds:  config.CacheTTLSeconds,
-		RegisterFunc:     legacyregistry.Register,
-	}
-
-	cacheProvider, err := cache.NewCacheProvider(cacheOptions)
-	if err != nil {
-		return fmt.Errorf("creating cache provider: %w", err)
+		return fmt.Errorf("creating external metrics provider: %w", err)
 	}
 
 	options := adapter.Options{
 		Args:                    args,
-		ExternalMetricsProvider: cacheProvider,
+		ExtraFlags:              flagSet,
+		ExternalMetricsProvider: externalMetricsProvider,
 	}
 
 	a, err := adapter.NewAdapter(options)
@@ -103,13 +97,41 @@ func Run(ctx context.Context, configPath string, args []string) error {
 	return a.Run(ctx.Done()) //nolint:wrapcheck // Don't wrap as otherwise error annotations will be duplicated.
 }
 
+func externalMetricsProvider(config *ConfigOptions, nrdb *nrdb.Nrdb) (provider.ExternalMetricsProvider, error) {
+	providerOptions := newrelic.ProviderOptions{
+		ExternalMetrics: config.ExternalMetrics,
+		NRDBClient:      nrdb,
+		AccountID:       config.AccountID,
+		ClusterName:     os.Getenv(ClusterNameEnv),
+		RegisterFunc:    legacyregistry.Register,
+	}
+
+	directProvider, err := newrelic.NewDirectProvider(providerOptions)
+	if err != nil {
+		return nil, fmt.Errorf("creating direct provider: %w", err)
+	}
+
+	cacheOptions := cache.ProviderOptions{
+		ExternalProvider: directProvider,
+		CacheTTLSeconds:  config.CacheTTLSeconds,
+		RegisterFunc:     legacyregistry.Register,
+	}
+
+	cacheProvider, err := cache.NewCacheProvider(cacheOptions)
+	if err != nil {
+		return nil, fmt.Errorf("creating cache provider: %w", err)
+	}
+
+	return cacheProvider, nil
+}
+
 func main() {
 	logs.InitLogs()
 	defer logs.FlushLogs()
 
 	klog.Infof("Starting NewRelic metrics adapter")
 
-	if err := Run(signals.SetupSignalHandler(), DefaultConfigPath, os.Args); err != nil {
+	if err := Run(signals.SetupSignalHandler(), os.Args); err != nil {
 		klog.Fatalf("Running adapter failed: %v", err)
 	}
 }
