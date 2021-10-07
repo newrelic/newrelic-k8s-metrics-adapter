@@ -5,6 +5,7 @@ package main_test
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -12,9 +13,11 @@ import (
 	"testing"
 	"time"
 
+	"k8s.io/component-base/metrics"
 	"k8s.io/component-base/metrics/legacyregistry"
 
 	adapter "github.com/newrelic/newrelic-k8s-metrics-adapter"
+	"github.com/newrelic/newrelic-k8s-metrics-adapter/internal/provider/cache"
 )
 
 //nolint:paralleltest // We manipulate environment variables here which are global.
@@ -135,6 +138,43 @@ func Test_Run_fails_when(t *testing.T) {
 
 		if err := adapter.Run(testContext(t), flags); err == nil {
 			t.Fatalf("Expected error running adapter")
+		}
+	})
+
+	//nolint:paralleltest // We manipulate environment variables here which are global.
+	t.Run("initializing_cache_provider_fails", func(t *testing.T) {
+		setenv(t, adapter.NewRelicAPIKeyEnv, "foo")
+		setenv(t, adapter.ClusterNameEnv, "bar")
+
+		configPath := filepath.Join(t.TempDir(), "config.yaml")
+		if err := ioutil.WriteFile(configPath, []byte("accountID: 1\ncacheTTLSeconds: 10\n"), 0o600); err != nil {
+			t.Fatalf("Error writing test config file: %v", err)
+		}
+
+		expectedError := "sample error"
+		reg := legacyregistry.Register
+
+		legacyregistry.Register = func(m metrics.Registerable) error {
+			t.Log(m.FQName())
+
+			if strings.Contains(m.FQName(), cache.MetricsSubsystem) {
+				return fmt.Errorf(expectedError)
+			}
+
+			return nil
+		}
+
+		t.Cleanup(func() {
+			legacyregistry.Register = reg
+		})
+
+		err := adapter.Run(testContext(t), []string{"--cert-dir=" + t.TempDir(), "--config-file=" + configPath})
+		if err == nil {
+			t.Fatalf("Expected error running adapter")
+		}
+
+		if !strings.Contains(err.Error(), expectedError) {
+			t.Fatalf("Expected error to contain %q, got %q", expectedError, err.Error())
 		}
 	})
 }
