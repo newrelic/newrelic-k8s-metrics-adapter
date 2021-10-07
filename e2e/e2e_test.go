@@ -23,10 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 	appsv1client "k8s.io/client-go/kubernetes/typed/apps/v1"
-	"k8s.io/client-go/rest"
 	eclient "k8s.io/metrics/pkg/client/external_metrics"
-	"k8s.io/utils/pointer"
-	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
 	"github.com/newrelic/newrelic-k8s-metrics-adapter/internal/testutil"
 )
@@ -44,21 +41,25 @@ const (
 func Test_Metrics_adapter_makes_sample_external_metric_available(t *testing.T) {
 	t.Parallel()
 
-	cfg := testRestConfig(t)
+	testEnv := &testutil.TestEnv{
+		// Under normal circumstances it should not take more than 60 seconds for HPA to converge.
+		ContextTimeout:  60 * time.Second,
+		StartKubernetes: true,
+	}
 
-	clientset, err := kubernetes.NewForConfig(cfg)
+	testEnv.Generate(t)
+
+	clientset, err := kubernetes.NewForConfig(testEnv.RestConfig)
 	if err != nil {
 		t.Fatalf("Unexpected error creating clientset: %v", err)
 	}
 
-	ctx := testutil.ContextWithDeadline(t)
-
 	t.Run("to_local_client", func(t *testing.T) {
 		t.Parallel()
 
-		ns := withTestNamespace(ctx, t, clientset)
+		ns := withTestNamespace(testEnv.Context, t, clientset)
 
-		externalMetricsClient, err := eclient.NewForConfig(cfg)
+		externalMetricsClient, err := eclient.NewForConfig(testEnv.RestConfig)
 		if err != nil {
 			t.Fatalf("Creating metrics clientset: %v", err)
 		}
@@ -90,14 +91,9 @@ func Test_Metrics_adapter_makes_sample_external_metric_available(t *testing.T) {
 			t.Run(testCaseName, func(t *testing.T) {
 				t.Parallel()
 
-				ns := withTestNamespace(ctx, t, clientset)
+				ns := withTestNamespace(testEnv.Context, t, clientset)
 
-				// Under normal circumstances it should not take more than 60 seconds for HPA to converge.
-				hpaConvergenceDeadline := 60 * time.Second
-
-				ctx, cancel := context.WithTimeout(ctx, hpaConvergenceDeadline)
-
-				deploymentName := withTestDeployment(ctx, t, clientset.AppsV1().Deployments(ns))
+				deploymentName := withTestDeployment(testEnv.Context, t, clientset.AppsV1().Deployments(ns))
 
 				client := clientset.AutoscalingV2beta2().HorizontalPodAutoscalers(ns)
 
@@ -131,21 +127,19 @@ func Test_Metrics_adapter_makes_sample_external_metric_available(t *testing.T) {
 					},
 				}
 
-				hpa, err = client.Create(ctx, hpa, metav1.CreateOptions{})
+				hpa, err = client.Create(testEnv.Context, hpa, metav1.CreateOptions{})
 				if err != nil {
 					t.Fatalf("Unexpected error creating HPA object: %v", err)
 				}
 
 				t.Cleanup(func() {
-					if err := client.Delete(ctx, hpa.Name, metav1.DeleteOptions{}); err != nil {
+					if err := client.Delete(testEnv.Context, hpa.Name, metav1.DeleteOptions{}); err != nil {
 						t.Logf("Failed removing HPA %q: %v", hpa.Name, err)
 					}
-
-					cancel()
 				})
 
-				if err := wait.PollImmediateUntilWithContext(ctx, 1*time.Second, func(context.Context) (bool, error) {
-					hpa, err = client.Get(ctx, hpa.Name, metav1.GetOptions{})
+				if err := wait.PollImmediateUntilWithContext(testEnv.Context, 1*time.Second, func(context.Context) (bool, error) {
+					hpa, err = client.Get(testEnv.Context, hpa.Name, metav1.GetOptions{})
 					if err != nil {
 						t.Fatalf("Getting HPA %q: %v", hpa.Name, err)
 					}
@@ -177,36 +171,6 @@ func Test_Metrics_adapter_makes_sample_external_metric_available(t *testing.T) {
 			})
 		}
 	})
-}
-
-func testRestConfig(t *testing.T) *rest.Config {
-	t.Helper()
-
-	testEnv := &envtest.Environment{
-		// For e2e tests, we use envtest.Environment for consistency with integration tests,
-		// but we force them to use existing cluster instead of creating local controlplane,
-		// as cluster we test on must have created resources defined in the operator Helm chart.
-		//
-		// This also allows us to test if the Helm chart configuration is correct (e.g. RBAC rules).
-		//
-		// With that approach, e2e tests can also be executed against cluster with 'make tilt-up' running.
-		//
-		// In the future, we may support also optionally creating Helm chart release on behalf of the user.
-		UseExistingCluster: pointer.BoolPtr(true),
-	}
-
-	cfg, err := testEnv.Start()
-	if err != nil {
-		t.Fatalf("Starting test environment: %v", err)
-	}
-
-	t.Cleanup(func() {
-		if err := testEnv.Stop(); err != nil {
-			t.Logf("Stopping test environment: %v", err)
-		}
-	})
-
-	return cfg
 }
 
 func withTestNamespace(ctx context.Context, t *testing.T, clientset *kubernetes.Clientset) string {

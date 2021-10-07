@@ -1,4 +1,5 @@
 [codespell]
 check-filenames =
 check-hidden =
+ignore-words-list = te
 skip = ./.git,./internal/generated
