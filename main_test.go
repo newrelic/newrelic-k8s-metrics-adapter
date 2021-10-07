@@ -38,7 +38,7 @@ func Test_Run_reads_API_key_and_cluster_name_from_environment_variable(t *testin
 	expectedError := "failed to get delegated authentication kubeconfig"
 
 	if !strings.Contains(err.Error(), expectedError) {
-		t.Fatalf("Expected error %v, got: %v", expectedError, err)
+		t.Fatalf("Expected error %q, got: %v", expectedError, err)
 	}
 }
 
