@@ -114,7 +114,7 @@ func Test_Getting_external_metric(t *testing.T) {
 			t.Fatalf("Unexpected error getting external metric: %v", err)
 		}
 
-		expectedQuery := "select test from testSample limit 1 where clusterName='testCluster' where key IS NOT NULL"
+		expectedQuery := "select test from testSample limit 1 where clusterName='testCluster' where `key` IS NOT NULL"
 
 		if client.query != expectedQuery {
 			t.Errorf("Expected query %q, got %q", expectedQuery, client.query)
@@ -143,7 +143,7 @@ func Test_Getting_external_metric(t *testing.T) {
 
 					return s.Add(*r1)
 				},
-				expectedQuery: "select test from testSample limit 1 where key IN (15, 18, 'value')",
+				expectedQuery: "select test from testSample limit 1 where `key` IN (15, 18, 'value')",
 			},
 			"adds_NOT_IN_selector_to_query_when_defined": {
 				selector: func() labels.Selector {
@@ -152,7 +152,7 @@ func Test_Getting_external_metric(t *testing.T) {
 
 					return s.Add(*r1)
 				},
-				expectedQuery: "select test from testSample limit 1 where key NOT IN (16, 17, 'value')",
+				expectedQuery: "select test from testSample limit 1 where `key` NOT IN (16, 17, 'value')",
 			},
 			"adds_IS_NOT_NULL_to_query_when_defined": {
 				selector: func() labels.Selector {
@@ -161,7 +161,7 @@ func Test_Getting_external_metric(t *testing.T) {
 
 					return s.Add(*r1)
 				},
-				expectedQuery: "select test from testSample limit 1 where key1 IS NULL",
+				expectedQuery: "select test from testSample limit 1 where `key1` IS NULL",
 			},
 			"adds_IS_NULL_to_query_when_defined": {
 				selector: func() labels.Selector {
@@ -170,7 +170,7 @@ func Test_Getting_external_metric(t *testing.T) {
 
 					return s.Add(*r1)
 				},
-				expectedQuery: "select test from testSample limit 1 where key IS NOT NULL",
+				expectedQuery: "select test from testSample limit 1 where `key` IS NOT NULL",
 			},
 			"adds_EQUALS_string_value_to_query_when_defined": {
 				selector: func() labels.Selector {
@@ -179,7 +179,7 @@ func Test_Getting_external_metric(t *testing.T) {
 
 					return s.Add(*r1)
 				},
-				expectedQuery: "select test from testSample limit 1 where key = 'value'",
+				expectedQuery: "select test from testSample limit 1 where `key` = 'value'",
 			},
 			"adds_EQUALS_number_value_to_query_when_defined": {
 				selector: func() labels.Selector {
@@ -188,7 +188,7 @@ func Test_Getting_external_metric(t *testing.T) {
 
 					return s.Add(*r1)
 				},
-				expectedQuery: "select test from testSample limit 1 where key = 1.5",
+				expectedQuery: "select test from testSample limit 1 where `key` = 1.5",
 			},
 			"adds_all_defined_selectors_to_query": {
 				selector: func() labels.Selector {
@@ -201,8 +201,8 @@ func Test_Getting_external_metric(t *testing.T) {
 					return s.Add(*r1).Add(*r2).Add(*r3).Add(*r4)
 				},
 				expectedQuery: "select test from testSample limit 1 where " +
-					"key IS NOT NULL and key2 IS NULL and " +
-					"key3 IN (1, 2, 'value') and key4 NOT IN (3, 'value2')",
+					"`key` IS NOT NULL and `key2` IS NULL and " +
+					"`key3` IN (1, 2, 'value') and `key4` NOT IN (3, 'value2')",
 			},
 		}
 

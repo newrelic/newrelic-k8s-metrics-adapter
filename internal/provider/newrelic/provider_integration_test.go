@@ -54,6 +54,18 @@ func Test_Getting_external_metric_generates_a_query_not_rejected_by_backend(t *t
 
 		cases := map[string]func() labels.Selector{
 			"with_no_selectors_defined": func() labels.Selector { return nil },
+			"with_reserved_word_selector": func() labels.Selector {
+				s := labels.NewSelector()
+				r1, _ := labels.NewRequirement("facet", selection.Equals, []string{"value"})
+
+				return s.Add(*r1)
+			},
+			"with_special_char_selector": func() labels.Selector {
+				s := labels.NewSelector()
+				r1, _ := labels.NewRequirement("foo.bar/baz", selection.Equals, []string{"value"})
+
+				return s.Add(*r1)
+			},
 			"with_EQUAL_selector": func() labels.Selector {
 				s := labels.NewSelector()
 				r1, _ := labels.NewRequirement("key", selection.Equals, []string{"value"})
