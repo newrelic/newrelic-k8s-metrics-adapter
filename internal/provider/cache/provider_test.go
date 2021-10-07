@@ -229,19 +229,29 @@ func Test_Listing_available_external_metrics_always_returns_fresh_list_from_conf
 	}
 }
 
-func Test_Creating_provider_returns_external_provider_when_TTL_is_negative(t *testing.T) {
+func Test_Creating_provider_returns_external_provider_when_TTL_is(t *testing.T) {
 	t.Parallel()
 
-	cacheTTLSeconds := int64(-1)
-	mockProvider, _, _ := getTestCacheProvider(t, cacheTTLSeconds)
+	for name, ttl := range map[string]int64{
+		"negative": int64(-1),
+		"zero":     int64(0),
+	} {
+		ttl := ttl
 
-	p, err := cache.NewCacheProvider(cache.ProviderOptions{ExternalProvider: mockProvider, CacheTTLSeconds: -1})
-	if err != nil {
-		t.Fatalf("Unexpected error creating the provider: %v", err)
-	}
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 
-	if _, ok := p.(*mock.Provider); !ok {
-		t.Errorf("Expected provider type *mock.Provider, got %q", reflect.TypeOf(p))
+			mockProvider, _, _ := getTestCacheProvider(t, ttl)
+
+			p, err := cache.NewCacheProvider(cache.ProviderOptions{ExternalProvider: mockProvider, CacheTTLSeconds: ttl})
+			if err != nil {
+				t.Fatalf("Unexpected error creating the provider: %v", err)
+			}
+
+			if _, ok := p.(*mock.Provider); !ok {
+				t.Errorf("Expected provider type *mock.Provider, got %q", reflect.TypeOf(p))
+			}
+		})
 	}
 }
 
