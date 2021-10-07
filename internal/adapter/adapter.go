@@ -33,6 +33,7 @@ var version = "dev" //nolint:gochecknoglobal // Version is set at building time.
 // Options holds the configuration for the adapter.
 type Options struct {
 	Args                    []string
+	ExtraFlags              *pflag.FlagSet
 	ExternalMetricsProvider provider.ExternalMetricsProvider
 }
 
@@ -63,7 +64,7 @@ func NewAdapter(options Options) (Adapter, error) {
 	a.CustomMetricsAdapterServerOptions.OpenAPIConfig = a.OpenAPIConfig
 	a.SecureServing.BindPort = DefaultSecurePort
 
-	if err := ParseFlags(options.Args, &a.AdapterBase); err != nil {
+	if err := ParseFlags(options.Args, options.ExtraFlags, &a.AdapterBase); err != nil {
 		return nil, fmt.Errorf("initiating flags: %w", err)
 	}
 
@@ -84,7 +85,7 @@ func NewAdapter(options Options) (Adapter, error) {
 // If adapter is nil, temporary adapter will be used.
 //
 // Extra flags are also optional.
-func ParseFlags(args []string, adapter *basecmd.AdapterBase) error {
+func ParseFlags(args []string, extraFlags *pflag.FlagSet, adapter *basecmd.AdapterBase) error {
 	if adapter == nil {
 		adapter = &basecmd.AdapterBase{}
 	}
@@ -92,6 +93,8 @@ func ParseFlags(args []string, adapter *basecmd.AdapterBase) error {
 	if adapter.FlagSet == nil {
 		adapter.FlagSet = pflag.NewFlagSet(Name, pflag.ContinueOnError)
 	}
+
+	adapter.FlagSet.AddFlagSet(extraFlags)
 
 	// Add flags from klog to be able to control log level etc.
 	klogFlagSet := &flag.FlagSet{}

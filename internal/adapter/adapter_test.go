@@ -11,6 +11,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/spf13/pflag"
+	basecmd "sigs.k8s.io/custom-metrics-apiserver/pkg/cmd"
+
 	"github.com/newrelic/newrelic-k8s-metrics-adapter/internal/adapter"
 	"github.com/newrelic/newrelic-k8s-metrics-adapter/internal/provider/mock"
 )
@@ -41,6 +44,27 @@ func Test_Creating_adapter(t *testing.T) { //nolint:funlen // Just a lot of test
 
 		if _, err := adapter.NewAdapter(options); err != nil {
 			t.Fatalf("Expected adapter to accept klog flags like %q, got: %v", verbosityFlag, err)
+		}
+	})
+
+	t.Run("parses_configured_extra_flags", func(t *testing.T) {
+		t.Parallel()
+
+		flagSet := pflag.NewFlagSet("foo", pflag.ContinueOnError)
+		customFlagValue := flagSet.String("custom-flag", "default-value", "description")
+
+		expectedValue := "bar"
+
+		options := testOptions()
+		options.ExtraFlags = flagSet
+		options.Args = []string{"--custom-flag=" + expectedValue}
+
+		if _, err := adapter.NewAdapter(options); err != nil {
+			t.Fatalf("Expected adapter to accept custom flags, got: %v", err)
+		}
+
+		if *customFlagValue != expectedValue {
+			t.Fatalf("Expected custom flag to have value %q, got %q", expectedValue, *customFlagValue)
 		}
 	})
 
