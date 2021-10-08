@@ -26,8 +26,10 @@ func Test_Metrics_adapter_exposes_both_API_server_metrics_and_adapter_metrics_un
 
 	testEnv.Generate(t)
 
+	testEnv.Flags = append(testEnv.Flags, "--config-file="+testEnv.ConfigPath)
+
 	go func() {
-		if err := adapter.Run(testEnv.Context, testEnv.ConfigPath, testEnv.Flags); err != nil {
+		if err := adapter.Run(testEnv.Context, testEnv.Flags); err != nil {
 			t.Logf("Running operator: %v\n", err)
 			t.Fail()
 		}

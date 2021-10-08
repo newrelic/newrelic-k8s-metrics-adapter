@@ -33,6 +33,7 @@ var version = "dev" //nolint:gochecknoglobal // Version is set at building time.
 // Options holds the configuration for the adapter.
 type Options struct {
 	Args                    []string
+	ExtraFlags              *pflag.FlagSet
 	ExternalMetricsProvider provider.ExternalMetricsProvider
 }
 
@@ -63,7 +64,7 @@ func NewAdapter(options Options) (Adapter, error) {
 	a.CustomMetricsAdapterServerOptions.OpenAPIConfig = a.OpenAPIConfig
 	a.SecureServing.BindPort = DefaultSecurePort
 
-	if err := a.initFlags(options.Args); err != nil {
+	if err := ParseFlags(options.Args, options.ExtraFlags, &a.AdapterBase); err != nil {
 		return nil, fmt.Errorf("initiating flags: %w", err)
 	}
 
@@ -76,15 +77,31 @@ func NewAdapter(options Options) (Adapter, error) {
 	return a, nil
 }
 
-func (a *adapter) initFlags(args []string) error {
-	a.FlagSet = pflag.NewFlagSet(Name, pflag.ContinueOnError)
+// ParseFlags parses given arguments as custom custom-metrics-apiserver into given adapter base.
+//
+// It also allows specifying extra flags if one wants to add extra flags to API server built on top
+// of adapter base.
+//
+// If adapter is nil, temporary adapter will be used.
+//
+// Extra flags are also optional.
+func ParseFlags(args []string, extraFlags *pflag.FlagSet, adapter *basecmd.AdapterBase) error {
+	if adapter == nil {
+		adapter = &basecmd.AdapterBase{}
+	}
+
+	if adapter.FlagSet == nil {
+		adapter.FlagSet = pflag.NewFlagSet(Name, pflag.ContinueOnError)
+	}
+
+	adapter.FlagSet.AddFlagSet(extraFlags)
 
 	// Add flags from klog to be able to control log level etc.
 	klogFlagSet := &flag.FlagSet{}
 	klog.InitFlags(klogFlagSet)
-	a.FlagSet.AddGoFlagSet(klogFlagSet)
+	adapter.FlagSet.AddGoFlagSet(klogFlagSet)
 
-	if err := a.Flags().Parse(args); err != nil {
+	if err := adapter.Flags().Parse(args); err != nil {
 		return fmt.Errorf("parsing flags %q: %w", strings.Join(args, ","), err)
 	}
 
