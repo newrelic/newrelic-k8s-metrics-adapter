@@ -4,9 +4,11 @@
 package cache_test
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -15,6 +17,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
+	"k8s.io/component-base/metrics"
+	metricsTestutil "k8s.io/component-base/metrics/testutil"
 	"k8s.io/metrics/pkg/apis/external_metrics"
 	"sigs.k8s.io/custom-metrics-apiserver/pkg/provider"
 
@@ -65,7 +69,7 @@ func Test_Getting_external_metric_returns(t *testing.T) {
 			t.Run(testCaseName, func(t *testing.T) {
 				t.Parallel()
 
-				p, nCalls := getTestCacheProvider(t, td.cacheTTLSeconds)
+				p, nCalls, _ := getTestCacheProvider(t, td.cacheTTLSeconds)
 
 				_, err := p.GetExternalMetric(ctx, "", td.selectorsFirstCall, td.metricNameFirstCall)
 				if err != nil {
@@ -162,7 +166,7 @@ func Test_Getting_external_metric_returns(t *testing.T) {
 			t.Run(testCaseName, func(t *testing.T) {
 				t.Parallel()
 
-				p, nCalls := getTestCacheProvider(t, td.cacheTTLSeconds)
+				p, nCalls, _ := getTestCacheProvider(t, td.cacheTTLSeconds)
 
 				_, err := p.GetExternalMetric(ctx, "", td.selectorsFirstCall, td.metricNameFirstCall)
 				if err != nil {
@@ -229,7 +233,7 @@ func Test_Creating_provider_returns_external_provider_when_TTL_is_negative(t *te
 	t.Parallel()
 
 	cacheTTLSeconds := int64(-1)
-	mockProvider, _ := getTestCacheProvider(t, cacheTTLSeconds)
+	mockProvider, _, _ := getTestCacheProvider(t, cacheTTLSeconds)
 
 	p, err := cache.NewCacheProvider(cache.ProviderOptions{ExternalProvider: mockProvider, CacheTTLSeconds: -1})
 	if err != nil {
@@ -241,7 +245,108 @@ func Test_Creating_provider_returns_external_provider_when_TTL_is_negative(t *te
 	}
 }
 
-func getTestCacheProvider(t *testing.T, cacheTTL int64) (provider.ExternalMetricsProvider, *int) {
+func Test_Getting_fresh_external_metric_value_from_configured_external_provider_increments(t *testing.T) {
+	t.Parallel()
+
+	ctx := testutil.ContextWithDeadline(t)
+
+	p, _, registry := getTestCacheProvider(t, 1)
+
+	if _, err := p.GetExternalMetric(ctx, "", nil, provider.ExternalMetricInfo{Metric: "mock_metric"}); err != nil {
+		t.Fatalf("Unexpected error while getting external metric: %v", err)
+	}
+
+	t.Run("cache_size_metric", func(t *testing.T) {
+		t.Parallel()
+
+		expectedMetric := bytes.NewBufferString(`
+# HELP newrelic_adapter_external_provider_cache_size [ALPHA] Number of external metrics entries stored in the cache.
+# TYPE newrelic_adapter_external_provider_cache_size gauge
+newrelic_adapter_external_provider_cache_size 1
+`)
+
+		if err := metricsTestutil.GatherAndCompare(registry,
+			expectedMetric,
+			"newrelic_adapter_external_provider_cache_size",
+		); err != nil {
+			t.Fatalf("Unexpected error while gathering cache metrics: %v", err)
+		}
+	})
+
+	t.Run("cache_miss_metric", func(t *testing.T) {
+		t.Parallel()
+
+		expectedMetric := bytes.NewBufferString(`
+# HELP newrelic_adapter_external_provider_cache_requests_total [ALPHA] Total number of cache request.
+# TYPE newrelic_adapter_external_provider_cache_requests_total counter
+newrelic_adapter_external_provider_cache_requests_total{result="miss"} 1
+`)
+
+		if err := metricsTestutil.GatherAndCompare(
+			registry,
+			expectedMetric,
+			"newrelic_adapter_external_provider_cache_requests_total",
+		); err != nil {
+			t.Fatalf("Unexpected error while gathering cache metrics: %v", err)
+		}
+	})
+}
+
+func Test_Getting_cached_external_metric_increments_cache_hit_metric(t *testing.T) {
+	t.Parallel()
+
+	ctx := testutil.ContextWithDeadline(t)
+
+	p, _, registry := getTestCacheProvider(t, 1)
+
+	if _, err := p.GetExternalMetric(ctx, "", nil, provider.ExternalMetricInfo{Metric: "mock_metric"}); err != nil {
+		t.Fatalf("Unexpected error while getting external metric: %v", err)
+	}
+
+	if _, err := p.GetExternalMetric(ctx, "", nil, provider.ExternalMetricInfo{Metric: "mock_metric"}); err != nil {
+		t.Fatalf("Unexpected error while getting external metric: %v", err)
+	}
+
+	expectedMetric := bytes.NewBufferString(`
+# HELP newrelic_adapter_external_provider_cache_requests_total [ALPHA] Total number of cache request.
+# TYPE newrelic_adapter_external_provider_cache_requests_total counter
+newrelic_adapter_external_provider_cache_requests_total{result="miss"} 1
+newrelic_adapter_external_provider_cache_requests_total{result="hit"} 1
+`)
+
+	if err := metricsTestutil.GatherAndCompare(
+		registry,
+		expectedMetric,
+		"newrelic_adapter_external_provider_cache_requests_total",
+	); err != nil {
+		t.Fatalf("Unexpected error while gathering cache metrics: %v", err)
+	}
+}
+
+func Test_Creating_provider_returns_error_when_registering_metrics_fails(t *testing.T) {
+	t.Parallel()
+
+	expectedError := "foo"
+
+	options := cache.ProviderOptions{
+		ExternalProvider: &mock.Provider{},
+		CacheTTLSeconds:  1,
+		RegisterFunc: func(m metrics.Registerable) error {
+			return fmt.Errorf(expectedError)
+		},
+	}
+
+	_, err := cache.NewCacheProvider(options)
+	if err == nil {
+		t.Fatalf("Expected error creating the provider")
+	}
+
+	if !strings.Contains(err.Error(), expectedError) {
+		t.Fatalf("Expected error to contain %q, got %q", expectedError, err.Error())
+	}
+}
+
+func getTestCacheProvider(t *testing.T, cacheTTL int64) (provider.ExternalMetricsProvider, *int, metrics.Gatherer) {
 	t.Helper()
 
 	numCalls := 0
@@ -262,12 +367,20 @@ func getTestCacheProvider(t *testing.T, cacheTTL int64) (provider.ExternalMetric
 		},
 	}
 
-	p, err := cache.NewCacheProvider(cache.ProviderOptions{ExternalProvider: mockProvider, CacheTTLSeconds: cacheTTL})
+	registry := metrics.NewKubeRegistry()
+
+	options := cache.ProviderOptions{
+		ExternalProvider: mockProvider,
+		CacheTTLSeconds:  cacheTTL,
+		RegisterFunc:     registry.Register,
+	}
+
+	p, err := cache.NewCacheProvider(options)
 	if err != nil {
 		t.Fatalf("Unexpected error creating the provider: %v", err)
 	}
 
-	return p, &numCalls
+	return p, &numCalls, registry
 }
 
 type testDataStruct struct {

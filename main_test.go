@@ -12,6 +12,8 @@ import (
 	"testing"
 	"time"
 
+	"k8s.io/component-base/metrics/legacyregistry"
+
 	adapter "github.com/newrelic/newrelic-k8s-metrics-adapter"
 )
 
@@ -19,6 +21,7 @@ import (
 func Test_Run_reads_API_key_and_cluster_name_from_environment_variable(t *testing.T) {
 	setenv(t, adapter.NewRelicAPIKeyEnv, "foo")
 	setenv(t, adapter.ClusterNameEnv, "bar")
+	withoutGlobalMetricsRegistry(t)
 
 	configPath := filepath.Join(t.TempDir(), "config.yaml")
 	if err := ioutil.WriteFile(configPath, []byte("accountID: 1"), 0o600); err != nil {
@@ -80,6 +83,7 @@ func Test_Run_fails_when(t *testing.T) {
 	t.Run("initializing_direct_metric_provider_fails", func(t *testing.T) {
 		setenv(t, adapter.NewRelicAPIKeyEnv, "foo")
 		unsetenv(t, adapter.ClusterNameEnv)
+		withoutGlobalMetricsRegistry(t)
 
 		configPath := filepath.Join(t.TempDir(), "config.yaml")
 		if err := ioutil.WriteFile(configPath, []byte("accountID: 0"), 0o600); err != nil {
@@ -95,6 +99,7 @@ func Test_Run_fails_when(t *testing.T) {
 	t.Run("intializing_adapter_fails", func(t *testing.T) {
 		setenv(t, adapter.NewRelicAPIKeyEnv, "foo")
 		setenv(t, adapter.ClusterNameEnv, "bar")
+		withoutGlobalMetricsRegistry(t)
 
 		configPath := filepath.Join(t.TempDir(), "config.yaml")
 		if err := ioutil.WriteFile(configPath, []byte("accountID: 1"), 0o600); err != nil {
@@ -119,6 +124,18 @@ func Test_Run_fails_when(t *testing.T) {
 		if err := adapter.Run(testContext(t), configPath, []string{"--cert-dir=" + t.TempDir()}); err == nil {
 			t.Fatalf("Expected error running adapter")
 		}
+	})
+}
+
+func withoutGlobalMetricsRegistry(t *testing.T) {
+	t.Helper()
+
+	reg := legacyregistry.Register
+
+	legacyregistry.Register = nil
+
+	t.Cleanup(func() {
+		legacyregistry.Register = reg
 	})
 }
 

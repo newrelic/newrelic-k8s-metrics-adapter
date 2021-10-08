@@ -12,6 +12,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/component-base/metrics"
 	"k8s.io/klog/v2"
 	"k8s.io/metrics/pkg/apis/external_metrics"
 	"sigs.k8s.io/custom-metrics-apiserver/pkg/provider"
@@ -21,12 +22,14 @@ import (
 type ProviderOptions struct {
 	ExternalProvider provider.ExternalMetricsProvider
 	CacheTTLSeconds  int64
+	RegisterFunc     func(metrics.Registerable) error
 }
 
 type cacheProvider struct {
 	externalProvider provider.ExternalMetricsProvider
 	ttlWindow        time.Duration
 	storage          *sync.Map
+	cacheMetrics     cacheMetrics
 }
 
 type cacheEntry struct {
@@ -42,10 +45,17 @@ func NewCacheProvider(options ProviderOptions) (provider.ExternalMetricsProvider
 		return options.ExternalProvider, nil
 	}
 
+	cacheMetrics := getMetrics()
+
+	if err := registerMetrics(options.RegisterFunc, cacheMetrics); err != nil {
+		return nil, fmt.Errorf("registering metrics: %w", err)
+	}
+
 	return &cacheProvider{
 		externalProvider: options.ExternalProvider,
 		ttlWindow:        time.Duration(options.CacheTTLSeconds) * time.Second,
 		storage:          &sync.Map{},
+		cacheMetrics:     cacheMetrics,
 	}, nil
 }
 
@@ -59,8 +69,12 @@ func (p *cacheProvider) GetExternalMetric(ctx context.Context, _ string, match l
 	id := getID(info.Metric, match)
 
 	if v, ok := p.getCacheEntry(id); ok {
+		p.cacheMetrics.requestTotal.WithLabelValues("hit").Inc()
+
 		return v, nil
 	}
+
+	p.cacheMetrics.requestTotal.WithLabelValues("miss").Inc()
 
 	v, err := p.externalProvider.GetExternalMetric(ctx, "", match, info)
 	if err != nil {
@@ -75,6 +89,8 @@ func (p *cacheProvider) GetExternalMetric(ctx context.Context, _ string, match l
 		value:     v,
 		timestamp: v.Items[0].Timestamp,
 	})
+
+	p.cacheMetrics.size.Add(1)
 
 	return v, nil
 }

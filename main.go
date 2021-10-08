@@ -12,6 +12,7 @@ import (
 	nrClient "github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/region"
 	"k8s.io/component-base/logs"
+	"k8s.io/component-base/metrics/legacyregistry"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 	"sigs.k8s.io/yaml"
@@ -70,6 +71,7 @@ func Run(ctx context.Context, configPath string, args []string) error {
 		NRDBClient:      &c.Nrdb,
 		AccountID:       config.AccountID,
 		ClusterName:     os.Getenv(ClusterNameEnv),
+		RegisterFunc:    legacyregistry.Register,
 	}
 
 	directProvider, err := newrelic.NewDirectProvider(providerOptions)
@@ -80,6 +82,7 @@ func Run(ctx context.Context, configPath string, args []string) error {
 	cacheOptions := cache.ProviderOptions{
 		ExternalProvider: directProvider,
 		CacheTTLSeconds:  config.CacheTTLSeconds,
+		RegisterFunc:     legacyregistry.Register,
 	}
 
 	cacheProvider, err := cache.NewCacheProvider(cacheOptions)
