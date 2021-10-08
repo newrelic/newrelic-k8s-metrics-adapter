@@ -266,7 +266,13 @@ func Test_Getting_fresh_external_metric_value_from_configured_external_provider_
 		t.Fatalf("Unexpected error while getting external metric: %v", err)
 	}
 
-	t.Run("cache_size_metric", func(t *testing.T) {
+	time.Sleep(time.Second + time.Millisecond)
+
+	if _, err := p.GetExternalMetric(ctx, "", nil, provider.ExternalMetricInfo{Metric: "mock_metric"}); err != nil {
+		t.Fatalf("Unexpected error while getting external metric: %v", err)
+	}
+
+	t.Run("cache_size_metric_only_when_requested_metric_was_not_stored_in_cache_before", func(t *testing.T) {
 		t.Parallel()
 
 		expectedMetric := bytes.NewBufferString(`
@@ -289,7 +295,7 @@ newrelic_adapter_external_provider_cache_size 1
 		expectedMetric := bytes.NewBufferString(`
 # HELP newrelic_adapter_external_provider_cache_requests_total [ALPHA] Total number of cache request.
 # TYPE newrelic_adapter_external_provider_cache_requests_total counter
-newrelic_adapter_external_provider_cache_requests_total{result="miss"} 1
+newrelic_adapter_external_provider_cache_requests_total{result="miss"} 2
 `)
 
 		if err := metricsTestutil.GatherAndCompare(
