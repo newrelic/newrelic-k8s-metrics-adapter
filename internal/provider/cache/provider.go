@@ -68,10 +68,15 @@ func (p *cacheProvider) ListAllExternalMetrics() []provider.ExternalMetricInfo {
 func (p *cacheProvider) GetExternalMetric(ctx context.Context, _ string, match labels.Selector, info provider.ExternalMetricInfo) (*external_metrics.ExternalMetricValueList, error) { //nolint:lll // External interface requirement.
 	id := getID(info.Metric, match)
 
-	if v, ok := p.getCacheEntry(id); ok {
-		p.cacheMetrics.requestTotal.WithLabelValues("hit").Inc()
+	value, cacheEntryExists := p.storage.Load(id)
 
-		return v, nil
+	if cacheEntryExists {
+		c := value.(*cacheEntry) //nolint:forcetypeassert // Cache should always be of this type.
+		if !p.isDataTooOld(c.timestamp) {
+			p.cacheMetrics.requestTotal.WithLabelValues("hit").Inc()
+
+			return c.value, nil
+		}
 	}
 
 	p.cacheMetrics.requestTotal.WithLabelValues("miss").Inc()
@@ -85,28 +90,17 @@ func (p *cacheProvider) GetExternalMetric(ctx context.Context, _ string, match l
 		return nil, fmt.Errorf("expected exactly 1 metric from external provider for metric %q, got %d", id, l)
 	}
 
+	// Only new entries will increase the storage size.
+	if !cacheEntryExists {
+		p.cacheMetrics.size.Inc()
+	}
+
 	p.storage.Store(id, &cacheEntry{
 		value:     v,
 		timestamp: v.Items[0].Timestamp,
 	})
 
-	p.cacheMetrics.size.Add(1)
-
 	return v, nil
-}
-
-func (p *cacheProvider) getCacheEntry(id string) (*external_metrics.ExternalMetricValueList, bool) {
-	value, ok := p.storage.Load(id)
-	if !ok {
-		return nil, false
-	}
-
-	c := value.(*cacheEntry) //nolint:forcetypeassert // Cache should always be of this type.
-	if p.isDataTooOld(c.timestamp) {
-		return nil, false
-	}
-
-	return c.value, true
 }
 
 func getID(metricName string, selector labels.Selector) string {
