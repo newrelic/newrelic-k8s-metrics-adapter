@@ -2,22 +2,22 @@
 
 # newrelic-k8s-metrics-adapter
 
-The newrelic-k8s-metrics-adapter implements the `external.metrics.k8s.io` API to support the use of external metrics based New Relic NRQL queries results. 
+The newrelic-k8s-metrics-adapter implements the `external.metrics.k8s.io` API to support the use of external metrics based New Relic NRQL queries. 
 
-During installation a set of metrics can be configured to be available for `Horizontal Pod Autoscalers` to be used. Once deployed the metrics values are fetched from the configured metric account using the NerdGraph API based on the configured NRQL query. 
+During installation, a set of metrics can be configured to be available for `Horizontal Pod Autoscalers` to be used. Once deployed, the metrics values are fetched from the configured New Relic account using the NerdGraph API and the configured NRQL query.
 
 The adapter uses the [Custom Metrics Adapter Server Boilerplate](https://github.com/kubernetes-sigs/custom-metrics-apiserver) as a base code to implement the external metric api server.
 
 
 ## Installation
 
-This project has the `newrelic-k8s-metrics-adapter` Helm Chart inside the [newrelic helm charts repo](https://github.com/newrelic/helm-charts) and is also included in the `nri-bundle` chart.
+This project has the `newrelic-k8s-metrics-adapter` Helm Chart inside the [newrelic helm charts repo](https://github.com/newrelic/helm-charts) and can also be installed through the `nri-bundle` chart.
 
 For further information regarding the installation refer to the official docs and to the README.md and the values.yaml of the [chart](https://github.com/newrelic/helm-charts/tree/master/charts/newrelic-k8s-metrics-adapter).
 
 ## Getting Started
 
-In order to start using the adapter just need to [install](#Installation) metrics will be ready to be use by your `Horizontal Pod Autoscaler`. For further information regarding the usage of the adapter refer to the official [docs](https://docs.newrelic.com/docs/integrations/kubernetes-integration/installation/).
+In order to start using the adapter, please start by [installing](#Installation) and configuring the adapter using the provided Helm Chart. After this, metrics will be available for consumption by `Horizontal Pod Autoscaler` using the configured metric names. For further information regarding the usage of the adapter refer to the official [docs](https://docs.newrelic.com/docs/integrations/kubernetes-integration/installation/).
 
 ### Develop, Test and Run Locally
 
