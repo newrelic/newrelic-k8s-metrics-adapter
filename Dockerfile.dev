@@ -1,4 +1,4 @@
-FROM golang:1.16-alpine3.14 as builder
+FROM golang:1.17-alpine3.15 as builder
 
 RUN apk add -U make
 
@@ -12,7 +12,7 @@ COPY . .
 
 RUN make
 
-FROM alpine:3.14
+FROM alpine:3.15
 
 COPY --from=builder /usr/src/newrelic-k8s-metrics-adapter/newrelic-k8s-metrics-adapter /usr/local/bin/
 
