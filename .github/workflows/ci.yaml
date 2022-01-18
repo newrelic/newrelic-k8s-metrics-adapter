@@ -91,7 +91,6 @@ jobs:
         with:
           repository: newrelic/helm-charts
           path: helm-charts-newrelic
-          ref: gsanchez/metrics-adapter-chart
 
       - name: Install kind
         run: go install sigs.k8s.io/kind@v0.11.1
