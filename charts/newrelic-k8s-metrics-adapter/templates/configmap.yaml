@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ template "newrelic-k8s-metrics-adapter.fullname" . }}
+  name: {{ template "common.naming.fullname" . }}
   labels:
     {{- include "common.labels" . | nindent 4 }}
 data:

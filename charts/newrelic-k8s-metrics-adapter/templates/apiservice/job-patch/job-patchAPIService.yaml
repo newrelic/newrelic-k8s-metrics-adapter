@@ -3,19 +3,19 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: {{ template "newrelic-k8s-metrics-adapter.fullname" . }}-apiservice-patch
+  name: {{ template "common.naming.fullname" . }}-apiservice-patch
   annotations:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
   labels:
-    app: {{ template "newrelic-k8s-metrics-adapter.name" $ }}
+    app: {{ template "common.naming.name" $ }}
 {{ include "common.labels" $ | indent 4 }}
 spec:
   template:
     metadata:
-      name: {{ template "newrelic-k8s-metrics-adapter.fullname" . }}-apiservice-patch
+      name: {{ template "common.naming.fullname" . }}-apiservice-patch
       labels:
-        app: {{ template "newrelic-k8s-metrics-adapter.name" $ }}
+        app: {{ template "common.naming.name" $ }}
 {{ include "common.labels" $ | indent 8 }}
     spec:
       {{- if .Values.apiServicePatchJob.image.pullSecrets }}
@@ -29,7 +29,7 @@ spec:
           args:
             - patch
             - --namespace={{ .Release.Namespace }}
-            - --secret-name={{ template "newrelic-k8s-metrics-adapter.fullname" . }}-apiservice
+            - --secret-name={{ template "common.naming.fullname" . }}-apiservice
             - --apiservice-name=v1beta1.external.metrics.k8s.io
           {{- if .Values.apiServicePatchJob.image.volumeMounts }}
           volumeMounts:
@@ -40,7 +40,7 @@ spec:
       {{- include "tplvalues.render" ( dict "value" .Values.apiServicePatchJob.image.volumes "context" $ ) | nindent 8 }}
       {{- end }}
       restartPolicy: OnFailure
-      serviceAccountName: {{ template "newrelic-k8s-metrics-adapter.fullname" . }}-apiservice
+      serviceAccountName: {{ template "common.naming.fullname" . }}-apiservice
       securityContext:
         runAsGroup: 2000
         runAsNonRoot: true
