@@ -32,26 +32,6 @@ Create chart name and version as used by the chart label.
 {{- end -}}
 
 {{/*
-Common app label
-*/}}
-{{- define "newrelic-k8s-metrics-adapter.appLabel" -}}
-app.kubernetes.io/name: {{ include "newrelic-k8s-metrics-adapter.name" . }}
-{{- end -}}
-
-{{/*
-Common labels
-*/}}
-{{- define "newrelic-k8s-metrics-adapter.labels" -}}
-{{ include "newrelic-k8s-metrics-adapter.appLabel" . }}
-helm.sh/chart: {{ include "newrelic-k8s-metrics-adapter.chart" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- end -}}
-
-{{/*
 Create the name of the service account to use
 */}}
 {{- define "newrelic-k8s-metrics-adapter.serviceAccountName" -}}

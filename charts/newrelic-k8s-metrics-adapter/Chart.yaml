@@ -8,6 +8,12 @@ sources:
   - https://github.com/newrelic/newrelic-k8s-metrics-adapter
 engine: gotpl
 icon: https://newrelic.com/assets/newrelic/source/NewRelic-logo-square.svg
+
+dependencies:
+  - name: common-library
+    version: 0.1.0
+    repository: "https://helm-charts.newrelic.com"
+
 maintainers:
   - name: alvarocabanas
   - name: carlossscastro

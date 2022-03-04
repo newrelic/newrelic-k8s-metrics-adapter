@@ -5,7 +5,7 @@
 /.env
 
 # Downloaded chart dependencies
-charts/*.tgz
+**/charts/*.tgz
 
 # OSX trash
 .DS_Store

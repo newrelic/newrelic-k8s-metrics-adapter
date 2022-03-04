@@ -4,7 +4,7 @@ metadata:
   name: {{ template "newrelic-k8s-metrics-adapter.fullname" . }}
   namespace: kube-system
   labels:
-    {{- include "newrelic-k8s-metrics-adapter.labels" . | nindent 4 }}
+    {{- include "common.labels" . | nindent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role

@@ -9,14 +9,14 @@ metadata:
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
   labels:
     app: {{ template "newrelic-k8s-metrics-adapter.name" $ }}
-{{ include "newrelic-k8s-metrics-adapter.labels" $ | indent 4 }}
+{{ include "common.labels" $ | indent 4 }}
 spec:
   template:
     metadata:
       name: {{ template "newrelic-k8s-metrics-adapter.fullname" . }}-apiservice-patch
       labels:
         app: {{ template "newrelic-k8s-metrics-adapter.name" $ }}
-{{ include "newrelic-k8s-metrics-adapter.labels" $ | indent 8 }}
+{{ include "common.labels" $ | indent 8 }}
     spec:
       {{- if .Values.apiServicePatchJob.image.pullSecrets }}
       imagePullSecrets:

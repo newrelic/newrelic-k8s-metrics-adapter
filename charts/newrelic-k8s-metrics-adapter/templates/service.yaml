@@ -3,10 +3,10 @@ kind: Service
 metadata:
   name: {{ template "newrelic-k8s-metrics-adapter.fullname" . }}
   labels:
-    {{- include "newrelic-k8s-metrics-adapter.labels" . | nindent 4 }}
+    {{- include "common.labels" . | nindent 4 }}
 spec:
   ports:
   - port: 443
     targetPort: 6443
   selector:
-    {{- include "newrelic-k8s-metrics-adapter.appLabel" . | nindent 4 }}
+    {{- include "common.labels.selectorLabels" . | nindent 4 }}

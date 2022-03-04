@@ -3,12 +3,12 @@ kind: Deployment
 metadata:
   name: {{ template "newrelic-k8s-metrics-adapter.fullname" . }}
   labels:
-    {{- include "newrelic-k8s-metrics-adapter.labels" . | nindent 4 }}
+    {{- include "common.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
-      {{- include "newrelic-k8s-metrics-adapter.appLabel" . | nindent 6 }}
+      {{- include "common.labels.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       annotations:
@@ -18,7 +18,7 @@ spec:
         {{- toYaml .Values.podAnnotations | nindent 8 }}
         {{- end }}
       labels:
-        {{- include "newrelic-k8s-metrics-adapter.labels" . | nindent 8 }}
+        {{- include "common.labels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ template "newrelic-k8s-metrics-adapter.serviceAccountName" . }}
       {{- if .Values.podSecurityContext.enabled }}
