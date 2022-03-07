@@ -1,9 +1,20 @@
 suite: test naming helpers
 templates:
+  - templates/adapter-clusterrolebinding.yaml
+  - templates/adapter-rolebinding.yaml
   - templates/configmap.yaml
   - templates/deployment.yaml
-  - templates/service.yaml
+  - templates/hpa-clusterrole.yaml
+  - templates/hpa-clusterrolebinding.yaml
   - templates/secret.yaml
+  - templates/service.yaml
+  - templates/apiservice/job-patch/clusterrole.yaml
+  - templates/apiservice/job-patch/clusterrolebinding.yaml
+  - templates/apiservice/job-patch/job-createSecret.yaml
+  - templates/apiservice/job-patch/job-patchAPIService.yaml
+  - templates/apiservice/job-patch/psp.yaml
+  - templates/apiservice/job-patch/rolebinding.yaml
+  - templates/apiservice/job-patch/serviceaccount.yaml
 release:
   name: my-release
   namespace: my-namespace
@@ -14,9 +25,9 @@ tests:
       config:
         accountID: 11111111
     asserts:
-      - equal:
+      - matchRegex:
           path: metadata.name
-          value: nri-my-release-newrelic-k8s-metrics-adapter
+          pattern: ^nri-my-release-newrelic-k8s-metrics-adapter($|-apiservice|-hpa-controller|:external-metrics|:system:auth-delegator)
 
   - it: name of the release is not duplicated
     set:
@@ -26,9 +37,9 @@ tests:
     release:
       name: newrelic-k8s-metrics-adapter
     asserts:
-      - equal:
+      - matchRegex:
           path: metadata.name
-          value: nri-newrelic-k8s-metrics-adapter
+          pattern: ^nri-newrelic-k8s-metrics-adapter($|-apiservice|-hpa-controller|:external-metrics|:system:auth-delegator)
 
   - it: name of the release is overridable
     set:
@@ -37,9 +48,9 @@ tests:
       config:
         accountID: 11111111
     asserts:
-      - equal:
+      - matchRegex:
           path: metadata.name
-          value: nri-my-release-test
+          pattern: ^nri-my-release-test($|-apiservice|-hpa-controller|:external-metrics|:system:auth-delegator)
 
   - it: name of the release is overridable with the release name
     set:
@@ -48,9 +59,9 @@ tests:
       config:
         accountID: 11111111
     asserts:
-      - equal:
+      - matchRegex:
           path: metadata.name
-          value: nri-my-release
+          pattern: ^nri-my-release($|-apiservice|-hpa-controller|:external-metrics|:system:auth-delegator)
 
   - it: nri- preffix does not duplicate
     set:
@@ -60,9 +71,9 @@ tests:
     release:
       name: nri-bundle
     asserts:
-      - equal:
+      - matchRegex:
           path: metadata.name
-          value: nri-bundle-newrelic-k8s-metrics-adapter
+          pattern: ^nri-bundle-newrelic-k8s-metrics-adapter($|-apiservice|-hpa-controller|:external-metrics|:system:auth-delegator)
 
   - it: full name override
     set:
@@ -71,6 +82,6 @@ tests:
       config:
         accountID: 11111111
     asserts:
-      - equal:
+      - matchRegex:
           path: metadata.name
-          value: fno
+          pattern: ^fno($|-apiservice|-hpa-controller|:external-metrics|:system:auth-delegator)
