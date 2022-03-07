@@ -1,0 +1,16 @@
+suite: test naming helper for job-patch RoleBinding anc ClusterRoleBinding roleRef and Subjects names
+templates:
+  - templates/apiservice/job-patch/rolebinding.yaml
+  - templates/apiservice/job-patch/clusterrolebinding.yaml
+release:
+  name: my-release
+  namespace: my-namespace
+tests:
+  - it: roleRef apiGroup and Subjets are correctly defined
+    asserts:
+      - equal:
+          path: roleRef.name
+          value: nri-my-release-newrelic-k8s-metrics-adapter-apiservice
+      - equal:
+          path: subjects[0].name
+          value: nri-my-release-newrelic-k8s-metrics-adapter-apiservice

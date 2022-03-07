@@ -1,0 +1,13 @@
+suite: test naming helper for job-patch clusterRole rule resourceName
+templates:
+  - templates/apiservice/job-patch/clusterrole.yaml
+release:
+  name: my-release
+  namespace: my-namespace
+tests:
+  - it: PodSecurityPolicy rule resourceName is correctly defined
+    asserts:
+      - equal:
+          path: rules[1].resourceNames[0]
+          value: nri-my-release-newrelic-k8s-metrics-adapter-apiservice
+
