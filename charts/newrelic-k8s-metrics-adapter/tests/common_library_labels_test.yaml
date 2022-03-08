@@ -1,0 +1,31 @@
+suite: test labels helpers
+templates:
+  - templates/adapter-clusterrolebinding.yaml
+  - templates/adapter-rolebinding.yaml
+  - templates/apiservice/apiservice.yaml
+  - templates/configmap.yaml
+  - templates/deployment.yaml
+  - templates/hpa-clusterrole.yaml
+  - templates/hpa-clusterrolebinding.yaml
+  - templates/secret.yaml
+  - templates/service.yaml
+  - templates/serviceaccount.yaml
+release:
+  name: my-release
+  namespace: my-namespace
+tests:
+  - it: labels are correctly defined
+    set:
+      personalAPIKey: 21321
+      config:
+        accountID: 11111111
+    asserts:
+      - equal:
+          path: metadata.labels
+          value:
+           app.kubernetes.io/instance: my-release
+           app.kubernetes.io/managed-by: Helm
+           app.kubernetes.io/name: newrelic-k8s-metrics-adapter
+           app.kubernetes.io/version: 0.2.0
+           helm.sh/chart: newrelic-k8s-metrics-adapter-0.4.0
+

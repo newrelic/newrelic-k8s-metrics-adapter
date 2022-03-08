@@ -1,0 +1,24 @@
+suite: test selectorlabels helpers
+release:
+  name: my-release
+  namespace: my-namespace
+tests:
+  - it: labels are correctly defined
+    set:
+      personalAPIKey: 21321
+      config:
+        accountID: 11111111
+    asserts:
+      - equal:
+          path: spec.selector
+          value:
+           app.kubernetes.io/instance: my-release
+           app.kubernetes.io/name: newrelic-k8s-metrics-adapter
+        template: templates/service.yaml
+      - equal:
+          path: spec.selector.matchLabels
+          value:
+           app.kubernetes.io/instance: my-release
+           app.kubernetes.io/name: newrelic-k8s-metrics-adapter
+        template: templates/deployment.yaml
+
