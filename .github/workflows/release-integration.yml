@@ -7,20 +7,20 @@ on:
 jobs:
   # Sometimes chart-releaser might fetch an outdated index.yaml from gh-pages, causing a WAW hazard on the repo
   # This job checks the remote file is up to date with the local one on release
-#  validate-gh-pages-index:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v2
-#        with:
-#          ref: gh-pages
-#      - name: Download remote index file and check equality
-#        run: |
-#          curl -vsSL https://newrelic.github.io/newrelic-k8s-metrics-adapter/index.yaml > index.yaml.remote
-#          LOCAL="$(md5sum < index.yaml)"
-#          REMOTE="$(md5sum < index.yaml.remote)"
-#          echo "$LOCAL" = "$REMOTE"
-#          test "$LOCAL" = "$REMOTE"
+  validate-gh-pages-index:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: gh-pages
+      - name: Download remote index file and check equality
+        run: |
+          curl -vsSL https://newrelic.github.io/newrelic-k8s-metrics-adapter/index.yaml > index.yaml.remote
+          LOCAL="$(md5sum < index.yaml)"
+          REMOTE="$(md5sum < index.yaml.remote)"
+          echo "$LOCAL" = "$REMOTE"
+          test "$LOCAL" = "$REMOTE"
 
   build:
     name: Build integration for
@@ -111,7 +111,7 @@ jobs:
 
   helm-release:
     runs-on: ubuntu-latest
-#    needs: [ validate-gh-pages-index, docker-release ]
+    needs: [ validate-gh-pages-index, docker-release ]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
