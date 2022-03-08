@@ -1,4 +1,4 @@
-suite: test naming helper for job-patch RoleBinding anc ClusterRoleBinding roleRef and Subjects names
+suite: test job-patch RoleBinding and ClusterRoleBinding rendering and roleRef/Subjects names
 templates:
   - templates/apiservice/job-patch/rolebinding.yaml
   - templates/apiservice/job-patch/clusterrolebinding.yaml

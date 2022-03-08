@@ -1,4 +1,4 @@
-suite: test naming helper for job-patch clusterRole rule resourceName
+suite: test job-patch clusterRole rule resourceName and rendering
 templates:
   - templates/apiservice/job-patch/clusterrole.yaml
 release:

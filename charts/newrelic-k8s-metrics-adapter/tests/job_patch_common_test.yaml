@@ -1,4 +1,4 @@
-suite: test labels helpers for job-batch objeccts
+suite: test labels and renderingfor job-batch objects
 templates:
   - templates/apiservice/job-patch/clusterrole.yaml
   - templates/apiservice/job-patch/clusterrolebinding.yaml
@@ -16,3 +16,11 @@ tests:
     asserts:
       - isNotEmpty:
           path: metadata.labels.app
+  - it: If customTLSCertificate and Certmanager enabled do not render
+    set:
+      customTLSCertificate: a-tls-cert
+      certManager:
+        enabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
