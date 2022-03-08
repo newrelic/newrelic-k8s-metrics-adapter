@@ -1,10 +1,27 @@
-name: Release
+name: Release metrics adapter image
 
 on:
   release:
     types: [ prereleased, released ]
 
 jobs:
+  # Sometimes chart-releaser might fetch an outdated index.yaml from gh-pages, causing a WAW hazard on the repo
+  # This job checks the remote file is up to date with the local one on release
+#  validate-gh-pages-index:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v2
+#        with:
+#          ref: gh-pages
+#      - name: Download remote index file and check equality
+#        run: |
+#          curl -vsSL https://newrelic.github.io/newrelic-k8s-metrics-adapter/index.yaml > index.yaml.remote
+#          LOCAL="$(md5sum < index.yaml)"
+#          REMOTE="$(md5sum < index.yaml.remote)"
+#          echo "$LOCAL" = "$REMOTE"
+#          test "$LOCAL" = "$REMOTE"
+
   build:
     name: Build integration for
     runs-on: ubuntu-latest
@@ -58,34 +75,61 @@ jobs:
       DOCKER_PLATFORMS: "linux/amd64,linux/arm64,linux/arm" # Must be consistent with the matrix from the job above.
     steps:
       - uses: actions/checkout@v2
+      - uses: docker/setup-qemu-action@v1
+      - uses: docker/setup-buildx-action@v1
+      - uses: actions/download-artifact@v2
+      - uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.FSI_DOCKERHUB_USERNAME }}
+          password: ${{ secrets.FSI_DOCKERHUB_TOKEN }}
 
       - name: Generate Docker image version from git tag
         run: |
           echo "${{ github.event.release.tag_name }}" | grep -E '^v[0-9.]*[0-9]$'
           DOCKER_IMAGE_TAG=$(echo "${{ github.event.release.tag_name }}" | sed 's/^v//')
           echo "DOCKER_IMAGE_TAG=$DOCKER_IMAGE_TAG" >> $GITHUB_ENV
-      - if: ${{ github.event.release.prerelease }}
+
+      - name: Change Docker image version if this run is a pre-release
+        if: ${{ github.event.release.prerelease }}
         run: |
           echo "DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}-pre" >> $GITHUB_ENV
-      - uses: docker/setup-qemu-action@v1
-      - uses: docker/setup-buildx-action@v1
-
-      - name: Download all artifacts from build job
-        uses: actions/download-artifact@v2
-
-      - uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.FSI_DOCKERHUB_USERNAME }}
-          password: ${{ secrets.FSI_DOCKERHUB_TOKEN }}
 
       - name: Build and push Docker image
+        if: ${{ github.event.release.prerelease }}
         run: |
           docker buildx build --push --platform=$DOCKER_PLATFORMS \
             -t $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG \
             .
-      - name: Push :latest image
+
+      - name:  Build and push Docker image with :latest
         if: ${{ ! github.event.release.prerelease }}
         run: |
           docker buildx build --push --platform=$DOCKER_PLATFORMS \
+            -t $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG \
             -t $DOCKER_IMAGE_NAME:latest \
             .
+
+  helm-release:
+    runs-on: ubuntu-latest
+#    needs: [ validate-gh-pages-index, docker-release ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # chart releaser needs all the history
+
+      - name: Change chart's version if this run is a pre-release
+        if: ${{ github.event.release.prerelease }}
+        run: |
+          sed -i 's|^version: \(.*\)|version: \1-pre|' ./charts/newrelic-k8s-metrics-adapter/Chart.yaml
+          sed -i 's|^appVersion: \(.*\)|appVersion: \1-pre|' ./charts/newrelic-k8s-metrics-adapter/Chart.yaml
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Release workload charts
+        uses: helm/chart-releaser-action@v1.3.0
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
