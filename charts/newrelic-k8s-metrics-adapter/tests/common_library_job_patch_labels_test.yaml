@@ -1,0 +1,26 @@
+suite: test labels helpers for job-batch objeccts
+templates:
+  - templates/apiservice/job-patch/clusterrole.yaml
+  - templates/apiservice/job-patch/clusterrolebinding.yaml
+  - templates/apiservice/job-patch/job-createSecret.yaml
+  - templates/apiservice/job-patch/job-patchAPIService.yaml
+  - templates/apiservice/job-patch/psp.yaml
+  - templates/apiservice/job-patch/role.yaml
+  - templates/apiservice/job-patch/rolebinding.yaml
+  - templates/apiservice/job-patch/serviceaccount.yaml
+release:
+  name: my-release
+  namespace: my-namespace
+tests:
+  - it: labels are correctly defined
+    asserts:
+      - equal:
+          path: metadata.labels
+          value:
+           app: newrelic-k8s-metrics-adapter
+           app.kubernetes.io/instance: my-release
+           app.kubernetes.io/managed-by: Helm
+           app.kubernetes.io/name: newrelic-k8s-metrics-adapter
+           app.kubernetes.io/version: 0.2.0
+           helm.sh/chart: newrelic-k8s-metrics-adapter-0.4.0
+
