@@ -12,15 +12,7 @@ release:
   name: my-release
   namespace: my-namespace
 tests:
-  - it: labels are correctly defined
+  - it: extra label is correctly defined
     asserts:
-      - equal:
-          path: metadata.labels
-          value:
-           app: newrelic-k8s-metrics-adapter
-           app.kubernetes.io/instance: my-release
-           app.kubernetes.io/managed-by: Helm
-           app.kubernetes.io/name: newrelic-k8s-metrics-adapter
-           app.kubernetes.io/version: 0.2.0
-           helm.sh/chart: newrelic-k8s-metrics-adapter-0.4.0
-
+      - isNotEmpty:
+          path: metadata.labels.app
