@@ -10,9 +10,9 @@ tests:
       certManager:
         enabled: true
     asserts:
-      - equal:
+      - matchRegex:
           path: metadata.annotations.certmanager\.k8s\.io/inject-ca-from
-          value: my-namespace/nri-my-release-newrelic-k8s-metrics-adapter-root-cert
-      - equal:
+          pattern: ^my-namespace\/.*-root-cert
+      - matchRegex:
           path: metadata.annotations.cert-manager\.io/inject-ca-from
-          value: my-namespace/nri-my-release-newrelic-k8s-metrics-adapter-root-cert
+          pattern: ^my-namespace\/.*-root-cert

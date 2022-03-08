@@ -7,6 +7,6 @@ release:
 tests:
   - it: roleRef.name has its name correctly defined
     asserts:
-      - equal:
+      - matchRegex:
           path: roleRef.name
-          value: nri-my-release-newrelic-k8s-metrics-adapter:external-metrics
+          pattern: ^.*:external-metrics

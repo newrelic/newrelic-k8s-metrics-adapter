@@ -7,21 +7,17 @@ release:
 tests:
   - it: spec metadata name is is correctly defined
     asserts:
-      - equal:
+      - matchRegex:
           path: spec.template.metadata.name
-          value: nri-my-release-newrelic-k8s-metrics-adapter-apiservice-patch
+          pattern: ^.*-apiservice-patch
   - it: container args are correctly defined
     asserts:
-      - equal:
-          path: spec.template.spec.containers[0].args
-          value:
-            - patch
-            - --namespace=my-namespace
-            - --secret-name=nri-my-release-newrelic-k8s-metrics-adapter-apiservice
-            - --apiservice-name=v1beta1.external.metrics.k8s.io
+      - matchRegex:
+          path: spec.template.spec.containers[0].args[2]
+          pattern: ^--secret-name=.*-apiservice
 
   - it: serviceAccountName is correctly defined
     asserts:
-      - equal:
+      - matchRegex:
           path: spec.template.spec.serviceAccountName
-          value: nri-my-release-newrelic-k8s-metrics-adapter-apiservice
+          pattern: ^.*-apiservice

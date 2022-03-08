@@ -40,7 +40,7 @@ spec:
       {{- include "tplvalues.render" ( dict "value" .Values.apiServicePatchJob.image.volumes "context" $ ) | nindent 8 }}
       {{- end }}
       restartPolicy: OnFailure
-      serviceAccountName: {{ template "common.naming.fullname" . }}-apiservice
+      serviceAccountName: {{ include "common.serviceAccount.name" . }}-apiservice
       securityContext:
         runAsGroup: 2000
         runAsNonRoot: true

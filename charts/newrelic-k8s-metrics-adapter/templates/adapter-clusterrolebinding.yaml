@@ -10,5 +10,5 @@ roleRef:
   name: system:auth-delegator
 subjects:
 - kind: ServiceAccount
-  name: {{ template "newrelic-k8s-metrics-adapter.serviceAccountName" . }}
+  name: {{ include "common.serviceAccount.name" . }}
   namespace: {{ .Release.Namespace }}

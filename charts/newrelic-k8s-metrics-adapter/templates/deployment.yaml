@@ -20,7 +20,7 @@ spec:
       labels:
         {{- include "common.labels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ template "newrelic-k8s-metrics-adapter.serviceAccountName" . }}
+      serviceAccountName: {{ include "common.serviceAccount.name" . }}
       {{- if .Values.podSecurityContext.enabled }}
       securityContext:
         runAsUser: {{ .Values.podSecurityContext.runAsUser }}
