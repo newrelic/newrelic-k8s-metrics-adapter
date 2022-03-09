@@ -53,3 +53,21 @@ tests:
             runAsGroup: 1001
             runAsUser: 1001
         template: templates/deployment.yaml
+  - it: has the correct image
+    set:
+      personalAPIKey: 21321
+      config:
+        accountID: 111
+        region: A-REGION
+      tolerations:
+        - key: "key1"
+          operator: "Exists"
+          effect: "NoSchedule"
+    asserts:
+      - equal:
+          path: spec.template.spec.tolerations
+          value:
+            - effect: NoSchedule
+              key: key1
+              operator: Exists
+        template: templates/deployment.yaml
