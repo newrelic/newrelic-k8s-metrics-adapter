@@ -37,7 +37,7 @@ Select a value for the region
 {{- if .Values.config.region -}}
   {{- .Values.config.region | upper -}}
 {{- else if .Values.global -}}
-  {{- if .Values.global.nrStaging -}}
+  {{- if (include "common.nrStaging" .) -}}
     Staging
   {{- else if eq (include "newrelic-k8s-metrics-adapter.licenseKey" . | substr 0 2) "eu" -}}
     EU

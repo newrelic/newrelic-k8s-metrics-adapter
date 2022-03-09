@@ -27,13 +27,13 @@ spec:
         runAsGroup: {{ .Values.podSecurityContext.runAsGroup }}
         fsGroup: {{ .Values.podSecurityContext.fsGroup }}
       {{- end }}
-      {{- if .Values.image.pullSecrets }}
+      {{- with include "common.images.renderPullSecrets" ( dict "pullSecrets" (list .Values.image.pullSecrets) "context" .) }}
       imagePullSecrets:
-        {{- toYaml .Values.image.pullSecrets | nindent 8 }}
+        {{- . | nindent 8 }}
       {{- end }}
       containers:
       - name: {{ template "common.naming.name" . }}
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: {{ include "common.images.image" ( dict "imageRoot" .Values.image "context" .) }}
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         args:
         - --tls-cert-file=/tmp/k8s-metrics-adapter/serving-certs/tls.crt
@@ -61,11 +61,20 @@ spec:
             secretKeyRef:
               name: {{ template "common.naming.fullname" . }}
               key: personalAPIKey
+        {{- with .Values.extraEnv }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.extraEnvFrom }}
+        envFrom: {{ toYaml . | nindent 8 }}
+        {{- end }}
         volumeMounts:
         - name: tls-key-cert-pair
           mountPath: /tmp/k8s-metrics-adapter/serving-certs/
         - name: config
           mountPath: /etc/newrelic/adapter/
+        {{- with .Values.extraVolumeMounts }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
       volumes:
       - name: tls-key-cert-pair
         secret:
@@ -73,6 +82,9 @@ spec:
       - name: config
         configMap:
           name: {{ template "common.naming.fullname" .  }}
+      {{- with .Values.extraVolumes }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
       {{- if $.Values.priorityClassName }}
       priorityClassName: {{ $.Values.priorityClassName }}
       {{- end }}

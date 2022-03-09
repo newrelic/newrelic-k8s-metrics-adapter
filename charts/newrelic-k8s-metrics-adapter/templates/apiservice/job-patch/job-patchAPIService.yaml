@@ -24,20 +24,28 @@ spec:
       {{- end }}
       containers:
         - name: patch
-          image: {{ .Values.apiServicePatchJob.image.repository }}:{{ .Values.apiServicePatchJob.image.tag }}
+          image: {{ include "common.images.image" ( dict "imageRoot" .Values.apiServicePatchJob.image "context" .) }}
           imagePullPolicy: {{ .Values.apiServicePatchJob.image.pullPolicy }}
           args:
             - patch
             - --namespace={{ .Release.Namespace }}
             - --secret-name={{ template "common.naming.fullname" . }}-apiservice
             - --apiservice-name=v1beta1.external.metrics.k8s.io
-          {{- if .Values.apiServicePatchJob.image.volumeMounts }}
-          volumeMounts:
-          {{- include "tplvalues.render" ( dict "value" .Values.apiServicePatchJob.image.volumeMounts "context" $ ) | nindent 10 }}
+          {{- with .Values.apiServicePatchJob.extraEnv }}
+          env:
+          {{- toYaml . | nindent 10 }}
           {{- end }}
-      {{- if .Values.apiServicePatchJob.image.volumes }}
+          {{- with .Values.apiServicePatchJob.extraEnvFrom }}
+          envFrom:
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+          {{- with .Values.apiServicePatchJob.extraVolumeMounts }}
+          volumeMounts:
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+      {{- with .Values.apiServicePatchJob.extraVolumes }}
       volumes:
-      {{- include "tplvalues.render" ( dict "value" .Values.apiServicePatchJob.image.volumes "context" $ ) | nindent 8 }}
+      {{- toYaml . | nindent 6 }}
       {{- end }}
       restartPolicy: OnFailure
       serviceAccountName: {{ include "common.serviceAccount.name" . }}-apiservice
