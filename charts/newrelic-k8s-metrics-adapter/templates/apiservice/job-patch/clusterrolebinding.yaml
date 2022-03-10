@@ -15,6 +15,6 @@ roleRef:
   name: {{ template "common.naming.fullname" . }}-apiservice
 subjects:
   - kind: ServiceAccount
-    name: {{ template "common.naming.fullname" . }}-apiservice
+    name: {{ include "common.serviceAccount.name" . }}-apiservice
     namespace: {{ .Release.Namespace }}
 {{- end }}
