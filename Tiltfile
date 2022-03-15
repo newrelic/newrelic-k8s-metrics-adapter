@@ -7,7 +7,7 @@ project_name = 'newrelic-k8s-metrics-adapter'
 settings = {
   'kind_cluster_name': 'kind',
   'live_reload': True,
-  'chart_path': '../helm-charts-newrelic/charts/%s/' % project_name,
+  'chart_path': './charts/%s/' % project_name,
 }
 
 settings.update(read_json('tilt_option.json', default={}))
@@ -50,7 +50,7 @@ else:
   docker_build(project_name, '.')
 
 # Deploying Kubernetes resources.
-k8s_yaml(helm(settings.get('chart_path'), name=project_name, values=['values-dev.yaml', 'values-local.yaml']))
+k8s_yaml(helm(settings.get('chart_path'), name='nri-'+project_name, values=['values-dev.yaml', 'values-local.yaml']))
 
 # Tracking the deployment.
-k8s_resource(project_name)
+k8s_resource('nri-'+project_name)
