@@ -135,12 +135,13 @@ jobs:
         with:
           fetch-depth: 0
       - uses: helm/chart-testing-action@v2.1.0
-      - name: Set up helm-unittest
-        run: |
-          helm plugin install https://github.com/quintush/helm-unittest
+
       - name: Lint charts
         run: ct --config .github/ct.yaml lint --debug --all
 
+      - name: Set up helm-unittest
+        run: |
+          helm plugin install https://github.com/quintush/helm-unittest
       - name: Run unit tests
         run: |
           for chart in $(ct --config .github/ct.yaml list-changed); do
@@ -148,6 +149,7 @@ jobs:
               helm unittest -3 $chart
             fi
           done
+
       - name: Check for changed installable charts
         id: list-changed
         run: |
@@ -172,7 +174,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-
       - uses: actions/checkout@v2
       - name: Codespell test
         uses: codespell-project/actions-codespell@master

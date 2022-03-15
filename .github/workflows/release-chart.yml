@@ -1,12 +1,9 @@
 name: Release metrics adapter chart
 on:
-  workflow_dispatch:
-    inputs:
-      prerelease:
-        description: 'This is a pre-release'
-        required: false
-        default: false
-        type: boolean
+  push:
+    branches:
+      - main
+      - devel
 
 jobs:
   # Sometimes chart-releaser might fetch an outdated index.yaml from gh-pages, causing a WAW hazard on the repo
@@ -33,12 +30,6 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-
-      - name: Change chart's version if this run is a pre-release
-        if: ${{ github.event.input.prerelease }}
-        run: |
-          sed -i 's|^version: \(.*\)|version: \1-pre|' ./charts/newrelic-k8s-metrics-adapter/Chart.yaml
-          sed -i 's|^appVersion: \(.*\)|appVersion: \1-pre|' ./charts/newrelic-k8s-metrics-adapter/Chart.yaml
 
       - name: Configure Git
         run: |
