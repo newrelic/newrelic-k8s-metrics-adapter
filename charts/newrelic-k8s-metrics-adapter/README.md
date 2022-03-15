@@ -1,51 +1,64 @@
+[![New Relic Experimental header](https://github.com/newrelic/opensource-website/raw/master/src/images/categories/Experimental.png)](https://opensource.newrelic.com/oss-category/#new-relic-experimental)
+
 # newrelic-k8s-metrics-adapter
 
-## Chart Details
+![Version: 0.4.0](https://img.shields.io/badge/Version-0.4.0-informational?style=flat-square) ![AppVersion: 0.3.0](https://img.shields.io/badge/AppVersion-0.3.0-informational?style=flat-square)
 
-This chart will deploy the [New Relic Metrics Adapter](https://github.com/newrelic/newrelic-k8s-metrics-adapter), which implements the `external.metrics.k8s.io` API to support the use of external metrics based New Relic NRQL queries.
+A Helm chart to deploy the New Relic Kubernetes Metrics Adapter.
 
-## Configuration
+**Homepage:** <https://hub.docker.com/r/newrelic/newrelic-k8s-metrics-adapter>
 
+## Source Code
 
-| Parameter                                                                       | Description                                                                                                                                                                                                                                                             | Default                                                                                              |
-| ------------------------------------------------------------------------------- |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| ---------------------------------------------------------------------------------------------------- |
-| `global.cluster` - `cluster`                                                    | The cluster name for the Kubernetes cluster.                                                                                                                                                                                                                            |                                                                                                      |
-| `global.licenseKey` - `licenseKey`                                              | The [license key](https://docs.newrelic.com/docs/accounts/install-new-relic/account-setup/license-key) for your New Relic Account.                                                                                                                                      |                                                                                                      |
-| `image.repository`                                                              | The container to pull.                                                                                                                                                                                                                                                  | `newrelic/newrelic-k8s-metrics-adapter`                                                              |
-| `image.pullPolicy`                                                              | The pull policy.                                                                                                                                                                                                                                                        | `IfNotPresent`                                                                                       |
-| `image.tag`                                                                     | The version of the image to pull.                                                                                                                                                                                                                                       | `appVersion`                                                                                         |
-| `image.pullSecrets`                                                             | The image pull secrets.                                                                                                                                                                                                                                                 | `nil`                                                                                                |
-| `apiServicePatchJob.image.repository`                                           | The job container to pull.                                                                                                                                                                                                                                              | `k8s.gcr.io/ingress-nginx/kube-webhook-certgen`                                                      |
-| `apiServicePatchJob.image.pullPolicy`                                           | The job pull policy.                                                                                                                                                                                                                                                    | `IfNotPresent`                                                                                       |
-| `apiServicePatchJob.image.pullSecrets`                                          | Image pull secrets.                                                                                                                                                                                                                                                     | `nil`                                                                                                |
-| `apiServicePatchJob.image.tag`                                                  | The job version of the container to pull.                                                                                                                                                                                                                               | `v1.1.1`                                                                                             |
-| `apiServicePatchJob.volumeMounts`                                               | Additional Volume mounts for Cert Job.                                                                                                                                                                                                                                  | `[]`                                                                                                 |
-| `apiServicePatchJob.volumes`                                                    | Additional Volumes for Cert Job.                                                                                                                                                                                                                                        | `[]`                                                                                                 |
-| `certManager.enabled`                                                           | Use cert-manager to provision the APIService certs.                                                                                                                                                                                                                     | `false`                                                                                              |
-| `replicas`                                                                      | Number of replicas in the deployment.                                                                                                                                                                                                                                   | `1`                                                                                                  |
-| `resources`                                                                     | Resources you wish to assign to the pod.                                                                                                                                                                                                                                | See Resources below                                                                                  |
-| `serviceAccount.create`                                                         | If true a service account would be created and assigned for the metrics adapter.                                                                                                                                                                                        | `true`                                                                                               |
-| `serviceAccount.name`                                                           | If `serviceAccount.create` is true then this name will be used when creating the service account; if this value is not set or it evaluates to false, then when creating the account the returned value from the template `common.naming.fullname` will be used as name. |                                                                                                      |
-| `affinity`                                                                      | Node affinity to use for scheduling.                                                                                                                                                                                                                                    | `{}`                                                                                                 |
-| `podSecurityContext.enabled`                                                    | Enable custom Pod Security Context.                                                                                                                                                                                                                                     | `false`                                                                                              |
-| `podSecurityContext.fsGroup`                                                    | fsGroup for Pod Security Context.                                                                                                                                                                                                                                       | `1001`                                                                                               |
-| `podSecurityContext.runAsUser`                                                  | runAsUser UID for Pod Security Context.                                                                                                                                                                                                                                 | `1001`                                                                                               |
-| `podSecurityContext.runAsGroup`                                                 | runAsGroup GID for Pod Security Context.                                                                                                                                                                                                                                | `1001`                                                                                               |
-| `podAnnotations`                                                                | If you wish to provide additional annotations to apply to the pod(s), specify them here.                                                                                                                                                                                |                                                                                                      |
-| `priorityClassName`                                                             | Scheduling priority of the pod.                                                                                                                                                                                                                                         | `nil`                                                                                                |
-| `nodeSelector`                                                                  | Node label to use for scheduling.                                                                                                                                                                                                                                       | `{}`                                                                                                 |
-| `tolerations`                                                                   | List of node taints to tolerate (requires Kubernetes >= 1.6)                                                                                                                                                                                                            | `[]`
-| `hostNetwork`                                                                   | Enable hostNetwork                                                                                                                                                                                                                                                      |                                                                                                 |
-| `verboseLog`                                                                    | Enable metrics adapter verbose logs.                                                                                                                                                                                                                                    | `false`                                                                                              |
-| `personalAPIKey`                                                                | New Relic [Personal API Key](https://docs.newrelic.com/docs/apis/intro-apis/new-relic-api-keys/#user-api-key) (stored in a secret). Used to connect to NerdGraph in order to fetch the configured metrics.                                                              |                                                                                                      |
-| `config.accountID`                                                              | New Relic [Account ID](https://docs.newrelic.com/docs/accounts/accounts-billing/account-structure/account-id/) where the configured metrics are stored.                                                                                                                 |                                                                                                      |
-| `config.region`                                                                 | New Relic account region. If not set, it will be automatically derived from global.licenseKey                                                                                                                                                                           | `US`                                                                                                 |
-| `config.cacheTTLSeconds`                                                        | Period of time in seconds in which a cached value of a metric is consider valid.                                                                                                                                                                                        | `0` (disabled)                                                                                       |
-| `config.externalMetrics{}`                                                      | ExternalMetrics contains all the external metrics definition of the adapter. Each key of the externalMetric entry represents the metric name and contains the parameters that defines it.                                                                               | See External metric below                                                                            |
-| `config.externalMetrics{}.query`                                                | NRQL query that will executed to obtain the metric value. The query must return just one value so is recommended to use aggregator functions like average or latest.                                                                                                    |                                                                                                      |
-| `config.externalMetrics{}.removeClusterFilter`                                  | Disable the cluster filter added to the query by default. Use when metrics doesn't below to the cluster and doesn't have the clusterName attribute.                                                                                                                     | `false`                                                                                              |
+* <https://github.com/newrelic/newrelic-k8s-metrics-adapter>
 
+## Requirements
 
+| Repository | Name | Version |
+|------------|------|---------|
+| https://helm-charts.newrelic.com | common-library | 0.6.1 |
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| affinity | object | `{}` | Node affinity to use for scheduling. |
+| apiServicePatchJob.extraEnv | list | `[]` | Additional env for Cert Job. |
+| apiServicePatchJob.extraEnvFrom | list | `[]` | Additional env from for Cert Job. |
+| apiServicePatchJob.extraVolumeMounts | list | `[]` | Additional Volume mounts for Cert Job, you might want to mount tmp if Pod Security Policies. |
+| apiServicePatchJob.extraVolumes | list | `[]` | Additional Volumes for Cert Job. |
+| apiServicePatchJob.image.pullPolicy | string | `"IfNotPresent"` | The job pull policy. |
+| apiServicePatchJob.image.registry | string | `"k8s.gcr.io"` | The container registry. |
+| apiServicePatchJob.image.repository | string | `"ingress-nginx/kube-webhook-certgen"` | The job container to pull. |
+| apiServicePatchJob.image.tag | string | `"v1.1.1"` | The job version of the container to pull. |
+| certManager.enabled | bool | `false` | Use cert manager for APIService certs, rather than the built-in patch job. |
+| config.accountID | string | `nil` | -Required- New Relic [Account ID](https://docs.newrelic.com/docs/accounts/accounts-billing/account-structure/account-id/) where the configured metrics are stored. |
+| config.cacheTTLSeconds | int | `30` | Period of time in seconds in which a cached value of a metric is consider valid. |
+| config.externalMetrics | object | See `values.yaml` | Contains all the external metrics definition of the adapter. Each key of the externalMetric entry represents the metric name and contains the parameters that defines it. |
+| config.region | string | See `values.yaml` | New Relic account region. If not set, it will be automatically derived from global.licenseKey |
+| extraEnv | list | `[]` | Array to add extra environment variables |
+| extraEnvFrom | list | `[]` | Array to add extra envFrom |
+| extraVolumeMounts | list | `[]` | Add extra volume mounts |
+| extraVolumes | list | `[]` | Array to add extra volumes |
+| fullnameOverride | string | `""` | To fully override common.naming.fullname |
+| image.pullPolicy | string | `"IfNotPresent"` | The pull policy. |
+| image.pullSecrets | list | `[]` | The image pull secrets. |
+| image.registry | string | `"docker.io"` | The container registry. |
+| image.repository | string | `"newrelic/newrelic-k8s-metrics-adapter"` | The container to pull. |
+| image.tag | string | `""` | The version of the image to pull. |
+| nodeSelector | object | `{}` | Node label to use for scheduling. |
+| personalAPIKey | string | `nil` | -Required- New Relic [Personal API Key](https://docs.newrelic.com/docs/apis/intro-apis/new-relic-api-keys/#user-api-key) (stored in a secret). Used to connect to NerdGraph in order to fetch the configured metrics. |
+| podAnnotations | string | `nil` | If you wish to provide additional annotations to apply to the pod(s), specify them here. |
+| podSecurityContext.enabled | bool | `false` | Enable custom Pod Security Context. |
+| podSecurityContext.fsGroup | int | `1001` | fsGroup for Pod Security Context. |
+| podSecurityContext.runAsGroup | int | `1001` | runAsGroup GID for Pod Security Context. |
+| podSecurityContext.runAsUser | int | `1001` | runAsUser UID for Pod Security Context. |
+| replicas | int | `1` | Number of replicas in the deployment. |
+| resources | object | See `values.yaml` | Resources you wish to assign to the pod. |
+| serviceAccount.create | bool | `true` | Specifies whether a ServiceAccount should be created for the job and the deployment. |
+| serviceAccount.name | string | `nil` | If `serviceAccount.create` this will be the name of the ServiceAccount to use. If not set and create is true, a name is generated using the fullname template. |
+| tolerations | list | `[]` | List of node taints to tolerate (requires Kubernetes >= 1.6) |
+| verboseLog | bool | `false` | Enable metrics adapter verbose logs. |
 
 ## Example
 
@@ -89,10 +102,10 @@ spec:
         metric:
           name: nginx_average_requests
           selector:
-            matchLabels: 
+            matchLabels:
               k8s.namespaceName: nginx
         target:
-          type: Value 
+          type: Value
           value: 10000
 ```
 
@@ -126,3 +139,14 @@ resources:
     cpu: 100m
     memory: 30M
 ```
+
+## Maintainers
+
+* alvarocabanas
+* carlossscastro
+* gsanchezgavier
+* kang-makes
+* marcsanmi
+* paologallinaharbur
+* roobre
+* sigilioso
