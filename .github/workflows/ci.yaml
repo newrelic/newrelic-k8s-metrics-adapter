@@ -54,6 +54,52 @@ jobs:
         if: matrix.goos == 'linux' && matrix.goarch == 'amd64'
         run: make ci
 
+  chart-lint:
+    name: Helm chart Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: helm/chart-testing-action@v2.2.1
+
+      - name: Lint charts
+        run: ct --config .github/ct.yaml lint --debug --all
+
+      - name: Check for changed installable charts
+        id: list-changed
+        run: |
+          changed=$(ct --config .github/ct.yaml list-changed)
+          if [[ -n "$changed" ]]; then
+            echo "::set-output name=changed::true"
+          fi
+
+      - name: Set up helm-unittest
+        if: steps.list-changed.outputs.changed == 'true'
+        run: |
+          helm plugin install https://github.com/quintush/helm-unittest
+      - name: Run unit tests
+        if: steps.list-changed.outputs.changed == 'true'
+        run: |
+          for chart in $(ct --config .github/ct.yaml list-changed); do
+            if [ -d "$chart/tests/" ]; then
+              helm unittest -3 $chart
+            fi
+          done
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.2.0
+        if: steps.list-changed.outputs.changed == 'true'
+      - name: Create test ns
+        if: steps.list-changed.outputs.changed == 'true'
+        run: kubectl create ns test
+
+      - name: Test install charts
+        run: ct --config .github/ct.yaml install --namespace test
+      - name: Test upgrade charts
+        run: ct --config .github/ct.yaml install --namespace test --upgrade
+
   integration:
     name: Integration and e2e tests
     runs-on: ubuntu-latest
@@ -110,7 +156,7 @@ jobs:
       - name: Run e2e tests
         run: make test-e2e
 
-  gloang-lint:
+  golang-lint:
     name: Golang CI Lint
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -124,52 +170,6 @@ jobs:
           # Optional: show only new issues if it's a pull request. The default value is `false`.
           only-new-issues: true
           version: v1.42
-
-  chart-lint:
-    name: Helm chart Lint
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - uses: helm/chart-testing-action@v2.2.1
-
-      - name: Lint charts
-        run: ct --config .github/ct.yaml lint --debug --all
-
-      - name: Check for changed installable charts
-        id: list-changed
-        run: |
-          changed=$(ct --config .github/ct.yaml list-changed)
-          if [[ -n "$changed" ]]; then
-            echo "::set-output name=changed::true"
-          fi
-
-      - name: Set up helm-unittest
-        if: steps.list-changed.outputs.changed == 'true'
-        run: |
-          helm plugin install https://github.com/quintush/helm-unittest
-      - name: Run unit tests
-        if: steps.list-changed.outputs.changed == 'true'
-        run: |
-          for chart in $(ct --config .github/ct.yaml list-changed); do
-            if [ -d "$chart/tests/" ]; then
-              helm unittest -3 $chart
-            fi
-          done
-
-      - name: Create kind cluster
-        uses: helm/kind-action@v1.2.0
-        if: steps.list-changed.outputs.changed == 'true'
-      - name: Create test ns
-        if: steps.list-changed.outputs.changed == 'true'
-        run: kubectl create ns test
-
-      - name: Test install charts
-        run: ct --config .github/ct.yaml install --namespace test
-      - name: Test upgrade charts
-        run: ct --config .github/ct.yaml install --namespace test --upgrade
 
   codespell:
     name: Codespell
