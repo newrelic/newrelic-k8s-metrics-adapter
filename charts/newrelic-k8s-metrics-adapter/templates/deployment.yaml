@@ -55,7 +55,7 @@ spec:
         {{- end }}
         env:
         - name: CLUSTER_NAME
-          value: {{ include "newrelic-k8s-metrics-adapter.cluster" . }}
+          value: {{ include "common.cluster" . }}
         - name: NEWRELIC_API_KEY
           valueFrom:
             secretKeyRef:

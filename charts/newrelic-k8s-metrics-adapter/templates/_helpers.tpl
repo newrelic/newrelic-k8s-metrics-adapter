@@ -16,21 +16,6 @@ Return the licenseKey
 {{- end -}}
 
 {{/*
-Return the cluster
-*/}}
-{{- define "newrelic-k8s-metrics-adapter.cluster" -}}
-{{- if .Values.global -}}
-  {{- if .Values.global.cluster -}}
-      {{- .Values.global.cluster -}}
-  {{- else -}}
-      {{- .Values.cluster | default "" -}}
-  {{- end -}}
-{{- else -}}
-  {{- .Values.cluster | default "" -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
 Select a value for the region
 */}}
 {{- define "newrelic-k8s-metrics-adapter.region" -}}
