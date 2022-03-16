@@ -72,19 +72,15 @@ jobs:
           DOCKER_IMAGE_TAG=$(echo "${{ github.event.release.tag_name }}" | sed 's/^v//')
           echo "DOCKER_IMAGE_TAG=$DOCKER_IMAGE_TAG" >> $GITHUB_ENV
 
-      - name: Change Docker image version if this run is a pre-release
+      - name: Build and push Docker prerelease images
         if: ${{ github.event.release.prerelease }}
         run: |
-          echo "DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}-pre" >> $GITHUB_ENV
-
-      - name: Build and push Docker image
-        if: ${{ github.event.release.prerelease }}
-        run: |
+          DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}-pre"
           docker buildx build --push --platform=$DOCKER_PLATFORMS \
             -t $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG \
             .
 
-      - name:  Build and push Docker image with :latest
+      - name: Build and push Docker release images
         if: ${{ ! github.event.release.prerelease }}
         run: |
           docker buildx build --push --platform=$DOCKER_PLATFORMS \

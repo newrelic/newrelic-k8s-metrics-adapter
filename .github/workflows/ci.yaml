@@ -166,10 +166,17 @@ jobs:
         run: make check-update-linters
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v2
+        continue-on-error: ${{ github.event_name != 'pull_request' }}
         with:
           # Optional: show only new issues if it's a pull request. The default value is `false`.
           only-new-issues: true
           version: v1.42
+      - uses: newrelic/newrelic-infra-checkers@v1
+      - name: Semgrep
+        uses: returntocorp/semgrep-action@v1
+        with:
+          auditOn: push
+          config: "p/golang"
 
   codespell:
     name: Codespell
