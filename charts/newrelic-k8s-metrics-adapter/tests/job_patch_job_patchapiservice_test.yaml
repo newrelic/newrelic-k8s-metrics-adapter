@@ -35,6 +35,10 @@ tests:
   - it: renders when extraEnv, extraEnvFrom, extraVolumes and extraVolumeMounts are set
     set:
       personalAPIKey: 21321
+      tolerations:
+        - key: "key1"
+          operator: "Exists"
+          effect: "NoSchedule"
       apiServicePatchJob:
         extraEnv:
           - name: ENV_VAR1
@@ -53,17 +57,3 @@ tests:
     asserts:
       - hasDocuments:
           count: 1
-  - it: tolerations are correctly rendered
-    set:
-      personalAPIKey: 21321
-      tolerations:
-        - key: "key1"
-          operator: "Exists"
-          effect: "NoSchedule"
-    asserts:
-      - equal:
-          path: spec.template.spec.tolerations
-          value:
-            - key: "key1"
-              operator: "Exists"
-              effect: "NoSchedule"

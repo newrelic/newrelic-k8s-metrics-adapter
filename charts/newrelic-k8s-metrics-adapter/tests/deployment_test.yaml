@@ -60,56 +60,19 @@ tests:
       - hasDocuments:
           count: 1
         template: templates/deployment.yaml
-  - it: renders tolerations
-    set:
-      personalAPIKey: 21321
-      config:
-        accountID: 111
-        region: A-REGION
-      tolerations:
-        - key: "key1"
-          operator: "Exists"
-          effect: "NoSchedule"
-    asserts:
-      - equal:
-          path: spec.template.spec.tolerations
-          value:
-            - effect: NoSchedule
-              key: key1
-              operator: Exists
-        template: templates/deployment.yaml
-  - it: renders priorityClassName
+  - it: renders template with values for all helpers
     set:
       personalAPIKey: 21321
       config:
         accountID: 111
         region: A-REGION
       priorityClassName: high-priority
-    asserts:
-      - equal:
-          path: spec.template.spec.priorityClassName
-          value: high-priority
-        template: templates/deployment.yaml
-  - it: renders nodeSelector
-    set:
-      personalAPIKey: 21321
-      config:
-        accountID: 111
-        region: A-REGION
+      tolerations:
+        - key: "key1"
+          operator: "Exists"
+          effect: "NoSchedule"
       nodeSelector:
         disktype: ssd
-    asserts:
-      - equal:
-          path: spec.template.spec.nodeSelector
-          value:
-            disktype: ssd
-        template: templates/deployment.yaml
-  - it: renders affinity
-    set:
-      personalAPIKey: 21321
-      config:
-        accountID: 111
-        region: A-REGION
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -120,15 +83,6 @@ tests:
                     values:
                       - new
     asserts:
-      - equal:
-          path: spec.template.spec.affinity
-          value:
-            nodeAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                nodeSelectorTerms:
-                  - matchExpressions:
-                      - key: kubernetes.io/e2e-az-name
-                        operator: In
-                        values:
-                          - new
+      - hasDocuments:
+          count: 1
         template: templates/deployment.yaml
