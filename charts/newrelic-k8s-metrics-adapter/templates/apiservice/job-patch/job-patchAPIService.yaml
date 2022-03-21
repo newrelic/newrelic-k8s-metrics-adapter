@@ -9,14 +9,14 @@ metadata:
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
   labels:
     app: {{ template "common.naming.name" . }}
-{{ include "common.labels" . | indent 4 }}
+    {{- include "common.labels" . | nindent 4 }}
 spec:
   template:
     metadata:
       name: {{ template "common.naming.fullname" . }}-apiservice-patch
       labels:
         app: {{ template "common.naming.name" . }}
-{{ include "common.labels" . | indent 8 }}
+        {{- include "common.labels" . | nindent 8 }}
     spec:
       {{- with include "common.images.renderPullSecrets" ( dict "pullSecrets" (list .Values.image.pullSecrets) "context" .) }}
       imagePullSecrets:
