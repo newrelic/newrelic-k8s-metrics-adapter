@@ -70,7 +70,6 @@ serviceAccount:
 
 # Configure podSecurityContext
 podSecurityContext:
-  enabled: false
   fsGroup: 1001
   runAsUser: 1001
   runAsGroup: 1001
