@@ -60,6 +60,7 @@ tests:
         accountID: 111
         region: A-REGION
       priorityClassName: high-priority
+      hostNetwork: true
       tolerations:
         - key: "key1"
           operator: "Exists"
