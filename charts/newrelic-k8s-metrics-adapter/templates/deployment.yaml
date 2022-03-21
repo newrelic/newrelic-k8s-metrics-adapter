@@ -104,6 +104,6 @@ spec:
       affinity:
         {{- . | nindent 8 }}
       {{- end }}
-      {{- if $.Values.hostNetwork }}
-      hostNetwork: {{ $.Values.hostNetwork }}
+      {{- with include "common.hostNetwork" . }}
+      hostNetwork: {{ . }}
       {{- end }}
