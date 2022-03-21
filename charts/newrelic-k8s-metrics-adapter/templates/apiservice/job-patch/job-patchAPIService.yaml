@@ -18,9 +18,9 @@ spec:
         app: {{ template "common.naming.name" . }}
 {{ include "common.labels" . | indent 8 }}
     spec:
-      {{- if .Values.apiServicePatchJob.image.pullSecrets }}
+      {{- with include "common.images.renderPullSecrets" ( dict "pullSecrets" (list .Values.image.pullSecrets) "context" .) }}
       imagePullSecrets:
-        {{- toYaml .Values.apiServicePatchJob.image.pullSecrets | nindent 8 }}
+        {{- . | nindent 8 }}
       {{- end }}
       containers:
         - name: patch
