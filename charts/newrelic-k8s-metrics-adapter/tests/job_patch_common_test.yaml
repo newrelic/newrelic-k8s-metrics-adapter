@@ -1,4 +1,4 @@
-suite: test labels and renderingfor job-batch objects
+suite: test labels and rendering for job-batch objects
 templates:
   - templates/apiservice/job-patch/clusterrole.yaml
   - templates/apiservice/job-patch/clusterrolebinding.yaml
