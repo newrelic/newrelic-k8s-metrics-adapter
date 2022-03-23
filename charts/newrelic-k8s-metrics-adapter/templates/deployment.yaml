@@ -1,6 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  namespace: {{ .Release.Namespace }}
   name: {{ template "common.naming.fullname" . }}
   labels:
     {{- include "common.labels" . | nindent 4 }}
