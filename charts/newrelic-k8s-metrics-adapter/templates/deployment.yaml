@@ -98,6 +98,4 @@ spec:
       affinity:
         {{- . | nindent 8 }}
       {{- end }}
-      {{- with include "common.hostNetwork" . }}
-      hostNetwork: {{ . }}
-      {{- end }}
+      hostNetwork: {{ include "common.hostNetwork.value" . }}
