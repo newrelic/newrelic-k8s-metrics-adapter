@@ -33,6 +33,10 @@ spec:
       - name: {{ template "common.naming.name" . }}
         image: {{ include "common.images.image" ( dict "imageRoot" .Values.image "context" .) }}
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        {{- with include "common.securityContext.container" . }}
+        securityContext:
+          {{- . | nindent 10 }}
+        {{- end }}
         args:
         - --tls-cert-file=/tmp/k8s-metrics-adapter/serving-certs/tls.crt
         - --tls-private-key-file=/tmp/k8s-metrics-adapter/serving-certs/tls.key
