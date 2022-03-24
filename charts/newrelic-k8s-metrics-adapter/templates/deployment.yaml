@@ -70,6 +70,10 @@ spec:
         {{- with .Values.extraEnvFrom }}
         envFrom: {{ toYaml . | nindent 8 }}
         {{- end }}
+        {{- if $.Values.proxy }}
+        - name: HTTPS_PROXY
+          value: {{ $.Values.proxy }}
+        {{- end }}
         volumeMounts:
         - name: tls-key-cert-pair
           mountPath: /tmp/k8s-metrics-adapter/serving-certs/
