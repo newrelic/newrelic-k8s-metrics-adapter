@@ -36,6 +36,21 @@ tests:
           path: spec.template.spec.containers[0].env[0].value
           value: a-cluster
         template: templates/deployment.yaml
+  - it: correctly uses common.securityContext.podDefaults
+    set:
+      personalAPIKey: 21321
+      config:
+        accountID: 111
+        region: A-REGION
+      cluster: a-cluster
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext
+          value:
+            fsGroup: 1001
+            runAsGroup: 1001
+            runAsUser: 1001
+        template: templates/deployment.yaml
   - it: renders when extraEnv, extraEnvFrom, extraVolumes and extraVolumeMounts are set
     set:
       personalAPIKey: 21321
