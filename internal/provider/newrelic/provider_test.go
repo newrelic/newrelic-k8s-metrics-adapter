@@ -404,6 +404,8 @@ newrelic_adapter_external_provider_queries_total{result="err"} 1
 			}
 		}
 
+		// This subtest checks that any unexpected server error i.e. status != 2XX when performing a query throughout
+		// the newrelic client is propagated back to the HPA.
 		t.Run("query_fails", func(t *testing.T) {
 			t.Parallel()
 
