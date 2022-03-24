@@ -61,6 +61,8 @@ tests:
         region: A-REGION
       priorityClassName: high-priority
       hostNetwork: true
+      dnsConfig:
+        keyOnValues: bar
       tolerations:
         - key: "key1"
           operator: "Exists"
