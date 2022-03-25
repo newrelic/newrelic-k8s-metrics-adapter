@@ -90,7 +90,7 @@ jobs:
     name: Integration and e2e tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [ "build", "chart-lint" ]
+    needs: [ "build" ]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
