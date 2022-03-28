@@ -136,6 +136,7 @@ jobs:
           NEWRELIC_ACCOUNT_ID: "${{ secrets.NEWRELIC_ACCOUNT_ID }}"
         run: |
           make generate-local-values
+          helm dependency build ./charts/newrelic-k8s-metrics-adapter
           helm install newrelic-k8s-metrics-adapter ./charts/newrelic-k8s-metrics-adapter \
           --set image.repository=localhost:5000/newrelic-k8s-metrics-adapter \
           --set image.pullPolicy=IfNotPresent \
