@@ -64,15 +64,15 @@ spec:
             secretKeyRef:
               name: {{ template "common.naming.fullname" . }}
               key: personalAPIKey
+        {{- with (include "common.proxy" .) }}
+        - name: HTTPS_PROXY
+          value: {{ . }}
+        {{- end }}
         {{- with .Values.extraEnv }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
         {{- with .Values.extraEnvFrom }}
         envFrom: {{ toYaml . | nindent 8 }}
-        {{- end }}
-        {{- if $.Values.proxy }}
-        - name: HTTPS_PROXY
-          value: {{ $.Values.proxy }}
         {{- end }}
         volumeMounts:
         - name: tls-key-cert-pair
