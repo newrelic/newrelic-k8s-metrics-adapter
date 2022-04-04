@@ -1,4 +1,4 @@
-// Copyright 2021 New Relic Corporation. All rights reserved.
+// Copyright 2022 New Relic Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
 //go:build integration
@@ -7,9 +7,13 @@
 package newrelic_test
 
 import (
+	"fmt"
+	"net/http"
+	"regexp"
 	"strconv"
 	"testing"
 
+	"github.com/elazarl/goproxy"
 	nrClient "github.com/newrelic/newrelic-client-go/newrelic"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
@@ -111,14 +115,64 @@ func Test_Getting_external_metric_generates_a_query_not_rejected_by_backend(t *t
 			selector := selector()
 
 			t.Run(testCaseName, func(t *testing.T) {
-				t.Parallel()
-
 				m := provider.ExternalMetricInfo{Metric: testMetricName}
 
 				if _, err := p.GetExternalMetric(ctx, "", selector, m); err != nil {
 					t.Fatalf("Unexpected error: %v", err)
 				}
 			})
+		}
+	})
+}
+
+//nolint:paralleltest // This test registers environment variables, so it must not be run in parallel.
+func Test_Getting_external_metric_through_proxy(t *testing.T) {
+	ctx := testutil.ContextWithDeadline(t)
+
+	port := 1337
+	t.Setenv("HTTPS_PROXY", fmt.Sprintf("localhost:%d", port))
+
+	t.Run("ends_with_error_when_proxy_fails", func(t *testing.T) {
+		proxy := runProxy(t, port, func(host string, ctx *goproxy.ProxyCtx) (*goproxy.ConnectAction, string) {
+			return goproxy.MitmConnect, host
+		})
+
+		t.Cleanup(func() {
+			if err := proxy.Shutdown(ctx); err != nil {
+				t.Logf("Stopping proxy server: %v", err)
+			}
+		})
+
+		p := newrelicProviderWithMetric(t, newrelic.Metric{
+			Query: testIntegrationQuery,
+		})
+
+		m := provider.ExternalMetricInfo{Metric: testMetricName}
+
+		if _, err := p.GetExternalMetric(ctx, "", nil, m); err == nil {
+			t.Fatal("Error expected")
+		}
+	})
+
+	t.Run("generates_a_query_successfully", func(t *testing.T) {
+		proxy := runProxy(t, port, func(host string, ctx *goproxy.ProxyCtx) (*goproxy.ConnectAction, string) {
+			return goproxy.OkConnect, host
+		})
+
+		t.Cleanup(func() {
+			if err := proxy.Shutdown(ctx); err != nil {
+				t.Logf("Stopping proxy server: %v", err)
+			}
+		})
+
+		p := newrelicProviderWithMetric(t, newrelic.Metric{
+			Query: testIntegrationQuery,
+		})
+
+		m := provider.ExternalMetricInfo{Metric: testMetricName}
+
+		if _, err := p.GetExternalMetric(ctx, "", nil, m); err != nil {
+			t.Fatalf("Unexpected error: %v", err)
 		}
 	})
 }
@@ -161,4 +215,22 @@ func newrelicProviderWithMetric(t *testing.T, metric newrelic.Metric) provider.E
 	}
 
 	return p
+}
+
+func runProxy(t *testing.T, port int, f func(string, *goproxy.ProxyCtx) (*goproxy.ConnectAction, string)) *http.Server {
+	t.Helper()
+
+	proxy := goproxy.NewProxyHttpServer()
+	proxy.OnRequest(goproxy.ReqHostMatches(regexp.MustCompile(".*"))).HandleConnectFunc(f)
+
+	srv := &http.Server{
+		Addr:    fmt.Sprintf("localhost:%d", port),
+		Handler: proxy,
+	}
+
+	go func() {
+		_ = srv.ListenAndServe()
+	}()
+
+	return srv
 }
