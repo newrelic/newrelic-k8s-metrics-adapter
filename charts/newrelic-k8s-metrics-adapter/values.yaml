@@ -63,9 +63,11 @@ resources:
 
 serviceAccount:
   # Specifies whether a ServiceAccount should be created for the job and the deployment.
+  # false avoids creation, true or empty will create the ServiceAccount
   create:
   # The name of the ServiceAccount to use.
   # If not set and create is true, a name is generated using the fullname template.
+  # If create is false, a serviceAccount with the given name must exist
   name:
 
 # Configure podSecurityContext
