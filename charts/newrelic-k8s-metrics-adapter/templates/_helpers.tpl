@@ -9,6 +9,7 @@ runAsGroup: 1001
 
 {{/*
 Select a value for the region
+When this value is empty the New Relic client region will be the default 'US'
 */}}
 {{- define "newrelic-k8s-metrics-adapter.region" -}}
 {{- if .Values.config.region -}}
