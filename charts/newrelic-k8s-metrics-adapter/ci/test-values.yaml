@@ -1,3 +1,6 @@
+global:
+  cluster: test-cluster
+
 personalAPIKey: 21321
 verboseLog: false
 

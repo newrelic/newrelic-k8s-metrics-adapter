@@ -1,10 +1,12 @@
-suite: test deployent images and extra
+suite: test deployent images
 release:
   name: my-release
   namespace: my-namespace
 tests:
   - it: has the correct image
     set:
+      global:
+        cluster: test-cluster
       personalAPIKey: 21321
       image:
         repository: newrelic/newrelic-k8s-metrics-adapter
