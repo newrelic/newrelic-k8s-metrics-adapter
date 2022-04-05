@@ -53,32 +53,3 @@ tests:
             runAsGroup: 1001
             runAsUser: 1001
         template: templates/deployment.yaml
-  - it: renders template with values for all helpers
-    set:
-      personalAPIKey: 21321
-      config:
-        accountID: 111
-        region: A-REGION
-      priorityClassName: high-priority
-      hostNetwork: true
-      dnsConfig:
-        keyOnValues: bar
-      tolerations:
-        - key: "key1"
-          operator: "Exists"
-          effect: "NoSchedule"
-      nodeSelector:
-        disktype: ssd
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: kubernetes.io/e2e-az-name
-                    operator: In
-                    values:
-                      - new
-    asserts:
-      - hasDocuments:
-          count: 1
-        template: templates/deployment.yaml

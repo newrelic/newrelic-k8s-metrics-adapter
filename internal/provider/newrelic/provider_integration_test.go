@@ -7,6 +7,7 @@
 package newrelic_test
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -128,19 +129,13 @@ func Test_Getting_external_metric_generates_a_query_not_rejected_by_backend(t *t
 //nolint:paralleltest // This test registers environment variables, so it must not be run in parallel.
 func Test_Getting_external_metric_through_proxy(t *testing.T) {
 	ctx := testutil.ContextWithDeadline(t)
-
 	port := 1337
-	t.Setenv("HTTPS_PROXY", fmt.Sprintf("localhost:%d", port))
 
 	t.Run("ends_with_error_when_proxy_fails", func(t *testing.T) {
-		proxy := runProxy(t, port, func(host string, ctx *goproxy.ProxyCtx) (*goproxy.ConnectAction, string) {
-			return goproxy.MitmConnect, host
-		})
+		t.Setenv("HTTPS_PROXY", fmt.Sprintf("localhost:%d", port))
 
-		t.Cleanup(func() {
-			if err := proxy.Shutdown(ctx); err != nil {
-				t.Logf("Stopping proxy server: %v", err)
-			}
+		runProxy(ctx, t, port, func(host string, ctx *goproxy.ProxyCtx) (*goproxy.ConnectAction, string) {
+			return goproxy.RejectConnect, host
 		})
 
 		p := newrelicProviderWithMetric(t, newrelic.Metric{
@@ -155,14 +150,10 @@ func Test_Getting_external_metric_through_proxy(t *testing.T) {
 	})
 
 	t.Run("generates_a_query_successfully", func(t *testing.T) {
-		proxy := runProxy(t, port, func(host string, ctx *goproxy.ProxyCtx) (*goproxy.ConnectAction, string) {
-			return goproxy.OkConnect, host
-		})
+		t.Setenv("HTTPS_PROXY", fmt.Sprintf("localhost:%d", port))
 
-		t.Cleanup(func() {
-			if err := proxy.Shutdown(ctx); err != nil {
-				t.Logf("Stopping proxy server: %v", err)
-			}
+		runProxy(ctx, t, port, func(host string, ctx *goproxy.ProxyCtx) (*goproxy.ConnectAction, string) {
+			return goproxy.OkConnect, host
 		})
 
 		p := newrelicProviderWithMetric(t, newrelic.Metric{
@@ -217,7 +208,8 @@ func newrelicProviderWithMetric(t *testing.T, metric newrelic.Metric) provider.E
 	return p
 }
 
-func runProxy(t *testing.T, port int, f func(string, *goproxy.ProxyCtx) (*goproxy.ConnectAction, string)) *http.Server {
+//nolint:lll
+func runProxy(ctx context.Context, t *testing.T, port int, f func(host string, ctx *goproxy.ProxyCtx) (*goproxy.ConnectAction, string)) {
 	t.Helper()
 
 	proxy := goproxy.NewProxyHttpServer()
@@ -232,5 +224,9 @@ func runProxy(t *testing.T, port int, f func(string, *goproxy.ProxyCtx) (*goprox
 		_ = srv.ListenAndServe()
 	}()
 
-	return srv
+	t.Cleanup(func() {
+		if err := srv.Shutdown(ctx); err != nil {
+			t.Logf("Stopping proxy server: %v", err)
+		}
+	})
 }
