@@ -2,7 +2,7 @@
 
 # newrelic-k8s-metrics-adapter
 
-![Version: 0.4.0](https://img.shields.io/badge/Version-0.4.0-informational?style=flat-square) ![AppVersion: 0.2.0](https://img.shields.io/badge/AppVersion-0.2.0-informational?style=flat-square)
+![Version: 0.5.0](https://img.shields.io/badge/Version-0.5.0-informational?style=flat-square) ![AppVersion: 0.3.0](https://img.shields.io/badge/AppVersion-0.3.0-informational?style=flat-square)
 
 A Helm chart to deploy the New Relic Kubernetes Metrics Adapter.
 
@@ -16,25 +16,23 @@ A Helm chart to deploy the New Relic Kubernetes Metrics Adapter.
 
 | Repository | Name | Version |
 |------------|------|---------|
-| https://helm-charts.newrelic.com | common-library | 0.9.0 |
+| https://helm-charts.newrelic.com | common-library | 0.17.0 |
 
 ## Values
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | affinity | object | `{}` | Node affinity to use for scheduling. |
-| apiServicePatchJob.extraEnv | list | `[]` | Additional env for Cert Job. |
-| apiServicePatchJob.extraEnvFrom | list | `[]` | Additional env from for Cert Job. |
-| apiServicePatchJob.extraVolumeMounts | list | `[]` | Additional Volume mounts for Cert Job, you might want to mount tmp if Pod Security Policies. |
-| apiServicePatchJob.extraVolumes | list | `[]` | Additional Volumes for Cert Job. |
 | apiServicePatchJob.image.pullPolicy | string | `"IfNotPresent"` | The job pull policy. |
-| apiServicePatchJob.image.registry | string | `"k8s.gcr.io"` | The container registry. |
-| apiServicePatchJob.image.repository | string | `"ingress-nginx/kube-webhook-certgen"` | The job container to pull. |
+| apiServicePatchJob.image.registry | string | `nil` | The container registry. |
+| apiServicePatchJob.image.repository | string | `"k8s.gcr.io/ingress-nginx/kube-webhook-certgen"` | The job container to pull. |
 | apiServicePatchJob.image.tag | string | `"v1.1.1"` | The job version of the container to pull. |
+| apiServicePatchJob.volumeMounts | list | `[]` | Additional Volume mounts for Cert Job, you might want to mount tmp if Pod Security Policies. |
+| apiServicePatchJob.volumes | list | `[]` | Additional Volumes for Cert Job. |
 | certManager.enabled | bool | `false` | Use cert manager for APIService certs, rather than the built-in patch job. |
 | config.accountID | string | `nil` | New Relic [Account ID](https://docs.newrelic.com/docs/accounts/accounts-billing/account-structure/account-id/) where the configured metrics are stored. (**Required**) |
 | config.cacheTTLSeconds | int | `30` | Period of time in seconds in which a cached value of a metric is consider valid. |
-| config.externalMetrics | object | See `values.yaml` | Contains all the external metrics definition of the adapter. Each key of the externalMetric entry represents the metric name and contains the parameters that defines it. |
+| config.externalMetrics | string | See `values.yaml` | Contains all the external metrics definition of the adapter. Each key of the externalMetric entry represents the metric name and contains the parameters that defines it. |
 | config.region | string | See `values.yaml` | New Relic account region. If not set, it will be automatically derived from global.licenseKey |
 | extraEnv | list | `[]` | Array to add extra environment variables |
 | extraEnvFrom | list | `[]` | Array to add extra envFrom |
@@ -49,14 +47,11 @@ A Helm chart to deploy the New Relic Kubernetes Metrics Adapter.
 | nodeSelector | object | `{}` | Node label to use for scheduling. |
 | personalAPIKey | string | `nil` | New Relic [Personal API Key](https://docs.newrelic.com/docs/apis/intro-apis/new-relic-api-keys/#user-api-key) (stored in a secret). Used to connect to NerdGraph in order to fetch the configured metrics. (**Required**) |
 | podAnnotations | string | `nil` | If you wish to provide additional annotations to apply to the pod(s), specify them here. |
-| podSecurityContext.enabled | bool | `false` | Enable custom Pod Security Context. |
-| podSecurityContext.fsGroup | int | `1001` | fsGroup for Pod Security Context. |
-| podSecurityContext.runAsGroup | int | `1001` | runAsGroup GID for Pod Security Context. |
-| podSecurityContext.runAsUser | int | `1001` | runAsUser UID for Pod Security Context. |
+| podSecurityContext | string | `nil` | Configure podSecurityContext |
 | replicas | int | `1` | Number of replicas in the deployment. |
 | resources | object | See `values.yaml` | Resources you wish to assign to the pod. |
-| serviceAccount.create | bool | `true` | Specifies whether a ServiceAccount should be created for the job and the deployment. |
-| serviceAccount.name | string | `nil` | If `serviceAccount.create` this will be the name of the ServiceAccount to use. If not set and create is true, a name is generated using the fullname template. |
+| serviceAccount.create | string | `nil` | Specifies whether a ServiceAccount should be created for the job and the deployment. false avoids creation, true or empty will create the ServiceAccount |
+| serviceAccount.name | string | `nil` | If `serviceAccount.create` this will be the name of the ServiceAccount to use. If not set and create is true, a name is generated using the fullname template. If create is false, a serviceAccount with the given name must exist |
 | tolerations | list | `[]` | List of node taints to tolerate (requires Kubernetes >= 1.6) |
 | verboseLog | bool | `false` | Enable metrics adapter verbose logs. |
 
