@@ -1,0 +1,50 @@
+global:
+  cluster: test-cluster
+
+personalAPIKey: 21321
+verboseLog: false
+
+config:
+  accountID: 111
+  region: A-REGION
+
+extraEnv:
+  - name: ENV_VAR1
+    value: "var1"
+  - name: ENV_VAR2
+    value: "var2"
+extraEnvFrom:
+  - configMapRef:
+      name: special-config
+extraVolumes:
+  - name: tmpfs-data
+    emptyDir: {}
+extraVolumeMounts:
+  - mountPath: /var/db/newrelic-infra/data
+    name: tmpfs-data
+hostNetwork: true
+dnsConfig:
+  keyOnValues: bar
+tolerations:
+  - key: "key1"
+    operator: "Exists"
+    effect: "NoSchedule"
+nodeSelector:
+  disktype: ssd
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/e2e-az-name
+              operator: In
+              values:
+                - new
+
+apiServicePatchJob:
+  volumes:
+    - name: tmpfs-data
+      emptyDir: {}
+  volumeMounts:
+    - mountPath: /var/db/newrelic-infra/data
+      name: tmpfs-data

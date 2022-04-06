@@ -1,14 +1,15 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ template "newrelic-k8s-metrics-adapter.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  name: {{ template "common.naming.fullname" . }}
   labels:
-    {{- include "newrelic-k8s-metrics-adapter.labels" . | nindent 4 }}
+    {{- include "common.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
-      {{- include "newrelic-k8s-metrics-adapter.appLabel" . | nindent 6 }}
+      {{- include "common.labels.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       annotations:
@@ -18,23 +19,25 @@ spec:
         {{- toYaml .Values.podAnnotations | nindent 8 }}
         {{- end }}
       labels:
-        {{- include "newrelic-k8s-metrics-adapter.labels" . | nindent 8 }}
+        {{- include "common.labels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ template "newrelic-k8s-metrics-adapter.serviceAccountName" . }}
-      {{- if .Values.podSecurityContext.enabled }}
+      serviceAccountName: {{ include "common.serviceAccount.name" . }}
+      {{- with include "common.securityContext.pod" . }}
       securityContext:
-        runAsUser: {{ .Values.podSecurityContext.runAsUser }}
-        runAsGroup: {{ .Values.podSecurityContext.runAsGroup }}
-        fsGroup: {{ .Values.podSecurityContext.fsGroup }}
+        {{- . | nindent 8 }}
       {{- end }}
-      {{- if .Values.image.pullSecrets }}
+      {{- with include "common.images.renderPullSecrets" ( dict "pullSecrets" (list .Values.image.pullSecrets) "context" .) }}
       imagePullSecrets:
-        {{- toYaml .Values.image.pullSecrets | nindent 8 }}
+        {{- . | nindent 8 }}
       {{- end }}
       containers:
-      - name: {{ template "newrelic-k8s-metrics-adapter.name" . }}
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+      - name: {{ template "common.naming.name" . }}
+        image: {{ include "common.images.image" ( dict "imageRoot" .Values.image "context" .) }}
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        {{- with include "common.securityContext.container" . }}
+        securityContext:
+          {{- . | nindent 10 }}
+        {{- end }}
         args:
         - --tls-cert-file=/tmp/k8s-metrics-adapter/serving-certs/tls.crt
         - --tls-private-key-file=/tmp/k8s-metrics-adapter/serving-certs/tls.key
@@ -55,39 +58,53 @@ spec:
         {{- end }}
         env:
         - name: CLUSTER_NAME
-          value: {{ include "newrelic-k8s-metrics-adapter.cluster" . }}
+          value: {{ include "common.cluster" . }}
         - name: NEWRELIC_API_KEY
           valueFrom:
             secretKeyRef:
-              name: {{ template "newrelic-k8s-metrics-adapter.fullname" . }}
+              name: {{ template "common.naming.fullname" . }}
               key: personalAPIKey
+        {{- with .Values.extraEnv }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.extraEnvFrom }}
+        envFrom: {{ toYaml . | nindent 8 }}
+        {{- end }}
         volumeMounts:
         - name: tls-key-cert-pair
           mountPath: /tmp/k8s-metrics-adapter/serving-certs/
         - name: config
           mountPath: /etc/newrelic/adapter/
+        {{- with .Values.extraVolumeMounts }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
       volumes:
       - name: tls-key-cert-pair
         secret:
-          secretName: {{ template "newrelic-k8s-metrics-adapter.fullname" . }}-apiservice
+          secretName: {{ template "common.naming.fullname" . }}-apiservice
       - name: config
         configMap:
-          name: {{ template "newrelic-k8s-metrics-adapter.fullname" .  }}
-      {{- if $.Values.priorityClassName }}
-      priorityClassName: {{ $.Values.priorityClassName }}
+          name: {{ template "common.naming.fullname" .  }}
+      {{- with .Values.extraVolumes }}
+      {{- toYaml . | nindent 6 }}
       {{- end }}
-      {{- if $.Values.nodeSelector }}
+      {{- with include "common.priorityClassName" . }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      {{- with include "common.nodeSelector" . }}
       nodeSelector:
-        {{- toYaml $.Values.nodeSelector | nindent 8 }}
+        {{- . | nindent 8 }}
       {{- end }}
-      {{- if .Values.tolerations }}
+      {{- with include "common.tolerations" . }}
       tolerations:
-        {{- toYaml .Values.tolerations | nindent 8 }}
+        {{- . | nindent 8 }}
       {{- end }}
-      {{- if .Values.affinity }}
+      {{- with include "common.affinity" . }}
       affinity:
-        {{- toYaml .Values.affinity | nindent 8 }}
+        {{- . | nindent 8 }}
       {{- end }}
-      {{- if $.Values.hostNetwork }}
-      hostNetwork: {{ $.Values.hostNetwork }}
+      hostNetwork: {{ include "common.hostNetwork.value" . }}
+      {{- with include "common.dnsConfig" . }}
+      dnsConfig:
+        {{- . | nindent 8 }}
       {{- end }}

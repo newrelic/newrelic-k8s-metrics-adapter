@@ -2,19 +2,18 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {{ template "newrelic-k8s-metrics-adapter.fullname" . }}-apiservice
+  name: {{ template "common.naming.fullname" . }}-apiservice
   annotations:
     "helm.sh/hook": pre-install,pre-upgrade,post-install,post-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
   labels:
-    app: {{ template "newrelic-k8s-metrics-adapter.name" $ }}
-{{ include "newrelic-k8s-metrics-adapter.labels" $ | indent 4 }}
+    {{- include "common.labels" . | nindent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: {{ template "newrelic-k8s-metrics-adapter.fullname" . }}-apiservice
+  name: {{ template "common.naming.fullname" . }}-apiservice
 subjects:
   - kind: ServiceAccount
-    name: {{ template "newrelic-k8s-metrics-adapter.fullname" . }}-apiservice
+    name: {{ include "common.serviceAccount.name" . }}-apiservice
     namespace: {{ .Release.Namespace }}
 {{- end }}

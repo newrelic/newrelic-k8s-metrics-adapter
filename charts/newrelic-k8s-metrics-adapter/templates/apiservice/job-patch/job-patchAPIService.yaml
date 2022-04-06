@@ -3,50 +3,48 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: {{ template "newrelic-k8s-metrics-adapter.fullname" . }}-apiservice-patch
+  name: {{ template "common.naming.fullname" . }}-apiservice-patch
   annotations:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
   labels:
-    app: {{ template "newrelic-k8s-metrics-adapter.name" $ }}
-{{ include "newrelic-k8s-metrics-adapter.labels" $ | indent 4 }}
+    {{- include "common.labels" . | nindent 4 }}
 spec:
   template:
     metadata:
-      name: {{ template "newrelic-k8s-metrics-adapter.fullname" . }}-apiservice-patch
+      name: {{ template "common.naming.fullname" . }}-apiservice-patch
       labels:
-        app: {{ template "newrelic-k8s-metrics-adapter.name" $ }}
-{{ include "newrelic-k8s-metrics-adapter.labels" $ | indent 8 }}
+        {{- include "common.labels" . | nindent 8 }}
     spec:
-      {{- if .Values.apiServicePatchJob.image.pullSecrets }}
+      {{- with include "common.images.renderPullSecrets" ( dict "pullSecrets" (list .Values.image.pullSecrets) "context" .) }}
       imagePullSecrets:
-        {{- toYaml .Values.apiServicePatchJob.image.pullSecrets | nindent 8 }}
+        {{- . | nindent 8 }}
       {{- end }}
       containers:
         - name: patch
-          image: {{ .Values.apiServicePatchJob.image.repository }}:{{ .Values.apiServicePatchJob.image.tag }}
+          image: {{ include "common.images.image" ( dict "imageRoot" .Values.apiServicePatchJob.image "context" .) }}
           imagePullPolicy: {{ .Values.apiServicePatchJob.image.pullPolicy }}
           args:
             - patch
             - --namespace={{ .Release.Namespace }}
-            - --secret-name={{ template "newrelic-k8s-metrics-adapter.fullname" . }}-apiservice
+            - --secret-name={{ template "common.naming.fullname" . }}-apiservice
             - --apiservice-name=v1beta1.external.metrics.k8s.io
-          {{- if .Values.apiServicePatchJob.image.volumeMounts }}
+            {{- with .Values.apiServicePatchJob.volumeMounts }}
           volumeMounts:
-          {{- include "tplvalues.render" ( dict "value" .Values.apiServicePatchJob.image.volumeMounts "context" $ ) | nindent 10 }}
+          {{- toYaml . | nindent 10 }}
           {{- end }}
-      {{- if .Values.apiServicePatchJob.image.volumes }}
+      {{- with .Values.apiServicePatchJob.volumes }}
       volumes:
-      {{- include "tplvalues.render" ( dict "value" .Values.apiServicePatchJob.image.volumes "context" $ ) | nindent 8 }}
+      {{- toYaml . | nindent 6 }}
       {{- end }}
       restartPolicy: OnFailure
-      serviceAccountName: {{ template "newrelic-k8s-metrics-adapter.fullname" . }}-apiservice
+      serviceAccountName: {{ include "common.serviceAccount.name" . }}-apiservice
       securityContext:
         runAsGroup: 2000
         runAsNonRoot: true
         runAsUser: 2000
-      {{- if .Values.tolerations }}
+      {{- with include "common.tolerations" . }}
       tolerations:
-        {{- toYaml .Values.tolerations | nindent 8 }}
+        {{- . | nindent 8 }}
       {{- end }}
 {{- end }}
