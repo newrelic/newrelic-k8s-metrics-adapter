@@ -96,16 +96,14 @@ apiServicePatchJob:
     repository: k8s.gcr.io/ingress-nginx/kube-webhook-certgen
     tag: v1.1.1
     pullPolicy: IfNotPresent
-  extraEnv: []
-  extraEnvFrom: []
 # Volumes to add to the job container.
-  extraVolumes: []
+  volumes: []
 #  - name: tmp
 #    emptyDir: {}
 
 # Volume mounts to add to the job, you might want to mount tmp if Pod Security Policies.
 # Enforce a read-only root.
-  extraVolumeMounts: []
+  volumeMounts: []
 #  - name: tmp
 #    mountPath: /tmp
 

@@ -29,19 +29,11 @@ spec:
             - --namespace={{ .Release.Namespace }}
             - --secret-name={{ template "common.naming.fullname" . }}-apiservice
             - --apiservice-name=v1beta1.external.metrics.k8s.io
-          {{- with .Values.apiServicePatchJob.extraEnv }}
-          env:
-          {{- toYaml . | nindent 10 }}
-          {{- end }}
-          {{- with .Values.apiServicePatchJob.extraEnvFrom }}
-          envFrom:
-          {{- toYaml . | nindent 10 }}
-          {{- end }}
-          {{- with .Values.apiServicePatchJob.extraVolumeMounts }}
+          {{- with .Values.apiServicePatchJob.volumeMounts }}
           volumeMounts:
           {{- toYaml . | nindent 10 }}
           {{- end }}
-      {{- with .Values.apiServicePatchJob.extraVolumes }}
+      {{- with .Values.apiServicePatchJob.volumes }}
       volumes:
       {{- toYaml . | nindent 6 }}
       {{- end }}
