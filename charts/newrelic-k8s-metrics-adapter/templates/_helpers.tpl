@@ -16,7 +16,7 @@ When this value is empty the New Relic client region will be the default 'US'
   {{- .Values.config.region | upper -}}
 {{- else if (include "common.nrStaging" .)  -}}
 Staging
-{{- else if eq (include "common.license._licenseKey" . | substr 0 2) "eu" -}}
+{{- else if hasPrefix "eu" (include "common.license._licenseKey" .) -}}
 EU
 {{- end -}}
 {{- end -}}
