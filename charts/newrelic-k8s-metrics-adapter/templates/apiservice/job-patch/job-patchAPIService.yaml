@@ -29,7 +29,7 @@ spec:
             - --namespace={{ .Release.Namespace }}
             - --secret-name={{ template "common.naming.fullname" . }}-apiservice
             - --apiservice-name=v1beta1.external.metrics.k8s.io
-          {{- with .Values.apiServicePatchJob.volumeMounts }}
+            {{- with .Values.apiServicePatchJob.volumeMounts }}
           volumeMounts:
           {{- toYaml . | nindent 10 }}
           {{- end }}
