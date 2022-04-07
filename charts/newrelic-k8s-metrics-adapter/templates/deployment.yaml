@@ -64,6 +64,10 @@ spec:
             secretKeyRef:
               name: {{ template "common.naming.fullname" . }}
               key: personalAPIKey
+        {{- with (include "common.proxy" .) }}
+        - name: HTTPS_PROXY
+          value: {{ . }}
+        {{- end }}
         {{- with .Values.extraEnv }}
         {{- toYaml . | nindent 8 }}
         {{- end }}

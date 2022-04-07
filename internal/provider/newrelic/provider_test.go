@@ -1,4 +1,4 @@
-// Copyright 2021 New Relic Corporation. All rights reserved.
+// Copyright 2022 New Relic Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
 package newrelic_test
@@ -404,6 +404,7 @@ newrelic_adapter_external_provider_queries_total{result="err"} 1
 			}
 		}
 
+		// This subtest checks that we fail given any client error.
 		t.Run("query_fails", func(t *testing.T) {
 			t.Parallel()
 
