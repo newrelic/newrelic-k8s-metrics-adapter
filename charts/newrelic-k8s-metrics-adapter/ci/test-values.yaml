@@ -48,3 +48,7 @@ apiServicePatchJob:
   volumeMounts:
     - mountPath: /var/db/newrelic-infra/data
       name: tmpfs-data
+
+image:
+  repository: e2e/newrelic-metrics-adapter
+  tag: "test"  # Defaults to AppVersion
