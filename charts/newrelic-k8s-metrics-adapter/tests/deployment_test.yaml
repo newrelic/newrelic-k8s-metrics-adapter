@@ -53,3 +53,16 @@ tests:
             runAsGroup: 1001
             runAsUser: 1001
         template: templates/deployment.yaml
+  - it: correctly uses common.proxy
+    set:
+      personalAPIKey: 21321
+      config:
+        accountID: 111
+        region: A-REGION
+      cluster: a-cluster
+      proxy: localhost:1234
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[2].value
+          value: localhost:1234
+        template: templates/deployment.yaml
