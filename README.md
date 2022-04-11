@@ -11,9 +11,9 @@ The adapter uses the [Custom Metrics Adapter Server Boilerplate](https://github.
 
 ## Installation
 
-This project has the `newrelic-k8s-metrics-adapter` Helm Chart inside the [newrelic helm charts repo](https://github.com/newrelic/helm-charts) and can also be installed through the `nri-bundle` chart.
+This project has the `newrelic-k8s-metrics-adapter` Helm Chart in [charts/newrelic-k8s-metrics-adapter](https://github.com/newrelic/newrelic-k8s-metrics-adapter/charts/newrelic-k8s-metrics-adapter) and can also be installed through the `nri-bundle` chart in [newrelic helm charts repo](https://github.com/newrelic/helm-charts).
 
-For further information regarding the installation refer to the official docs and to the README.md and the values.yaml of the [chart](https://github.com/newrelic/helm-charts/tree/master/charts/newrelic-k8s-metrics-adapter).
+For further information regarding the installation refer to the official docs and to the README.md and the values.yaml of the [chart](https://github.com/newrelic/newrelic-k8s-metrics-adapter/charts/newrelic-k8s-metrics-adapter).
 
 ## Getting Started
 
@@ -57,17 +57,6 @@ If you want to use existing Kubernetes cluster, create `tilt_option.json` file w
   "default_registry": "quay.io/<your username>",
   "allowed_contexts": "<kubeconfig context to use>"
 }
-```
-
-##### Helm chart location
-
-To deploy the metrics adapter, the current Tilt configuration expects the New Relic [helm-charts](https://github.com/newrelic/helm-charts) repository to be cloned as a sibling to this repository under the name `helm-charts-newrelic`.
-This repository is an authoritative source of the deployment manifests for the metrics adapter.
-
-If you have `helm-charts` repository cloned into a different path, you can configure Tilt to use it by adding the following key-value pair to your local `tilt_option.json` file:
-
-```
-  "chart_path": "../../helm-charts-newrelic/charts/newrelic-k8s-metrics-adapter/"
 ```
 
 #### Creating kind cluster
