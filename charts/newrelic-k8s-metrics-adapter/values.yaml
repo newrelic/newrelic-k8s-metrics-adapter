@@ -29,7 +29,7 @@ config:
   # For Staging accounts, the region is: 'Staging' this is also automatically derived form `global.nrStaging`
 
 
-  # -- Period of time in seconds in which a cached value of a metric is consider valid.
+  # cacheTTLSeconds -- Period of time in seconds in which a cached value of a metric is consider valid.
   cacheTTLSeconds: 30
   # Not setting it or setting it to '0' disables the cache.
 
