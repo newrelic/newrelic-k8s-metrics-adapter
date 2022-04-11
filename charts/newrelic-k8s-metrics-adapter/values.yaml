@@ -118,8 +118,8 @@ apiServicePatchJob:
   # apiServicePatchJob.image -- Registry, repository, tag, and pull policy for the job container image.
   # @default -- See `values.yaml`.
   image:
-    registry:
-    repository: k8s.gcr.io/ingress-nginx/kube-webhook-certgen
+    registry: k8s.gcr.io
+    repository: ingress-nginx/kube-webhook-certgen
     tag: v1.1.1
     pullPolicy: IfNotPresent
 
