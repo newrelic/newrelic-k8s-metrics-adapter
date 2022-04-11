@@ -100,7 +100,7 @@ extraVolumes: []
 # -- Add extra volume mounts
 extraVolumeMounts: []
 
-# -- If you wish to provide additional annotations to apply to the pod(s), specify them here.
+# -- Additional annotations to apply to the pod(s).
 podAnnotations:
 
 # Pod scheduling priority
