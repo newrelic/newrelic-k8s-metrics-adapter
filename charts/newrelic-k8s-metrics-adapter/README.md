@@ -2,7 +2,7 @@
 
 # newrelic-k8s-metrics-adapter
 
-![Version: 0.5.0](https://img.shields.io/badge/Version-0.5.0-informational?style=flat-square) ![AppVersion: 0.3.0](https://img.shields.io/badge/AppVersion-0.3.0-informational?style=flat-square)
+![Version: 0.7.0](https://img.shields.io/badge/Version-0.7.0-informational?style=flat-square) ![AppVersion: 0.3.0](https://img.shields.io/badge/AppVersion-0.3.0-informational?style=flat-square)
 
 A Helm chart to deploy the New Relic Kubernetes Metrics Adapter.
 
@@ -23,30 +23,24 @@ A Helm chart to deploy the New Relic Kubernetes Metrics Adapter.
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | affinity | object | `{}` | Node affinity to use for scheduling. |
-| apiServicePatchJob.image.pullPolicy | string | `"IfNotPresent"` | The job pull policy. |
-| apiServicePatchJob.image.registry | string | `nil` | The container registry. |
-| apiServicePatchJob.image.repository | string | `"k8s.gcr.io/ingress-nginx/kube-webhook-certgen"` | The job container to pull. |
-| apiServicePatchJob.image.tag | string | `"v1.1.1"` | The job version of the container to pull. |
+| apiServicePatchJob.image | object | See `values.yaml`. | Registry, repository, tag, and pull policy for the job container image. |
 | apiServicePatchJob.volumeMounts | list | `[]` | Additional Volume mounts for Cert Job, you might want to mount tmp if Pod Security Policies. |
 | apiServicePatchJob.volumes | list | `[]` | Additional Volumes for Cert Job. |
 | certManager.enabled | bool | `false` | Use cert manager for APIService certs, rather than the built-in patch job. |
-| config.accountID | string | `nil` | New Relic [Account ID](https://docs.newrelic.com/docs/accounts/accounts-billing/account-structure/account-id/) where the configured metrics are stored. (**Required**) |
+| config.accountID | string | `nil` | New Relic [Account ID](https://docs.newrelic.com/docs/accounts/accounts-billing/account-structure/account-id/) where the configured metrics are sourced from. (**Required**) |
 | config.cacheTTLSeconds | int | `30` | Period of time in seconds in which a cached value of a metric is consider valid. |
 | config.externalMetrics | string | See `values.yaml` | Contains all the external metrics definition of the adapter. Each key of the externalMetric entry represents the metric name and contains the parameters that defines it. |
-| config.region | string | See `values.yaml` | New Relic account region. If not set, it will be automatically derived from global.licenseKey |
+| config.region | string | Automatically detected from `licenseKey`. | New Relic account region. If not set, it will be automatically derived from the License Key. |
 | extraEnv | list | `[]` | Array to add extra environment variables |
 | extraEnvFrom | list | `[]` | Array to add extra envFrom |
 | extraVolumeMounts | list | `[]` | Add extra volume mounts |
 | extraVolumes | list | `[]` | Array to add extra volumes |
 | fullnameOverride | string | `""` | To fully override common.naming.fullname |
-| image.pullPolicy | string | `"IfNotPresent"` | The pull policy. |
+| image | object | See `values.yaml`. | Registry, repository, tag, and pull policy for the container image. |
 | image.pullSecrets | list | `[]` | The image pull secrets. |
-| image.registry | string | `"docker.io"` | The container registry. |
-| image.repository | string | `"newrelic/newrelic-k8s-metrics-adapter"` | The container to pull. |
-| image.tag | string | `""` | The version of the image to pull. |
 | nodeSelector | object | `{}` | Node label to use for scheduling. |
 | personalAPIKey | string | `nil` | New Relic [Personal API Key](https://docs.newrelic.com/docs/apis/intro-apis/new-relic-api-keys/#user-api-key) (stored in a secret). Used to connect to NerdGraph in order to fetch the configured metrics. (**Required**) |
-| podAnnotations | string | `nil` | If you wish to provide additional annotations to apply to the pod(s), specify them here. |
+| podAnnotations | string | `nil` | Additional annotations to apply to the pod(s). |
 | podSecurityContext | string | `nil` | Configure podSecurityContext |
 | replicas | int | `1` | Number of replicas in the deployment. |
 | resources | object | See `values.yaml` | Resources you wish to assign to the pod. |

@@ -29,7 +29,7 @@ config:
   # For Staging accounts, the region is: 'Staging' this is also automatically derived form `global.nrStaging`
 
 
-  # cacheTTLSeconds -- Period of time in seconds in which a cached value of a metric is consider valid.
+  # config.cacheTTLSeconds -- Period of time in seconds in which a cached value of a metric is consider valid.
   cacheTTLSeconds: 30
   # Not setting it or setting it to '0' disables the cache.
 
@@ -53,13 +53,9 @@ config:
 # image -- Registry, repository, tag, and pull policy for the container image.
 # @default -- See `values.yaml`.
 image:
-  # -- The container registry.
-  registry: docker.io
-  # -- The container to pull.
+  registry:
   repository: newrelic/newrelic-k8s-metrics-adapter
-  # -- The version of the image to pull.
   tag: ""
-  # -- The pull policy.
   pullPolicy: IfNotPresent
   # It is possible to specify docker registry credentials.
   # See https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod
@@ -119,14 +115,12 @@ nodeSelector: {}
 tolerations: []
 
 apiServicePatchJob:
+  # apiServicePatchJob.image -- Registry, repository, tag, and pull policy for the job container image.
+  # @default -- See `values.yaml`.
   image:
-    # -- The container registry.
     registry:
-    # -- The job container to pull.
     repository: k8s.gcr.io/ingress-nginx/kube-webhook-certgen
-    # -- The job version of the container to pull.
     tag: v1.1.1
-    # -- The job pull policy.
     pullPolicy: IfNotPresent
 
   # -- Additional Volumes for Cert Job.
