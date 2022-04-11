@@ -50,6 +50,8 @@ config:
   # If metrics are not from the cluster use removeClusterFilter. Default value for this parameter is false.
   #   removeClusterFilter: false
 
+# image -- Registry, repository, tag, and pull policy for the container image.
+# @default -- See `values.yaml`.
 image:
   # -- The container registry.
   registry: docker.io
