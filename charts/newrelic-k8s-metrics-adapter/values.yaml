@@ -18,7 +18,7 @@ personalAPIKey:
 verboseLog: false
 
 config:
-  # -- New Relic [Account ID](https://docs.newrelic.com/docs/accounts/accounts-billing/account-structure/account-id/) where the configured metrics are stored. (**Required**)
+  # -- New Relic [Account ID](https://docs.newrelic.com/docs/accounts/accounts-billing/account-structure/account-id/) where the configured metrics are sourced from. (**Required**)
   accountID:
 
   # config.region -- New Relic account region. If not set, it will be automatically derived from global.licenseKey
