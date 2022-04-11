@@ -85,6 +85,7 @@ serviceAccount:
   # -- If `serviceAccount.create` this will be the name of the ServiceAccount to use.
   # If not set and create is true, a name is generated using the fullname template.
   # If create is false, a serviceAccount with the given name must exist
+  # @default -- Automatically generated.
   name:
 
 # -- Configure podSecurityContext
