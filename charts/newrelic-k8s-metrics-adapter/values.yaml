@@ -80,6 +80,7 @@ resources:
 serviceAccount:
   # -- Specifies whether a ServiceAccount should be created for the job and the deployment.
   # false avoids creation, true or empty will create the ServiceAccount
+  # @default -- `true`
   create:
   # -- If `serviceAccount.create` this will be the name of the ServiceAccount to use.
   # If not set and create is true, a name is generated using the fullname template.
