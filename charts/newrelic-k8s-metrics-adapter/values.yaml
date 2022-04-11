@@ -22,7 +22,7 @@ config:
   accountID:
 
   # config.region -- New Relic account region. If not set, it will be automatically derived from global.licenseKey
-  # @default -- See `values.yaml`
+  # @default -- Automatically detected from `licenseKey`.
   region:
   # For US-based accounts, the region is: `US`.
   # For EU-based accounts, the region is: `EU`.
