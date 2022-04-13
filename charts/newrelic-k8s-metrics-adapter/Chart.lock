@@ -1,6 +1,6 @@
 dependencies:
 - name: common-library
   repository: https://helm-charts.newrelic.com
-  version: 0.17.0
-digest: sha256:2d99075b5c61591704a71ba077d1d7f774cc39a48b9a96a81d2129ff563a15ba
-generated: "2022-04-05T16:04:48.3417+02:00"
+  version: 0.18.0
+digest: sha256:0980107f55d897a80046d39e6c69538f23bbc86bfa3cec11c5bfff2d91ce268a
+generated: "2022-04-13T14:17:38.200335301Z"
