@@ -14,9 +14,9 @@ When this value is empty the New Relic client region will be the default 'US'
 {{- define "newrelic-k8s-metrics-adapter.region" -}}
 {{- if .Values.config.region -}}
   {{- .Values.config.region | upper -}}
-{{- else if (include "common.nrStaging" .)  -}}
+{{- else if (include "newrelic.common.nrStaging" .)  -}}
 Staging
-{{- else if hasPrefix "eu" (include "common.license._licenseKey" .) -}}
+{{- else if hasPrefix "eu" (include "newrelic.common.license._licenseKey" .) -}}
 EU
 {{- end -}}
 {{- end -}}

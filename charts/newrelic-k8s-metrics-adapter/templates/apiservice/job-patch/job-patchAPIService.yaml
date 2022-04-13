@@ -3,31 +3,31 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: {{ template "common.naming.fullname" . }}-apiservice-patch
+  name: {{ include "newrelic.common.naming.fullname" . }}-apiservice-patch
   annotations:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
   labels:
-    {{- include "common.labels" . | nindent 4 }}
+    {{- include "newrelic.common.labels" . | nindent 4 }}
 spec:
   template:
     metadata:
-      name: {{ template "common.naming.fullname" . }}-apiservice-patch
+      name: {{ include "newrelic.common.naming.fullname" . }}-apiservice-patch
       labels:
-        {{- include "common.labels" . | nindent 8 }}
+        {{- include "newrelic.common.labels" . | nindent 8 }}
     spec:
-      {{- with include "common.images.renderPullSecrets" ( dict "pullSecrets" (list .Values.image.pullSecrets) "context" .) }}
+      {{- with include "newrelic.common.images.renderPullSecrets" ( dict "pullSecrets" (list .Values.image.pullSecrets) "context" .) }}
       imagePullSecrets:
         {{- . | nindent 8 }}
       {{- end }}
       containers:
         - name: patch
-          image: {{ include "common.images.image" ( dict "imageRoot" .Values.apiServicePatchJob.image "context" .) }}
+          image: {{ include "newrelic.common.images.image" ( dict "imageRoot" .Values.apiServicePatchJob.image "context" .) }}
           imagePullPolicy: {{ .Values.apiServicePatchJob.image.pullPolicy }}
           args:
             - patch
             - --namespace={{ .Release.Namespace }}
-            - --secret-name={{ template "common.naming.fullname" . }}-apiservice
+            - --secret-name={{ include "newrelic.common.naming.fullname" . }}-apiservice
             - --apiservice-name=v1beta1.external.metrics.k8s.io
             {{- with .Values.apiServicePatchJob.volumeMounts }}
           volumeMounts:
@@ -38,12 +38,12 @@ spec:
       {{- toYaml . | nindent 6 }}
       {{- end }}
       restartPolicy: OnFailure
-      serviceAccountName: {{ include "common.serviceAccount.name" . }}-apiservice
+      serviceAccountName: {{ include "newrelic.common.serviceAccount.name" . }}-apiservice
       securityContext:
         runAsGroup: 2000
         runAsNonRoot: true
         runAsUser: 2000
-      {{- with include "common.tolerations" . }}
+      {{- with include "newrelic.common.tolerations" . }}
       tolerations:
         {{- . | nindent 8 }}
       {{- end }}
