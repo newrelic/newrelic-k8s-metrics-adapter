@@ -20,6 +20,7 @@ import (
 
 	"github.com/elazarl/goproxy"
 	nrClient "github.com/newrelic/newrelic-client-go/newrelic"
+	"github.com/stretchr/testify/require"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -140,6 +141,9 @@ func Test_Getting_external_metric_through_proxy(t *testing.T) {
 	ctx := testutil.ContextWithDeadline(t)
 	port := 1337
 
+	testEnv := testutil.TestEnv{}
+	testEnv.Generate(t)
+
 	t.Run("ends_with_error_when_proxy_fails", func(t *testing.T) {
 		t.Setenv("HTTPS_PROXY", fmt.Sprintf("localhost:%d", port))
 
@@ -149,7 +153,7 @@ func Test_Getting_external_metric_through_proxy(t *testing.T) {
 
 		p := newrelicProviderWithMetric(t, newrelic.Metric{
 			Query: testIntegrationQuery,
-		}, &testutil.TestEnv{})
+		}, &testEnv)
 
 		m := provider.ExternalMetricInfo{Metric: testMetricName}
 
@@ -167,7 +171,7 @@ func Test_Getting_external_metric_through_proxy(t *testing.T) {
 
 		p := newrelicProviderWithMetric(t, newrelic.Metric{
 			Query: testIntegrationQuery,
-		}, &testutil.TestEnv{})
+		}, &testEnv)
 
 		m := provider.ExternalMetricInfo{Metric: testMetricName}
 
@@ -194,6 +198,8 @@ func Test_does_not_hide_backend_errors(t *testing.T) {
 	}
 	testEnv.Generate(t)
 
+	url := fmt.Sprintf("%s/apis/external.metrics.k8s.io/v1beta1/namespaces/*/test_metric", testEnv.BaseURL)
+
 	p := newrelicProviderWithMetric(t, newrelic.Metric{
 		Query: testIntegrationQuery,
 	}, &testEnv)
@@ -202,50 +208,46 @@ func Test_does_not_hide_backend_errors(t *testing.T) {
 
 	//nolint:paralleltest
 	t.Run("when_response_error", func(t *testing.T) {
-		cases := map[string]func(w http.ResponseWriter, r *http.Request){
-			"is_200_with_empty_data": func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusOK)
+		cases := map[string]struct {
+			handlerFunc       func(w http.ResponseWriter, r *http.Request)
+			wantErr           bool
+			makeExtraRequests bool
+		}{
+			"is_200_with_empty_data": {
+				handlerFunc: func(w http.ResponseWriter, _ *http.Request) {
+					w.WriteHeader(http.StatusOK)
+				},
+				wantErr: true,
 			},
-			"is_400": func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusBadRequest)
+			"is_400": {
+				handlerFunc: func(w http.ResponseWriter, _ *http.Request) {
+					w.WriteHeader(http.StatusBadRequest)
+				},
+				wantErr: true,
 			},
-			"is_401": func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusUnauthorized)
+			"is_401": {
+				handlerFunc: func(w http.ResponseWriter, _ *http.Request) {
+					w.WriteHeader(http.StatusUnauthorized)
+				},
+				wantErr: true,
 			},
-			"is_403": func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusForbidden)
+			"is_403": {
+				handlerFunc: func(w http.ResponseWriter, _ *http.Request) {
+					w.WriteHeader(http.StatusForbidden)
+				},
+				wantErr: true,
 			},
-			"is_500": func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(http.StatusInternalServerError)
+			"is_500": {
+				handlerFunc: func(w http.ResponseWriter, _ *http.Request) {
+					w.WriteHeader(http.StatusInternalServerError)
+				},
+				wantErr: true,
 			},
-		}
-
-		for testCaseName, handlerFunc := range cases {
-			handlerFunc := handlerFunc
-			//nolint:paralleltest
-			t.Run(testCaseName, func(t *testing.T) {
-				runHTTPTestServer(t, 3000, handlerFunc)
-
-				m := provider.ExternalMetricInfo{Metric: testMetricName}
-
-				if _, err := p.GetExternalMetric(ctx, "", nil, m); err == nil {
-					t.Error("Error expected")
-				}
-
-				// url reflecting the external metrics endpoint for the test_metrics so that later we can simulate the request a hpa
-				// would perform to fetch metrics.
-				url := fmt.Sprintf("%s/apis/external.metrics.k8s.io/v1beta1/namespaces/*/test_metric", testEnv.BaseURL)
-				checkStatusCodeNotOK(ctx, t, &testEnv, url)
-			})
-		}
-	})
-
-	//nolint:paralleltest
-	t.Run("when_returns_200_for_first_requests_and_then_500", func(t *testing.T) {
-		server := runHTTPTestServer(t, 3000, func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write([]byte(`{"data": {
+			"is_200_for_first_requests_and_then_500": {
+				handlerFunc: func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Set("Content-Type", "application/json")
+					w.WriteHeader(http.StatusOK)
+					_, _ = w.Write([]byte(`{"data": {
 				"actor": {
 				  "account": {
 					"nrql": {
@@ -254,31 +256,56 @@ func Test_does_not_hide_backend_errors(t *testing.T) {
 				  }
 				}
 			}}`))
-		})
-
-		m := provider.ExternalMetricInfo{Metric: testMetricName}
-
-		// Make the 3rd request to fail.
-		for i := 0; i < 3; i++ {
-			if i == 2 {
-				server.Config.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					w.Header().Set("Content-Type", "application/json")
-					w.WriteHeader(http.StatusInternalServerError)
-				})
-				if _, err := p.GetExternalMetric(ctx, "", nil, m); err == nil {
-					t.Error("Error expected")
-				}
-
-				return
-			}
-
-			if _, err := p.GetExternalMetric(ctx, "", nil, m); err != nil {
-				t.Errorf("Unexpected error = %v", err)
-			}
+				},
+				wantErr:           false,
+				makeExtraRequests: true,
+			},
 		}
 
-		url := fmt.Sprintf("%s/apis/external.metrics.k8s.io/v1beta1/namespaces/*/test_metric", testEnv.BaseURL)
-		checkStatusCodeNotOK(ctx, t, &testEnv, url)
+		for testCaseName, testData := range cases {
+			testData := testData
+			//nolint:paralleltest
+			t.Run(testCaseName, func(t *testing.T) {
+				server := runHTTPTestServer(t, 3000, testData.handlerFunc)
+
+				m := provider.ExternalMetricInfo{Metric: testMetricName}
+
+				_, err := p.GetExternalMetric(ctx, "", nil, m)
+
+				if testData.wantErr {
+					require.Error(t, err)
+					testutil.RetryGetRequestAndCheckStatus(ctx, t, testEnv.HTTPClient, url, func(statusCode int) bool {
+						return statusCode == http.StatusOK
+					})
+				} else {
+					require.NoError(t, err)
+					testutil.RetryGetRequestAndCheckStatus(ctx, t, testEnv.HTTPClient, url, func(statusCode int) bool {
+						return statusCode != http.StatusOK
+					})
+				}
+
+				if testData.makeExtraRequests {
+					// Make second request.
+					if _, err := p.GetExternalMetric(ctx, "", nil, m); err != nil {
+						t.Errorf("Unexpected error = %v", err)
+					}
+
+					testutil.CheckStatusCodeOK(ctx, t, testEnv.HTTPClient, url)
+
+					// Make the third request to fail.
+					server.Config.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+						w.Header().Set("Content-Type", "application/json")
+						w.WriteHeader(http.StatusInternalServerError)
+					})
+
+					if _, err := p.GetExternalMetric(ctx, "", nil, m); err == nil {
+						t.Error("Error expected")
+					}
+
+					checkStatusCodeNotOK(ctx, t, testEnv.HTTPClient, url)
+				}
+			})
+		}
 	})
 }
 
@@ -287,7 +314,7 @@ func Test_does_not_hide_backend_errors(t *testing.T) {
 // If 401 or 403 return code is received, function will retry.
 //
 // If a status code = 2xx is received, function will fail the given test.
-func checkStatusCodeNotOK(ctx context.Context, t *testing.T, testEnv *testutil.TestEnv, url string) {
+func checkStatusCodeNotOK(ctx context.Context, t *testing.T, httpClient *http.Client, url string) {
 	t.Helper()
 
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
@@ -295,8 +322,8 @@ func checkStatusCodeNotOK(ctx context.Context, t *testing.T, testEnv *testutil.T
 		t.Fatalf("Creating request: %v", err)
 	}
 
-	if err := wait.PollImmediateUntilWithContext(testEnv.Context, 1*time.Second, func(context.Context) (bool, error) {
-		resp, err := testEnv.HTTPClient.Do(req)
+	if err := wait.PollImmediateUntilWithContext(ctx, 1*time.Second, func(context.Context) (bool, error) {
+		resp, err := httpClient.Do(req)
 		if err != nil {
 			if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
 				t.Fatalf("Test timed out: %v", err)

@@ -1,4 +1,4 @@
-// Copyright 2021 New Relic Corporation. All rights reserved.
+// Copyright 2022 New Relic Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
 // Package testutil provides common helper for tests.
@@ -200,12 +200,14 @@ externalMetrics:
 	}
 }
 
-// CheckStatusCodeOK sends GET request to given URL until it returns code 200, then it returns received body.
+// RetryGetRequestAndCheckStatus sends GET request to given URL.
 //
 // If 401 or 403 return code is received, function will retry.
 //
-// If other return code is received, function will fail given test.
-func CheckStatusCodeOK(ctx context.Context, t *testing.T, httpClient *http.Client, url string) []byte {
+// If other return code is received, function will check the failCondition to fail the given test.
+func RetryGetRequestAndCheckStatus(
+	ctx context.Context, t *testing.T, httpClient *http.Client, url string, failCondition func(statusCode int) bool,
+) []byte {
 	t.Helper()
 
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
@@ -241,23 +243,38 @@ func CheckStatusCodeOK(ctx context.Context, t *testing.T, httpClient *http.Clien
 			t.Logf("Got %d response code, expected %d: %v. Retrying.", resp.StatusCode, http.StatusOK, resp)
 
 			return false
-		case http.StatusOK:
-			data, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				t.Fatalf("Reading response body: %v", err)
+		default:
+			if failCondition(resp.StatusCode) {
+				t.Fatalf("Unexpected response code %d", resp.StatusCode)
 			}
 
-			body = data
+			if resp.StatusCode == http.StatusOK {
+				data, err := ioutil.ReadAll(resp.Body)
+				if err != nil {
+					t.Fatalf("Reading response body: %v", err)
+				}
+
+				body = data
+			}
 
 			return true
-		default:
-			t.Fatalf("Got %d response code, expected %d: %v", resp.StatusCode, http.StatusOK, resp)
 		}
-
-		return false
 	})
 
 	return body
+}
+
+// CheckStatusCodeOK calls RetryGetRequestAndCheckStatus with a failCondition function checking for any response not
+// equal to 200.
+func CheckStatusCodeOK(ctx context.Context, t *testing.T, httpClient *http.Client, url string) []byte {
+	t.Helper()
+
+	return RetryGetRequestAndCheckStatus(
+		ctx, t, httpClient, url,
+		func(statusCode int) bool {
+			return statusCode != http.StatusOK
+		},
+	)
 }
 
 // randomUnprivilegedPort returns valid unprivileged random port number which can be used for testing.
