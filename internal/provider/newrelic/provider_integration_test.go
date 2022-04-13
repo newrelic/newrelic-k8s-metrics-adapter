@@ -8,7 +8,6 @@ package newrelic_test
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -16,14 +15,11 @@ import (
 	"regexp"
 	"strconv"
 	"testing"
-	"time"
 
 	"github.com/elazarl/goproxy"
 	nrClient "github.com/newrelic/newrelic-client-go/newrelic"
-	"github.com/stretchr/testify/require"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"sigs.k8s.io/custom-metrics-apiserver/pkg/provider"
 
 	"github.com/newrelic/newrelic-k8s-metrics-adapter/internal/adapter"
@@ -181,12 +177,10 @@ func Test_Getting_external_metric_through_proxy(t *testing.T) {
 	})
 }
 
-// As The server must be run on port 3000 to be run locally as per the new relic client requirements, subtests
-// cannot be run in parallel.
+// This test uses the `Region: Local` which configures the newrelic go client to use the `localhost:3000` endpoint
+// (https://github.com/newrelic/newrelic-client-go/blob/main/pkg/region/region_constants.go).
 //
-// For more details check https://github.com/newrelic/newrelic-client-go/blob/main/pkg/region/region_constants.go
-//
-//nolint:funlen,tparallel
+//nolint:funlen,tparallel,paralleltest // no parallel since port 3000 is used by all test.
 func Test_does_not_hide_backend_errors(t *testing.T) {
 	t.Parallel()
 
@@ -206,48 +200,48 @@ func Test_does_not_hide_backend_errors(t *testing.T) {
 
 	runAdapter(t, &testEnv, p)
 
-	//nolint:paralleltest
-	t.Run("when_response_error", func(t *testing.T) {
-		cases := map[string]struct {
-			handlerFunc       func(w http.ResponseWriter, r *http.Request)
-			wantErr           bool
-			makeExtraRequests bool
-		}{
-			"is_200_with_empty_data": {
-				handlerFunc: func(w http.ResponseWriter, _ *http.Request) {
-					w.WriteHeader(http.StatusOK)
-				},
-				wantErr: true,
+	t.Run("when_newrelic_backend_response_error_is", func(t *testing.T) {
+		cases := map[string]func(w http.ResponseWriter, r *http.Request){
+			"200_with_empty_data": func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
 			},
-			"is_400": {
-				handlerFunc: func(w http.ResponseWriter, _ *http.Request) {
-					w.WriteHeader(http.StatusBadRequest)
-				},
-				wantErr: true,
+			"400": func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusBadRequest)
 			},
-			"is_401": {
-				handlerFunc: func(w http.ResponseWriter, _ *http.Request) {
-					w.WriteHeader(http.StatusUnauthorized)
-				},
-				wantErr: true,
+			"401": func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusUnauthorized)
 			},
-			"is_403": {
-				handlerFunc: func(w http.ResponseWriter, _ *http.Request) {
-					w.WriteHeader(http.StatusForbidden)
-				},
-				wantErr: true,
+			"403": func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusForbidden)
 			},
-			"is_500": {
-				handlerFunc: func(w http.ResponseWriter, _ *http.Request) {
-					w.WriteHeader(http.StatusInternalServerError)
-				},
-				wantErr: true,
+			"500": func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusInternalServerError)
 			},
-			"is_200_for_first_requests_and_then_500": {
-				handlerFunc: func(w http.ResponseWriter, r *http.Request) {
-					w.Header().Set("Content-Type", "application/json")
-					w.WriteHeader(http.StatusOK)
-					_, _ = w.Write([]byte(`{"data": {
+		}
+
+		for testCaseName, handlerFunc := range cases {
+			handlerFunc := handlerFunc
+			t.Run(testCaseName, func(t *testing.T) {
+				runHTTPTestServer(t, 3000, handlerFunc)
+
+				m := provider.ExternalMetricInfo{Metric: testMetricName}
+
+				if _, err := p.GetExternalMetric(ctx, "", nil, m); err == nil {
+					t.Errorf("Unexpected error = %v", err)
+				}
+
+				testutil.RetryGetRequestAndCheckStatus(ctx, t, testEnv.HTTPClient, url, func(statusCode int) bool {
+					return statusCode == http.StatusOK
+				})
+			})
+		}
+	})
+
+	t.Run("when_newrelic_backend_response_error_200_for_first_requests_and_then_500", func(t *testing.T) {
+		server := runHTTPTestServer(t, 3000, func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{"data": {
 				"actor": {
 				  "account": {
 					"nrql": {
@@ -256,106 +250,35 @@ func Test_does_not_hide_backend_errors(t *testing.T) {
 				  }
 				}
 			}}`))
-				},
-				wantErr:           false,
-				makeExtraRequests: true,
-			},
-		}
+		})
 
-		for testCaseName, testData := range cases {
-			testData := testData
-			//nolint:paralleltest
-			t.Run(testCaseName, func(t *testing.T) {
-				server := runHTTPTestServer(t, 3000, testData.handlerFunc)
+		m := provider.ExternalMetricInfo{Metric: testMetricName}
 
-				m := provider.ExternalMetricInfo{Metric: testMetricName}
-
-				_, err := p.GetExternalMetric(ctx, "", nil, m)
-
-				if testData.wantErr {
-					require.Error(t, err)
-					testutil.RetryGetRequestAndCheckStatus(ctx, t, testEnv.HTTPClient, url, func(statusCode int) bool {
-						return statusCode == http.StatusOK
-					})
-				} else {
-					require.NoError(t, err)
-					testutil.RetryGetRequestAndCheckStatus(ctx, t, testEnv.HTTPClient, url, func(statusCode int) bool {
-						return statusCode != http.StatusOK
-					})
-				}
-
-				if testData.makeExtraRequests {
-					// Make second request.
-					if _, err := p.GetExternalMetric(ctx, "", nil, m); err != nil {
-						t.Errorf("Unexpected error = %v", err)
-					}
-
-					testutil.CheckStatusCodeOK(ctx, t, testEnv.HTTPClient, url)
-
-					// Make the third request to fail.
-					server.Config.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-						w.Header().Set("Content-Type", "application/json")
-						w.WriteHeader(http.StatusInternalServerError)
-					})
-
-					if _, err := p.GetExternalMetric(ctx, "", nil, m); err == nil {
-						t.Error("Error expected")
-					}
-
-					checkStatusCodeNotOK(ctx, t, testEnv.HTTPClient, url)
-				}
-			})
-		}
-	})
-}
-
-// checkStatusCodeNotOK sends a GET request to the given URL.
-//
-// If 401 or 403 return code is received, function will retry.
-//
-// If a status code = 2xx is received, function will fail the given test.
-func checkStatusCodeNotOK(ctx context.Context, t *testing.T, httpClient *http.Client, url string) {
-	t.Helper()
-
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
-	if err != nil {
-		t.Fatalf("Creating request: %v", err)
-	}
-
-	if err := wait.PollImmediateUntilWithContext(ctx, 1*time.Second, func(context.Context) (bool, error) {
-		resp, err := httpClient.Do(req)
-		if err != nil {
-			if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
-				t.Fatalf("Test timed out: %v", err)
+		// Perform 2 requests (totally arbitrary number) returning 200 status code.
+		for i := 0; i < 2; i++ {
+			if _, err := p.GetExternalMetric(ctx, "", nil, m); err != nil {
+				t.Errorf("Unexpected error = %v", err)
 			}
 
-			t.Logf("Fetching %s: %v", url, err)
-
-			time.Sleep(1 * time.Second)
-
-			return false, nil
+			testutil.RetryGetRequestAndCheckStatus(ctx, t, testEnv.HTTPClient, url, func(statusCode int) bool {
+				return statusCode != http.StatusOK
+			})
 		}
 
-		defer func() {
-			_ = resp.Body.Close()
-		}()
+		// Update handler to make the following requests to fail.
+		server.Config.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+		})
 
-		switch resp.StatusCode {
-		// Generic API server does not wait for RequestHeaderAuthRequestController informers cache to be synchronized,
-		// so until this is done, metrics adapter will be responding with HTTP 403, so we want to retry on that.
-		case http.StatusForbidden, http.StatusUnauthorized:
-			t.Logf("Got %d response code, expected %d: %v. Retrying.", resp.StatusCode, http.StatusOK, resp)
-
-			return false, nil
-		case http.StatusOK:
-			t.Errorf("Got %d response code, expected != 2xx", resp.StatusCode)
-		default:
+		if _, err := p.GetExternalMetric(ctx, "", nil, m); err == nil {
+			t.Errorf("Error expected")
 		}
 
-		return true, nil
-	}); err != nil {
-		t.Fatalf("Timed out waiting for k8s apiserver to respond: %v", err)
-	}
+		testutil.RetryGetRequestAndCheckStatus(ctx, t, testEnv.HTTPClient, url, func(statusCode int) bool {
+			return statusCode == http.StatusOK
+		})
+	})
 }
 
 func runHTTPTestServer(t *testing.T, port int, f func(w http.ResponseWriter, req *http.Request)) *httptest.Server {

@@ -7,7 +7,6 @@ require (
 	github.com/google/go-cmp v0.5.6
 	github.com/newrelic/newrelic-client-go v0.62.1
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.7.0
 	k8s.io/api v0.22.0
 	k8s.io/apimachinery v0.22.0
 	k8s.io/apiserver v0.22.0
@@ -68,6 +67,7 @@ require (
 	github.com/prometheus/procfs v0.6.0 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/spf13/cobra v1.1.3 // indirect
+	github.com/stretchr/testify v1.7.0 // indirect
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
 	go.etcd.io/etcd/api/v3 v3.5.0 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.0 // indirect
