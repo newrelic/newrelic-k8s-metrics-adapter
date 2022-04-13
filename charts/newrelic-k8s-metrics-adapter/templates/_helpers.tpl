@@ -1,11 +1,17 @@
 {{/* vim: set filetype=mustache: */}}
 
 {{- /* Allow to change pod defaults dynamically based if we are running in privileged mode or not */ -}}
-{{- define "common.securityContext.podDefaults" -}}
+{{- define "newrelic-k8s-metrics-adapter.securityContext.pod" -}}
+{{- if include "newrelic.common.securityContext.pod" . -}}
+{{- include "newrelic.common.securityContext.pod" . -}}
+{{- else -}}
 fsGroup: 1001
 runAsUser: 1001
 runAsGroup: 1001
 {{- end -}}
+{{- end -}}
+
+
 
 {{/*
 Select a value for the region

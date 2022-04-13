@@ -89,6 +89,9 @@ serviceAccount:
 # -- Configure podSecurityContext
 podSecurityContext:
 
+# -- Configure containerSecurityContext
+containerSecurityContext:
+
 # -- Array to add extra environment variables
 extraEnv: []
 # -- Array to add extra envFrom

@@ -22,7 +22,7 @@ spec:
         {{- include "newrelic.common.labels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "newrelic.common.serviceAccount.name" . }}
-      {{- with include "newrelic.common.securityContext.pod" . }}
+      {{- with include "newrelic-k8s-metrics-adapter.securityContext.pod" . }}
       securityContext:
         {{- . | nindent 8 }}
       {{- end }}
