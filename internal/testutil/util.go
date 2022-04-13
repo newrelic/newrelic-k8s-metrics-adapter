@@ -236,29 +236,25 @@ func RetryGetRequestAndCheckStatus(
 			return false
 		}
 
-		switch resp.StatusCode {
+		switch {
 		// Generic API server does not wait for RequestHeaderAuthRequestController informers cache to be synchronized,
 		// so until this is done, metrics adapter will be responding with HTTP 403, so we want to retry on that.
-		case http.StatusForbidden, http.StatusUnauthorized:
+		case resp.StatusCode == http.StatusForbidden, resp.StatusCode == http.StatusUnauthorized:
 			t.Logf("Got %d response code, expected %d: %v. Retrying.", resp.StatusCode, http.StatusOK, resp)
 
 			return false
-		default:
-			if failCondition(resp.StatusCode) {
-				t.Fatalf("Unexpected response code %d", resp.StatusCode)
-			}
-
-			if resp.StatusCode == http.StatusOK {
-				data, err := ioutil.ReadAll(resp.Body)
-				if err != nil {
-					t.Fatalf("Reading response body: %v", err)
-				}
-
-				body = data
-			}
-
-			return true
+		case failCondition(resp.StatusCode):
+			t.Fatalf("Unexpected response code %d", resp.StatusCode)
 		}
+
+		data, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			t.Fatalf("Reading response body: %v", err)
+		}
+
+		body = data
+
+		return true
 	})
 
 	return body
