@@ -20,9 +20,11 @@ import (
 	nrClient "github.com/newrelic/newrelic-client-go/newrelic"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
+	"k8s.io/component-base/metrics/legacyregistry"
 	"sigs.k8s.io/custom-metrics-apiserver/pkg/provider"
 
 	"github.com/newrelic/newrelic-k8s-metrics-adapter/internal/adapter"
+	"github.com/newrelic/newrelic-k8s-metrics-adapter/internal/provider/cache"
 	"github.com/newrelic/newrelic-k8s-metrics-adapter/internal/provider/newrelic"
 	"github.com/newrelic/newrelic-k8s-metrics-adapter/internal/testutil"
 )
@@ -132,51 +134,6 @@ func Test_Getting_external_metric_generates_a_query_not_rejected_by_backend(t *t
 	})
 }
 
-//nolint:paralleltest // This test registers environment variables, so it must not be run in parallel.
-func Test_Getting_external_metric_through_proxy(t *testing.T) {
-	ctx := testutil.ContextWithDeadline(t)
-	port := 1337
-
-	testEnv := testutil.TestEnv{}
-	testEnv.Generate(t)
-
-	t.Run("ends_with_error_when_proxy_fails", func(t *testing.T) {
-		t.Setenv("HTTPS_PROXY", fmt.Sprintf("localhost:%d", port))
-
-		runProxy(ctx, t, port, func(host string, ctx *goproxy.ProxyCtx) (*goproxy.ConnectAction, string) {
-			return goproxy.RejectConnect, host
-		})
-
-		p := newrelicProviderWithMetric(t, newrelic.Metric{
-			Query: testIntegrationQuery,
-		}, &testEnv)
-
-		m := provider.ExternalMetricInfo{Metric: testMetricName}
-
-		if _, err := p.GetExternalMetric(ctx, "", nil, m); err == nil {
-			t.Fatal("Error expected")
-		}
-	})
-
-	t.Run("generates_a_query_successfully", func(t *testing.T) {
-		t.Setenv("HTTPS_PROXY", fmt.Sprintf("localhost:%d", port))
-
-		runProxy(ctx, t, port, func(host string, ctx *goproxy.ProxyCtx) (*goproxy.ConnectAction, string) {
-			return goproxy.OkConnect, host
-		})
-
-		p := newrelicProviderWithMetric(t, newrelic.Metric{
-			Query: testIntegrationQuery,
-		}, &testEnv)
-
-		m := provider.ExternalMetricInfo{Metric: testMetricName}
-
-		if _, err := p.GetExternalMetric(ctx, "", nil, m); err != nil {
-			t.Fatalf("Unexpected error: %v", err)
-		}
-	})
-}
-
 // This test uses the `Region: Local` which configures the newrelic go client to use the `localhost:3000` endpoint
 // (https://github.com/newrelic/newrelic-client-go/blob/main/pkg/region/region_constants.go).
 //
@@ -239,7 +196,6 @@ func Test_does_not_hide_backend_errors(t *testing.T) {
 
 	t.Run("when_newrelic_backend_response_error_200_for_first_requests_and_then_500", func(t *testing.T) {
 		server := runHTTPTestServer(t, 3000, func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write([]byte(`{"data": {
 				"actor": {
@@ -281,6 +237,51 @@ func Test_does_not_hide_backend_errors(t *testing.T) {
 	})
 }
 
+//nolint:paralleltest // This test registers environment variables, so it must not be run in parallel.
+func Test_Getting_external_metric_through_proxy(t *testing.T) {
+	ctx := testutil.ContextWithDeadline(t)
+	port := 1337
+
+	testEnv := testutil.TestEnv{}
+	testEnv.Generate(t)
+
+	t.Run("ends_with_error_when_proxy_fails", func(t *testing.T) {
+		t.Setenv("HTTPS_PROXY", fmt.Sprintf("localhost:%d", port))
+
+		runProxy(ctx, t, port, func(host string, ctx *goproxy.ProxyCtx) (*goproxy.ConnectAction, string) {
+			return goproxy.RejectConnect, host
+		})
+
+		p := newrelicProviderWithMetric(t, newrelic.Metric{
+			Query: testIntegrationQuery,
+		}, &testEnv)
+
+		m := provider.ExternalMetricInfo{Metric: testMetricName}
+
+		if _, err := p.GetExternalMetric(ctx, "", nil, m); err == nil {
+			t.Fatal("Error expected")
+		}
+	})
+
+	t.Run("generates_a_query_successfully", func(t *testing.T) {
+		t.Setenv("HTTPS_PROXY", fmt.Sprintf("localhost:%d", port))
+
+		runProxy(ctx, t, port, func(host string, ctx *goproxy.ProxyCtx) (*goproxy.ConnectAction, string) {
+			return goproxy.OkConnect, host
+		})
+
+		p := newrelicProviderWithMetric(t, newrelic.Metric{
+			Query: testIntegrationQuery,
+		}, &testEnv)
+
+		m := provider.ExternalMetricInfo{Metric: testMetricName}
+
+		if _, err := p.GetExternalMetric(ctx, "", nil, m); err != nil {
+			t.Fatalf("Unexpected error: %v", err)
+		}
+	})
+}
+
 func runHTTPTestServer(t *testing.T, port int, f func(w http.ResponseWriter, req *http.Request)) *httptest.Server {
 	t.Helper()
 
@@ -304,8 +305,19 @@ func runHTTPTestServer(t *testing.T, port int, f func(w http.ResponseWriter, req
 func runAdapter(t *testing.T, testEnv *testutil.TestEnv, provider provider.ExternalMetricsProvider) {
 	t.Helper()
 
+	cacheOptions := cache.ProviderOptions{
+		ExternalProvider: provider,
+		CacheTTLSeconds:  1,
+		RegisterFunc:     legacyregistry.Register,
+	}
+
+	cacheProvider, err := cache.NewCacheProvider(cacheOptions)
+	if err != nil {
+		t.Fatalf("Unexpected error creating cache provider: %v", err)
+	}
+
 	options := adapter.Options{
-		ExternalMetricsProvider: provider,
+		ExternalMetricsProvider: cacheProvider,
 		Args:                    testEnv.Flags,
 	}
 
