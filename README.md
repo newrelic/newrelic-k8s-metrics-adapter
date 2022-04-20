@@ -11,9 +11,9 @@ The adapter uses the [Custom Metrics Adapter Server Boilerplate](https://github.
 
 ## Installation
 
-This project has the `newrelic-k8s-metrics-adapter` Helm Chart in [charts/newrelic-k8s-metrics-adapter](https://github.com/newrelic/newrelic-k8s-metrics-adapter/charts/newrelic-k8s-metrics-adapter) and can also be installed through the `nri-bundle` chart in [newrelic helm charts repo](https://github.com/newrelic/helm-charts).
+This project has the `newrelic-k8s-metrics-adapter` Helm Chart in [charts/newrelic-k8s-metrics-adapter](https://github.com/newrelic/newrelic-k8s-metrics-adapter/tree/main/charts/newrelic-k8s-metrics-adapter) and can also be installed through the `nri-bundle` chart in [newrelic helm charts repo](https://github.com/newrelic/helm-charts).
 
-For further information regarding the installation refer to the official docs and to the README.md and the values.yaml of the [chart](https://github.com/newrelic/newrelic-k8s-metrics-adapter/charts/newrelic-k8s-metrics-adapter).
+For further information regarding the installation refer to the official docs and to the README.md and the values.yaml of the [chart](https://github.com/newrelic/newrelic-k8s-metrics-adapter/tree/main/charts/newrelic-k8s-metrics-adapter).
 
 ## Getting Started
 
