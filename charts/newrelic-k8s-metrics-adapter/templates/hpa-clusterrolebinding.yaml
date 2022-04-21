@@ -1,7 +1,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {{ include "newrelic.common.naming.fullname" . }}-hpa-controller
+  name: {{ include "newrelic-k8s-metrics-adapter.name.hpa-controller" . }}
   labels:
     {{- include "newrelic.common.labels" . | nindent 4 }}
 roleRef:

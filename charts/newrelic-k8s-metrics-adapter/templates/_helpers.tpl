@@ -26,3 +26,24 @@ Staging
 EU
 {{- end -}}
 {{- end -}}
+
+
+
+{{- /*
+Naming helpers
+*/ -}}
+{{- define "newrelic-k8s-metrics-adapter.name.apiservice" -}}
+{{ include "newrelic.common.naming.truncateToDNSWithSuffix" (dict "name" (include "newrelic.common.naming.fullname" .) "suffix" "apiservice") }}
+{{- end -}}
+
+{{- define "newrelic-k8s-metrics-adapter.name.apiservice-create" -}}
+{{ include "newrelic.common.naming.truncateToDNSWithSuffix" (dict "name" (include "newrelic.common.naming.fullname" .) "suffix" "apiservice-create") }}
+{{- end -}}
+
+{{- define "newrelic-k8s-metrics-adapter.name.apiservice-patch" -}}
+{{ include "newrelic.common.naming.truncateToDNSWithSuffix" (dict "name" (include "newrelic.common.naming.fullname" .) "suffix" "apiservice-patch") }}
+{{- end -}}
+
+{{- define "newrelic-k8s-metrics-adapter.name.hpa-controller" -}}
+{{ include "newrelic.common.naming.truncateToDNSWithSuffix" (dict "name" (include "newrelic.common.naming.fullname" .) "suffix" "hpa-controller") }}
+{{- end -}}

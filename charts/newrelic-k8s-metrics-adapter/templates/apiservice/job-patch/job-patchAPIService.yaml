@@ -3,7 +3,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: {{ include "newrelic.common.naming.fullname" . }}-apiservice-patch
+  name: {{ include "newrelic-k8s-metrics-adapter.name.apiservice-patch" . }}
   annotations:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
@@ -12,7 +12,7 @@ metadata:
 spec:
   template:
     metadata:
-      name: {{ include "newrelic.common.naming.fullname" . }}-apiservice-patch
+      name: {{ include "newrelic-k8s-metrics-adapter.name.apiservice-patch" . }}
       labels:
         {{- include "newrelic.common.labels" . | nindent 8 }}
     spec:
@@ -27,7 +27,7 @@ spec:
           args:
             - patch
             - --namespace={{ .Release.Namespace }}
-            - --secret-name={{ include "newrelic.common.naming.fullname" . }}-apiservice
+            - --secret-name={{ include "newrelic-k8s-metrics-adapter.name.apiservice" . }}
             - --apiservice-name=v1beta1.external.metrics.k8s.io
             {{- with .Values.apiServicePatchJob.volumeMounts }}
           volumeMounts:
@@ -38,7 +38,7 @@ spec:
       {{- toYaml . | nindent 6 }}
       {{- end }}
       restartPolicy: OnFailure
-      serviceAccountName: {{ include "newrelic.common.serviceAccount.name" . }}-apiservice
+      serviceAccountName: {{ include "newrelic-k8s-metrics-adapter.name.apiservice" . }}
       securityContext:
         runAsGroup: 2000
         runAsNonRoot: true

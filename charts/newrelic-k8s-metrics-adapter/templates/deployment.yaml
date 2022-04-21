@@ -85,7 +85,7 @@ spec:
       volumes:
       - name: tls-key-cert-pair
         secret:
-          secretName: {{ include "newrelic.common.naming.fullname" . }}-apiservice
+          secretName: {{ include "newrelic-k8s-metrics-adapter.name.apiservice" . }}
       - name: config
         configMap:
           name: {{ include "newrelic.common.naming.fullname" .  }}
