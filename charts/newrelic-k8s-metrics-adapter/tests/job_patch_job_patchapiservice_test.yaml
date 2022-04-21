@@ -9,7 +9,7 @@ tests:
     asserts:
       - matchRegex:
           path: spec.template.metadata.name
-          pattern: ^.*-apiservice-patch
+          pattern: .*-apiservice-patch$
   - it: container args are correctly defined
     asserts:
       - matchRegex:
@@ -20,7 +20,7 @@ tests:
     asserts:
       - matchRegex:
           path: spec.template.spec.serviceAccountName
-          pattern: ^.*-apiservice
+          pattern: .*-apiservice$
   - it: has the correct image
     set:
       personalAPIKey: 21321
@@ -31,4 +31,4 @@ tests:
     asserts:
       - matchRegex:
           path: spec.template.spec.containers[0].image
-          pattern: ^.*k8s.gcr.io/ingress-nginx/kube-webhook-certgen:latest
+          pattern: .*k8s.gcr.io/ingress-nginx/kube-webhook-certgen:latest$

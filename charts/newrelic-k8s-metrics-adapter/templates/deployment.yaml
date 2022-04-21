@@ -2,14 +2,14 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: {{ template "common.naming.fullname" . }}
+  name: {{ include "newrelic.common.naming.fullname" . }}
   labels:
-    {{- include "common.labels" . | nindent 4 }}
+    {{- include "newrelic.common.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
-      {{- include "common.labels.selectorLabels" . | nindent 6 }}
+      {{- include "newrelic.common.labels.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       annotations:
@@ -19,22 +19,22 @@ spec:
         {{- toYaml .Values.podAnnotations | nindent 8 }}
         {{- end }}
       labels:
-        {{- include "common.labels" . | nindent 8 }}
+        {{- include "newrelic.common.labels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ include "common.serviceAccount.name" . }}
-      {{- with include "common.securityContext.pod" . }}
+      serviceAccountName: {{ include "newrelic.common.serviceAccount.name" . }}
+      {{- with include "newrelic-k8s-metrics-adapter.securityContext.pod" . }}
       securityContext:
         {{- . | nindent 8 }}
       {{- end }}
-      {{- with include "common.images.renderPullSecrets" ( dict "pullSecrets" (list .Values.image.pullSecrets) "context" .) }}
+      {{- with include "newrelic.common.images.renderPullSecrets" ( dict "pullSecrets" (list .Values.image.pullSecrets) "context" .) }}
       imagePullSecrets:
         {{- . | nindent 8 }}
       {{- end }}
       containers:
-      - name: {{ template "common.naming.name" . }}
-        image: {{ include "common.images.image" ( dict "imageRoot" .Values.image "context" .) }}
+      - name: {{ include "newrelic.common.naming.name" . }}
+        image: {{ include "newrelic.common.images.image" ( dict "imageRoot" .Values.image "context" .) }}
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        {{- with include "common.securityContext.container" . }}
+        {{- with include "newrelic.common.securityContext.container" . }}
         securityContext:
           {{- . | nindent 10 }}
         {{- end }}
@@ -58,13 +58,13 @@ spec:
         {{- end }}
         env:
         - name: CLUSTER_NAME
-          value: {{ include "common.cluster" . }}
+          value: {{ include "newrelic.common.cluster" . }}
         - name: NEWRELIC_API_KEY
           valueFrom:
             secretKeyRef:
-              name: {{ template "common.naming.fullname" . }}
+              name: {{ include "newrelic.common.naming.fullname" . }}
               key: personalAPIKey
-        {{- with (include "common.proxy" .) }}
+        {{- with (include "newrelic.common.proxy" .) }}
         - name: HTTPS_PROXY
           value: {{ . }}
         {{- end }}
@@ -85,30 +85,30 @@ spec:
       volumes:
       - name: tls-key-cert-pair
         secret:
-          secretName: {{ template "common.naming.fullname" . }}-apiservice
+          secretName: {{ include "newrelic-k8s-metrics-adapter.name.apiservice" . }}
       - name: config
         configMap:
-          name: {{ template "common.naming.fullname" .  }}
+          name: {{ include "newrelic.common.naming.fullname" .  }}
       {{- with .Values.extraVolumes }}
       {{- toYaml . | nindent 6 }}
       {{- end }}
-      {{- with include "common.priorityClassName" . }}
+      {{- with include "newrelic.common.priorityClassName" . }}
       priorityClassName: {{ . }}
       {{- end }}
-      {{- with include "common.nodeSelector" . }}
+      {{- with include "newrelic.common.nodeSelector" . }}
       nodeSelector:
         {{- . | nindent 8 }}
       {{- end }}
-      {{- with include "common.tolerations" . }}
+      {{- with include "newrelic.common.tolerations" . }}
       tolerations:
         {{- . | nindent 8 }}
       {{- end }}
-      {{- with include "common.affinity" . }}
+      {{- with include "newrelic.common.affinity" . }}
       affinity:
         {{- . | nindent 8 }}
       {{- end }}
-      hostNetwork: {{ include "common.hostNetwork.value" . }}
-      {{- with include "common.dnsConfig" . }}
+      hostNetwork: {{ include "newrelic.common.hostNetwork.value" . }}
+      {{- with include "newrelic.common.dnsConfig" . }}
       dnsConfig:
         {{- . | nindent 8 }}
       {{- end }}

@@ -1,15 +1,15 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ template "common.naming.fullname" . }}
+  name: {{ include "newrelic.common.naming.fullname" . }}
   namespace: kube-system
   labels:
-    {{- include "common.labels" . | nindent 4 }}
+    {{- include "newrelic.common.labels" . | nindent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: extension-apiserver-authentication-reader
 subjects:
 - kind: ServiceAccount
-  name: {{ include "common.serviceAccount.name" . }}
+  name: {{ include "newrelic.common.serviceAccount.name" . }}
   namespace: {{ .Release.Namespace }}

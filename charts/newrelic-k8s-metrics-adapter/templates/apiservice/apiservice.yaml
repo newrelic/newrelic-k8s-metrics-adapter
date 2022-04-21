@@ -3,15 +3,15 @@ kind: APIService
 metadata:
   name: v1beta1.external.metrics.k8s.io
   labels:
-    {{- include "common.labels" . | nindent 4 }}
+    {{- include "newrelic.common.labels" . | nindent 4 }}
 {{- if .Values.certManager.enabled }}
   annotations:
-    certmanager.k8s.io/inject-ca-from: {{ printf "%s/%s-root-cert" .Release.Namespace (include "common.naming.fullname" .) | quote }}
-    cert-manager.io/inject-ca-from: {{ printf "%s/%s-root-cert" .Release.Namespace (include "common.naming.fullname" .) | quote }}
+    certmanager.k8s.io/inject-ca-from: {{ printf "%s/%s-root-cert" .Release.Namespace (include "newrelic.common.naming.fullname" .) | quote }}
+    cert-manager.io/inject-ca-from: {{ printf "%s/%s-root-cert" .Release.Namespace (include "newrelic.common.naming.fullname" .) | quote }}
 {{- end }}
 spec:
   service:
-    name: {{ template "common.naming.fullname" . }}
+    name: {{ include "newrelic.common.naming.fullname" . }}
     namespace: {{ .Release.Namespace }}
   group: external.metrics.k8s.io
   version: v1beta1
