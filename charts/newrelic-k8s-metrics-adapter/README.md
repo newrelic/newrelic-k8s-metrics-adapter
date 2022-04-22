@@ -20,34 +20,35 @@ A Helm chart to deploy the New Relic Kubernetes Metrics Adapter.
 
 ## Values
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| affinity | object | `{}` | Node affinity to use for scheduling. |
-| apiServicePatchJob.image | object | See `values.yaml`. | Registry, repository, tag, and pull policy for the job container image. |
-| apiServicePatchJob.volumeMounts | list | `[]` | Additional Volume mounts for Cert Job, you might want to mount tmp if Pod Security Policies. |
-| apiServicePatchJob.volumes | list | `[]` | Additional Volumes for Cert Job. |
-| certManager.enabled | bool | `false` | Use cert manager for APIService certs, rather than the built-in patch job. |
-| config.accountID | string | `nil` | New Relic [Account ID](https://docs.newrelic.com/docs/accounts/accounts-billing/account-structure/account-id/) where the configured metrics are sourced from. (**Required**) |
-| config.cacheTTLSeconds | int | `30` | Period of time in seconds in which a cached value of a metric is consider valid. |
-| config.externalMetrics | string | See `values.yaml` | Contains all the external metrics definition of the adapter. Each key of the externalMetric entry represents the metric name and contains the parameters that defines it. |
-| config.region | string | Automatically detected from `licenseKey`. | New Relic account region. If not set, it will be automatically derived from the License Key. |
-| extraEnv | list | `[]` | Array to add extra environment variables |
-| extraEnvFrom | list | `[]` | Array to add extra envFrom |
-| extraVolumeMounts | list | `[]` | Add extra volume mounts |
-| extraVolumes | list | `[]` | Array to add extra volumes |
-| fullnameOverride | string | `""` | To fully override common.naming.fullname |
-| image | object | See `values.yaml`. | Registry, repository, tag, and pull policy for the container image. |
-| image.pullSecrets | list | `[]` | The image pull secrets. |
-| nodeSelector | object | `{}` | Node label to use for scheduling. |
-| personalAPIKey | string | `nil` | New Relic [Personal API Key](https://docs.newrelic.com/docs/apis/intro-apis/new-relic-api-keys/#user-api-key) (stored in a secret). Used to connect to NerdGraph in order to fetch the configured metrics. (**Required**) |
-| podAnnotations | string | `nil` | Additional annotations to apply to the pod(s). |
-| podSecurityContext | string | `nil` | Configure podSecurityContext |
-| replicas | int | `1` | Number of replicas in the deployment. |
-| resources | object | See `values.yaml` | Resources you wish to assign to the pod. |
-| serviceAccount.create | string | `nil` | Specifies whether a ServiceAccount should be created for the job and the deployment. false avoids creation, true or empty will create the ServiceAccount |
-| serviceAccount.name | string | `nil` | If `serviceAccount.create` this will be the name of the ServiceAccount to use. If not set and create is true, a name is generated using the fullname template. If create is false, a serviceAccount with the given name must exist |
-| tolerations | list | `[]` | List of node taints to tolerate (requires Kubernetes >= 1.6) |
-| verboseLog | bool | `false` | Enable metrics adapter verbose logs. |
+| Key                             | Type    | Default                                   | Description                                                                                                                                                                                                                      |
+|---------------------------------|---------|-------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| affinity                        | object  | `{}`                                      | Node affinity to use for scheduling.                                                                                                                                                                                             |
+| apiServicePatchJob.image        | object  | See `values.yaml`.                        | Registry, repository, tag, and pull policy for the job container image.                                                                                                                                                          |
+| apiServicePatchJob.volumeMounts | list    | `[]`                                      | Additional Volume mounts for Cert Job, you might want to mount tmp if Pod Security Policies.                                                                                                                                     |
+| apiServicePatchJob.volumes      | list    | `[]`                                      | Additional Volumes for Cert Job.                                                                                                                                                                                                 |
+| certManager.enabled             | bool    | `false`                                   | Use cert manager for APIService certs, rather than the built-in patch job.                                                                                                                                                       |
+| config.accountID                | string  | `nil`                                     | New Relic [Account ID](https://docs.newrelic.com/docs/accounts/accounts-billing/account-structure/account-id/) where the configured metrics are sourced from. (**Required**)                                                     |
+| config.cacheTTLSeconds          | int     | `30`                                      | Period of time in seconds in which a cached value of a metric is consider valid.                                                                                                                                                 |
+| config.externalMetrics          | string  | See `values.yaml`                         | Contains all the external metrics definition of the adapter. Each key of the externalMetric entry represents the metric name and contains the parameters that defines it.                                                        |
+| config.region                   | string  | Automatically detected from `licenseKey`. | New Relic account region. If not set, it will be automatically derived from the License Key.                                                                                                                                     |
+| extraEnv                        | list    | `[]`                                      | Array to add extra environment variables                                                                                                                                                                                         |
+| extraEnvFrom                    | list    | `[]`                                      | Array to add extra envFrom                                                                                                                                                                                                       |
+| extraVolumeMounts               | list    | `[]`                                      | Add extra volume mounts                                                                                                                                                                                                          |
+| extraVolumes                    | list    | `[]`                                      | Array to add extra volumes                                                                                                                                                                                                       |
+| fullnameOverride                | string  | `""`                                      | To fully override common.naming.fullname                                                                                                                                                                                         |
+| image                           | object  | See `values.yaml`.                        | Registry, repository, tag, and pull policy for the container image.                                                                                                                                                              |
+| image.pullSecrets               | list    | `[]`                                      | The image pull secrets.                                                                                                                                                                                                          |
+| nodeSelector                    | object  | `{}`                                      | Node label to use for scheduling.                                                                                                                                                                                                |
+| personalAPIKey                  | string  | `nil`                                     | New Relic [Personal API Key](https://docs.newrelic.com/docs/apis/intro-apis/new-relic-api-keys/#user-api-key) (stored in a secret). Used to connect to NerdGraph in order to fetch the configured metrics. (**Required**)        |
+| podAnnotations                  | string  | `nil`                                     | Additional annotations to apply to the pod(s).                                                                                                                                                                                   |
+| podSecurityContext              | string  | `nil`                                     | Configure podSecurityContext                                                                                                                                                                                                     |
+| proxy                           | string  | `nil`                                     | Configure proxy for the HPA metric adapter.                                                                                                                                                                                      |
+| replicas                        | int     | `1`                                       | Number of replicas in the deployment.                                                                                                                                                                                            |
+| resources                       | object  | See `values.yaml`                         | Resources you wish to assign to the pod.                                                                                                                                                                                         |
+| serviceAccount.create           | string  | `nil`                                     | Specifies whether a ServiceAccount should be created for the job and the deployment. false avoids creation, true or empty will create the ServiceAccount                                                                         |
+| serviceAccount.name             | string  | `nil`                                     | If `serviceAccount.create` this will be the name of the ServiceAccount to use. If not set and create is true, a name is generated using the fullname template. If create is false, a serviceAccount with the given name must exist |
+| tolerations                     | list    | `[]`                                      | List of node taints to tolerate (requires Kubernetes >= 1.6)                                                                                                                                                                     |
+| verboseLog                      | bool    | `false`                                   | Enable metrics adapter verbose logs.                                                                                                                                                                                             |
 
 ## Example
 
