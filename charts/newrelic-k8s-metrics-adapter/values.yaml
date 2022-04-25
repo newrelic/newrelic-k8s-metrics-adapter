@@ -104,6 +104,12 @@ extraVolumeMounts: []
 # -- Additional annotations to apply to the pod(s).
 podAnnotations:
 
+# Due to security restrictions, some users might require to use a https proxy to route traffic over the internet.
+# In this specific case, when the metrics adapter sends a request to the New Relic backend. If this is the case
+# for you, set this value to your http proxy endpoint.
+# -- Configure proxy for the metrics-adapter.
+proxy:
+
 # Pod scheduling priority
 # Ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
 # priorityClassName: high-priority

@@ -2,7 +2,7 @@
 
 # newrelic-k8s-metrics-adapter
 
-![Version: 0.7.0](https://img.shields.io/badge/Version-0.7.0-informational?style=flat-square) ![AppVersion: 0.3.0](https://img.shields.io/badge/AppVersion-0.3.0-informational?style=flat-square)
+![Version: 0.7.4](https://img.shields.io/badge/Version-0.7.4-informational?style=flat-square) ![AppVersion: 0.2.0](https://img.shields.io/badge/AppVersion-0.2.0-informational?style=flat-square)
 
 A Helm chart to deploy the New Relic Kubernetes Metrics Adapter.
 
@@ -16,7 +16,7 @@ A Helm chart to deploy the New Relic Kubernetes Metrics Adapter.
 
 | Repository | Name | Version |
 |------------|------|---------|
-| https://helm-charts.newrelic.com | common-library | 0.17.0 |
+| https://helm-charts.newrelic.com | common-library | 1.0.2 |
 
 ## Values
 
@@ -31,6 +31,7 @@ A Helm chart to deploy the New Relic Kubernetes Metrics Adapter.
 | config.cacheTTLSeconds | int | `30` | Period of time in seconds in which a cached value of a metric is consider valid. |
 | config.externalMetrics | string | See `values.yaml` | Contains all the external metrics definition of the adapter. Each key of the externalMetric entry represents the metric name and contains the parameters that defines it. |
 | config.region | string | Automatically detected from `licenseKey`. | New Relic account region. If not set, it will be automatically derived from the License Key. |
+| containerSecurityContext | string | `nil` | Configure containerSecurityContext |
 | extraEnv | list | `[]` | Array to add extra environment variables |
 | extraEnvFrom | list | `[]` | Array to add extra envFrom |
 | extraVolumeMounts | list | `[]` | Add extra volume mounts |
@@ -42,10 +43,11 @@ A Helm chart to deploy the New Relic Kubernetes Metrics Adapter.
 | personalAPIKey | string | `nil` | New Relic [Personal API Key](https://docs.newrelic.com/docs/apis/intro-apis/new-relic-api-keys/#user-api-key) (stored in a secret). Used to connect to NerdGraph in order to fetch the configured metrics. (**Required**) |
 | podAnnotations | string | `nil` | Additional annotations to apply to the pod(s). |
 | podSecurityContext | string | `nil` | Configure podSecurityContext |
+| proxy | string | `nil` | Configure proxy for the metrics-adapter. |
 | replicas | int | `1` | Number of replicas in the deployment. |
 | resources | object | See `values.yaml` | Resources you wish to assign to the pod. |
-| serviceAccount.create | string | `nil` | Specifies whether a ServiceAccount should be created for the job and the deployment. false avoids creation, true or empty will create the ServiceAccount |
-| serviceAccount.name | string | `nil` | If `serviceAccount.create` this will be the name of the ServiceAccount to use. If not set and create is true, a name is generated using the fullname template. If create is false, a serviceAccount with the given name must exist |
+| serviceAccount.create | string | `true` | Specifies whether a ServiceAccount should be created for the job and the deployment. false avoids creation, true or empty will create the ServiceAccount |
+| serviceAccount.name | string | Automatically generated. | If `serviceAccount.create` this will be the name of the ServiceAccount to use. If not set and create is true, a name is generated using the fullname template. If create is false, a serviceAccount with the given name must exist |
 | tolerations | list | `[]` | List of node taints to tolerate (requires Kubernetes >= 1.6) |
 | verboseLog | bool | `false` | Enable metrics adapter verbose logs. |
 
