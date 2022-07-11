@@ -1,5 +1,3 @@
-[![New Relic Experimental header](https://github.com/newrelic/opensource-website/raw/master/src/images/categories/Experimental.png)](https://opensource.newrelic.com/oss-category/#new-relic-experimental)
-
 # newrelic-k8s-metrics-adapter
 
 ![Version: 0.7.4](https://img.shields.io/badge/Version-0.7.4-informational?style=flat-square) ![AppVersion: 0.2.0](https://img.shields.io/badge/AppVersion-0.2.0-informational?style=flat-square)
