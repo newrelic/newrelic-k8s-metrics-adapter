@@ -1,6 +1,6 @@
 # newrelic-k8s-metrics-adapter
 
-![Version: 0.7.4](https://img.shields.io/badge/Version-0.7.4-informational?style=flat-square) ![AppVersion: 0.2.0](https://img.shields.io/badge/AppVersion-0.2.0-informational?style=flat-square)
+![Version: 0.7.6](https://img.shields.io/badge/Version-0.7.6-informational?style=flat-square) ![AppVersion: 0.2.0](https://img.shields.io/badge/AppVersion-0.2.0-informational?style=flat-square)
 
 A Helm chart to deploy the New Relic Kubernetes Metrics Adapter.
 
@@ -14,7 +14,7 @@ A Helm chart to deploy the New Relic Kubernetes Metrics Adapter.
 
 | Repository | Name | Version |
 |------------|------|---------|
-| https://helm-charts.newrelic.com | common-library | 1.0.2 |
+| https://helm-charts.newrelic.com | common-library | 1.0.5 |
 
 ## Values
 
