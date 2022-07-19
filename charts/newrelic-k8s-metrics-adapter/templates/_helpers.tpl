@@ -47,3 +47,15 @@ Naming helpers
 {{- define "newrelic-k8s-metrics-adapter.name.hpa-controller" -}}
 {{ include "newrelic.common.naming.truncateToDNSWithSuffix" (dict "name" (include "newrelic.common.naming.fullname" .) "suffix" "hpa-controller") }}
 {{- end -}}
+
+{{- define "newrelic-k8s-metrics-adapter.fullname.self-signed-issuer" -}}
+{{ include "newrelic.common.naming.truncateToDNSWithSuffix" (dict "name" (include "newrelic.common.naming.fullname" .) "suffix" "self-signed-issuer") }}
+{{- end -}}
+
+{{- define "newrelic-k8s-metrics-adapter.fullname.root-issuer" -}}
+{{ include "newrelic.common.naming.truncateToDNSWithSuffix" (dict "name" (include "newrelic.common.naming.fullname" .) "suffix" "root-issuer") }}
+{{- end -}}
+
+{{- define "newrelic-k8s-metrics-adapter.fullname.webhook-cert" -}}
+{{ include "newrelic.common.naming.truncateToDNSWithSuffix" (dict "name" (include "newrelic.common.naming.fullname" .) "suffix" "webhook-cert") }}
+{{- end -}}
