@@ -1,6 +1,6 @@
-# newrelic-k8s-metrics-adapter
+[![New Relic Experimental header](https://github.com/newrelic/opensource-website/raw/master/src/images/categories/Experimental.png)](https://opensource.newrelic.com/oss-category/#new-relic-experimental)
 
-![Version: 0.7.6](https://img.shields.io/badge/Version-0.7.6-informational?style=flat-square) ![AppVersion: 0.2.0](https://img.shields.io/badge/AppVersion-0.2.0-informational?style=flat-square)
+# newrelic-k8s-metrics-adapter
 
 A Helm chart to deploy the New Relic Kubernetes Metrics Adapter.
 
