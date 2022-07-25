@@ -15,6 +15,6 @@ roleRef:
   name: {{ include "newrelic-k8s-metrics-adapter.name.apiservice" . }}
 subjects:
   - kind: ServiceAccount
-    name: {{ include "newrelic-k8s-metrics-adapter.name.apiservice" . }}
+    name: {{ include "newrelic-k8s-metrics-adapter.name.apiservice.serviceAccount" . }}
     namespace: {{ .Release.Namespace }}
 {{- end }}
