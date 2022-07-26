@@ -38,7 +38,7 @@ spec:
       {{- toYaml . | nindent 6 }}
       {{- end }}
       restartPolicy: OnFailure
-      serviceAccountName: {{ include "newrelic-k8s-metrics-adapter.name.apiservice" . }}
+      serviceAccountName: {{ include "newrelic-k8s-metrics-adapter.name.apiservice.serviceAccount" . }}
       securityContext:
         runAsGroup: 2000
         runAsNonRoot: true
