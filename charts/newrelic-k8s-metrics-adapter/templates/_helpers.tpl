@@ -36,6 +36,14 @@ Naming helpers
 {{ include "newrelic.common.naming.truncateToDNSWithSuffix" (dict "name" (include "newrelic.common.naming.fullname" .) "suffix" "apiservice") }}
 {{- end -}}
 
+{{- define "newrelic-k8s-metrics-adapter.name.apiservice.serviceAccount" -}}
+{{- if include "newrelic.common.serviceAccount.create" . -}}
+  {{- include "newrelic.common.naming.truncateToDNSWithSuffix" (dict "name" (include "newrelic.common.naming.fullname" .) "suffix" "apiservice") -}}
+{{- else -}}
+  {{- include "newrelic.common.serviceAccount.name" . -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "newrelic-k8s-metrics-adapter.name.apiservice-create" -}}
 {{ include "newrelic.common.naming.truncateToDNSWithSuffix" (dict "name" (include "newrelic.common.naming.fullname" .) "suffix" "apiservice-create") }}
 {{- end -}}
