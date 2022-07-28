@@ -15,13 +15,6 @@ X_LD_FLAGS ?= -X 'github.com/newrelic/newrelic-k8s-metrics-adapter/internal/adap
 EXT_LD_FLAGS ?= -extldflags '-static'
 LD_FLAGS ?= "$(EXT_LD_FLAGS) $(X_LD_FLAGS)"
 
-ifeq (, $(shell which golangci-lint))
-GOLANGCI_LINT ?= go run -modfile=tools/go.mod github.com/golangci/golangci-lint/cmd/golangci-lint
-else
-GOLANGCI_LINT ?= golangci-lint
-endif
-GOLANGCI_LINT_CONFIG_FILE ?= .golangci.yml
-
 DOCKER_CMD ?= docker
 IMAGE_REPO ?= newrelic/newrelic-k8s-metrics-adapter
 
@@ -88,23 +81,6 @@ check-update-linters: check-working-tree-clean update-linters ## Checks if list 
 .PHONY: check-generate
 check-generate: check-working-tree-clean generate ## Checks if all generated files are up to date.
 	@test -z "$$(git status --porcelain)" || (echo "Generated files are outdated. Run 'make generate' and commit generated changes to fix."; git diff; exit 1)
-
-.PHONY: update-linters
-update-linters: ## Updates list of enabled golangci-lint linters.
-	# Remove all enabled linters.
-	sed -i '/^  enable:/q0' $(GOLANGCI_LINT_CONFIG_FILE)
-	# Then add all possible linters to config.
-	$(GOLANGCI_LINT) linters | grep -E '^\S+:' | cut -d: -f1 | sort | sed 's/^/    - /g' | grep -v -E "($$(sed -e '1,/^  disable:$$/d' .golangci.yml  | grep -E '    - \S+$$' | awk '{print $$2}' | tr \\n '|' | sed 's/|$$//g'))" >> $(GOLANGCI_LINT_CONFIG_FILE)
-
-.PHONY: lint
-lint: build build-test ## Runs golangci-lint.
-	$(GOLANGCI_LINT) run $(GO_PACKAGES)
-
-.PHONY: codespell
-codespell: CODESPELL_BIN := codespell
-codespell: ## Runs spell checking.
-	which $(CODESPELL_BIN) >/dev/null 2>&1 || (echo "$(CODESPELL_BIN) binary not found, skipping spell checking"; exit 0)
-	$(CODESPELL_BIN)
 
 .PHONY: image
 ## GOOS and GOARCH are manually set so the output BINARY_NAME includes them as suffixes.
