@@ -62,8 +62,13 @@ spec:
         - name: NEWRELIC_API_KEY
           valueFrom:
             secretKeyRef:
+              {{- if (include "newrelic-k8s-metrics-adapter.personalAPIKey" .) }}
               name: {{ include "newrelic.common.naming.fullname" . }}
               key: personalAPIKey
+              {{- else }}
+              name: {{ include "newrelic-k8s-metrics-adapter.customSecretPersonalApiKeyName" . }}
+              key: {{ include "newrelic-k8s-metrics-adapter.customSecretPersonalApiKeyKey" . }}
+              {{- end }}
         {{- with (include "newrelic.common.proxy" .) }}
         - name: HTTPS_PROXY
           value: {{ . }}
