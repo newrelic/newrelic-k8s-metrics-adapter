@@ -1,3 +1,4 @@
+{{- if .Values.rbac.pspEnabled }}
 suite: test job-patch clusterRole rule resourceName and rendering
 templates:
   - templates/apiservice/job-patch/clusterrole.yaml
@@ -5,7 +6,6 @@ release:
   name: my-release
   namespace: my-namespace
 tests:
-{{- if .Values.rbac.pspEnabled }}
   - it: PodSecurityPolicy rule resourceName is correctly defined
     asserts:
       - matchRegex:
