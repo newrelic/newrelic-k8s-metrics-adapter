@@ -5,8 +5,10 @@ release:
   name: my-release
   namespace: my-namespace
 tests:
+{{- if .Values.rbac.pspEnabled }}
   - it: PodSecurityPolicy rule resourceName is correctly defined
     asserts:
       - matchRegex:
           path: rules[1].resourceNames[0]
           pattern: ^.*-apiservice
+{{- end }}
