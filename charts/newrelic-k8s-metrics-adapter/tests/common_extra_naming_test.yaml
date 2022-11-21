@@ -7,9 +7,6 @@ templates:
   - templates/apiservice/job-patch/clusterrolebinding.yaml
   - templates/apiservice/job-patch/job-createSecret.yaml
   - templates/apiservice/job-patch/job-patchAPIService.yaml
-{{- if .Values.rbac.pspEnabled }}
-  - templates/apiservice/job-patch/psp.yaml
-{{- end }}
   - templates/apiservice/job-patch/rolebinding.yaml
 release:
   name: my-release
