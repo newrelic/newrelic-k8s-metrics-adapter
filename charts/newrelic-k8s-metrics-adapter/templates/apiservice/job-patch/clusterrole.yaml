@@ -16,9 +16,11 @@ rules:
     verbs:
       - get
       - update
+{{- if .Values.rbac.pspEnabled }}
   - apiGroups: ['policy']
     resources: ['podsecuritypolicies']
     verbs: ['use']
     resourceNames:
     - {{ include "newrelic-k8s-metrics-adapter.name.apiservice" . }}
+{{- end }}
 {{- end }}

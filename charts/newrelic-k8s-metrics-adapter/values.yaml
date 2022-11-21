@@ -146,3 +146,7 @@ apiServicePatchJob:
 certManager:
   # -- Use cert manager for APIService certs, rather than the built-in patch job.
   enabled: false
+
+rbac:
+  # rbac.pspEnabled -- Whether the chart should create Pod Security Policy objects.
+  pspEnabled: false
