@@ -18,6 +18,8 @@ tests:
       personalAPIKey: 21321
       config:
         accountID: 11111111
+      rbac:
+        pspEnabled: true
     asserts:
       - matchRegex:
           path: metadata.name
