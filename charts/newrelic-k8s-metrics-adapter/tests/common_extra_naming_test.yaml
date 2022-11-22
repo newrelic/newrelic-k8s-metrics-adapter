@@ -7,6 +7,7 @@ templates:
   - templates/apiservice/job-patch/clusterrolebinding.yaml
   - templates/apiservice/job-patch/job-createSecret.yaml
   - templates/apiservice/job-patch/job-patchAPIService.yaml
+  - templates/apiservice/job-patch/psp.yaml
   - templates/apiservice/job-patch/rolebinding.yaml
 release:
   name: my-release
@@ -17,6 +18,8 @@ tests:
       personalAPIKey: 21321
       config:
         accountID: 11111111
+      rbac:
+        pspEnabled: true
     asserts:
       - matchRegex:
           path: metadata.name
