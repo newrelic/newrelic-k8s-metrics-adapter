@@ -43,6 +43,7 @@ A Helm chart to deploy the New Relic Kubernetes Metrics Adapter.
 | podAnnotations | string | `nil` | Additional annotations to apply to the pod(s). |
 | podSecurityContext | string | `nil` | Configure podSecurityContext |
 | proxy | string | `nil` | Configure proxy for the metrics-adapter. |
+| rbac.pspEnabled | bool | `false` | Whether the chart should create Pod Security Policy objects. |
 | replicas | int | `1` | Number of replicas in the deployment. |
 | resources | object | See `values.yaml` | Resources you wish to assign to the pod. |
 | serviceAccount.create | string | `true` | Specifies whether a ServiceAccount should be created for the job and the deployment. false avoids creation, true or empty will create the ServiceAccount |
