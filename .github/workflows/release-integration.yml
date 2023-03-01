@@ -14,9 +14,9 @@ jobs:
         goarch: [ amd64, arm64, arm ]
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
+      - uses: actions/setup-go@v3
         with:
-          go-version: '1.18'
+          go-version-file: 'go.mod'
 
       # A cache entry is will be generated for `key`, and attempted to restore.
       # If `key` is not found, any partial match for `restore-keys` will be attempted.
