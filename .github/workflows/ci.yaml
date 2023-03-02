@@ -61,6 +61,13 @@ jobs:
     strategy:
       matrix:
         kubernetes-version: [ "v1.19.16", "v1.22.0", "v1.25.3" ]
+        cri: [ docker ]
+        exclude:
+          - kubernetes-version: v1.25.3
+            cri: docker
+        include:
+          - kubernetes-version: v1.25.3
+            cri: containerd
     steps:
       - uses: actions/checkout@v2
         with:
@@ -99,6 +106,8 @@ jobs:
         with:
           minikube version: v1.28.0
           kubernetes version: ${{ matrix.kubernetes-version }}
+          driver: docker
+          start args: "--nodes=2 --container-runtime=${{ matrix.cri }}"
           github token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/setup-go@v3
         if: steps.list-changed.outputs.changed == 'true'
