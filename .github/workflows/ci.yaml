@@ -72,7 +72,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - uses: helm/chart-testing-action@v2.2.1
+      - uses: helm/chart-testing-action@v3.7.0
 
       - name: Add newrelic repository
         run: helm repo add newrelic https://helm-charts.newrelic.com
@@ -126,6 +126,8 @@ jobs:
       - name: Test upgrade charts
         if: steps.list-changed.outputs.changed == 'true'
         run: ct install --namespace ct --config .github/ct.yaml --debug --upgrade
+        # ct is a chart testing CLI tool
+        # https://github.com/helm/chart-testing
 
 
   integration:
