@@ -20,9 +20,9 @@ jobs:
       GOARCH: ${{ matrix.goarch }}
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
+      - uses: actions/setup-go@v3
         with:
-          go-version: '1.18'
+          go-version-file: 'go.mod'
 
       # A cache entry is will be generated for `key`, and attempted to restore.
       # If `key` is not found, any partial match for `restore-keys` will be attempted.
@@ -100,10 +100,10 @@ jobs:
           minikube version: v1.27.1
           kubernetes version: ${{ matrix.kubernetes-version }}
           github token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/setup-go@v2
+      - uses: actions/setup-go@v3
         if: steps.list-changed.outputs.changed == 'true'
         with:
-          go-version: '1.18'
+          go-version-file: 'go.mod'
       - name: Create image for chart testing
         if: steps.list-changed.outputs.changed == 'true'
         run: |
@@ -126,9 +126,9 @@ jobs:
     needs: [ "build" ]
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
+      - uses: actions/setup-go@v3
         with:
-          go-version: '1.18'
+          go-version-file: 'go.mod'
       - uses: helm/kind-action@v1.2.0
 
       - name: Go modules cache
@@ -185,9 +185,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
+      - uses: actions/setup-go@v3
         with:
-          go-version: '1.18'
+          go-version-file: 'go.mod'
       - uses: newrelic/newrelic-infra-checkers@v1
         with:
           golangci-lint-config: golangci-lint
