@@ -128,7 +128,6 @@ jobs:
         run: ct install --namespace ct --config .github/ct.yaml --debug --upgrade
 
 
-
   integration:
     name: Integration and e2e tests
     runs-on: ubuntu-latest
