@@ -59,6 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     strategy:
+      fail-fast: false
       matrix:
         kubernetes-version: [ "v1.19.16", "v1.22.0", "v1.25.3" ]
         cri: [ docker, containerd ]
@@ -114,6 +115,22 @@ jobs:
         if: steps.list-changed.outputs.changed == 'true'
         with:
           go-version-file: 'go.mod'
+      - name: Go modules cache
+        if: steps.list-changed.outputs.changed == 'true'
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: gomod-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            gomod-
+      - name: Build cache
+        if: steps.list-changed.outputs.changed == 'true'
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/go-build
+          key: gobuild-linux-amd64-${{ github.sha }}
+          restore-keys: |
+            gobuild-linux-amd64
       - name: Create image for chart testing
         if: steps.list-changed.outputs.changed == 'true'
         run: |
@@ -133,7 +150,6 @@ jobs:
     name: Integration and e2e tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [ "build" ]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v3
