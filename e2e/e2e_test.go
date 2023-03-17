@@ -223,7 +223,7 @@ func withTestDeployment(ctx context.Context, t *testing.T, client appsv1client.D
 					Containers: []corev1.Container{
 						{
 							Name:  "wait",
-							Image: "k8s.gcr.io/pause:3.5",
+							Image: "registry.k8s.io/pause:3.5",
 						},
 					},
 				},
