@@ -15,8 +15,8 @@ tests:
         enabled: true
     asserts:
       - matchRegex:
-          path: data[metadata.annotations.certmanager\.k8s\.io/inject-ca-from
+          path: metadata.annotations["certmanager.k8s.io/inject-ca-from"]
           pattern: ^my-namespace\/.*-root-cert
       - matchRegex:
-          path: metadata.annotations.cert-manager\.io/inject-ca-from
+          path: metadata.annotations["cert-manager.io/inject-ca-from"]
           pattern: ^my-namespace\/.*-root-cert
