@@ -3,9 +3,9 @@ module github.com/newrelic/newrelic-k8s-metrics-adapter
 go 1.19
 
 require (
-	github.com/elazarl/goproxy v0.0.0-20210801061803-8e322dfb79c4
+	github.com/elazarl/goproxy v0.0.0-20220417044921-416226498f94
 	github.com/google/go-cmp v0.5.8
-	github.com/newrelic/newrelic-client-go v0.62.1
+	github.com/newrelic/newrelic-client-go v0.91.3
 	github.com/spf13/pflag v1.0.5
 	k8s.io/api v0.25.4
 	k8s.io/apimachinery v0.25.4
@@ -69,6 +69,7 @@ require (
 	github.com/spf13/cobra v1.4.0 // indirect
 	github.com/stretchr/testify v1.8.0 // indirect
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
+	github.com/valyala/fastjson v1.6.3 // indirect
 	go.etcd.io/etcd/api/v3 v3.5.4 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.4 // indirect
 	go.etcd.io/etcd/client/v3 v3.5.4 // indirect
