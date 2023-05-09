@@ -19,5 +19,8 @@
       "pruneBranchAfterAutomerge": true
     },
   ],
-  "ignoreDeps": ["ingress-nginx/kube-webhook-certgen"]
+  "ignoreDeps": ["ingress-nginx/kube-webhook-certgen"],
+  "postUpdateOptions": [
+    "gomodTidy"
+  ]
 }
