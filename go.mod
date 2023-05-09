@@ -12,7 +12,7 @@ require (
 	k8s.io/apiserver v0.25.4
 	k8s.io/client-go v0.25.4
 	k8s.io/component-base v0.25.4
-	k8s.io/klog/v2 v2.80.1
+	k8s.io/klog/v2 v2.100.1
 	k8s.io/kube-openapi v0.0.0-20220803162953-67bda5d908f1
 	k8s.io/metrics v0.25.4
 	k8s.io/utils v0.0.0-20221108210102-8e77b1f39fe2
