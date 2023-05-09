@@ -3,5 +3,6 @@
     "config:base",
     ":disableDependencyDashboard"
   ],
-  "ignoreDeps": ["ingress-nginx/kube-webhook-certgen"]
+  "ignoreDeps": ["ingress-nginx/kube-webhook-certgen"],
+  "rebaseWhen": "conflicted"
 }
