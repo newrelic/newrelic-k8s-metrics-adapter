@@ -32,7 +32,7 @@ if settings.get('live_reload'):
 
   # Use custom Dockerfile for Tilt builds, which only takes locally built daemon binary for live reloading.
   dockerfile = '''
-    FROM alpine:3.15
+    FROM alpine:3.17
     COPY %s /usr/local/bin/%s
     ENTRYPOINT ["%s"]
   ''' % (binary_name, project_name, project_name)
