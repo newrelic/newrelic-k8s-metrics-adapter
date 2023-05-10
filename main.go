@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"time"
 
 	nrClient "github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
@@ -82,9 +83,8 @@ func Run(ctx context.Context, args []string) error {
 	clientOptions := []nrClient.ConfigOption{
 		nrClient.ConfigPersonalAPIKey(os.Getenv(NewRelicAPIKeyEnv)),
 		nrClient.ConfigRegion(config.Region),
-		// nrClient.ConfigHTTPTimeout(time.Duration(config.NrdbClientTimeoutSeconds) * time.Second),
+		nrClient.ConfigHTTPTimeout(time.Duration(config.NrdbClientTimeoutSeconds) * time.Second),
 	}
-	klog.Infof("creating nrdb client")
 
 	// The NEWRELIC_API_KEY is read from an envVar populated thanks to a k8s secret.
 	c, err := nrClient.New(clientOptions...)
@@ -92,13 +92,10 @@ func Run(ctx context.Context, args []string) error {
 		return fmt.Errorf("creating NewRelic client: %w", err)
 	}
 
-	klog.Infof("created nrdb client")
-
 	externalMetricsProvider, err := externalMetricsProvider(config, &c.Nrdb)
 	if err != nil {
 		return fmt.Errorf("creating external metrics provider: %w", err)
 	}
-	klog.Infof("created external metrics provider")
 
 	options := adapter.Options{
 		Args:                    args,
@@ -110,7 +107,7 @@ func Run(ctx context.Context, args []string) error {
 	if err != nil {
 		return fmt.Errorf("initializing adapter: %w", err)
 	}
-	klog.Infof("initialized adapter")
+
 	return a.Run(ctx.Done()) //nolint:wrapcheck // Don't wrap as otherwise error annotations will be duplicated.
 }
 
