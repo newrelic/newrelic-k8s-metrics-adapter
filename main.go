@@ -38,7 +38,7 @@ const (
 	// ClusterNameEnv is an environment variable name which will be read for filtering cluster-scoped metrics.
 	ClusterNameEnv = "CLUSTER_NAME"
 
-	// NrdbClientMaxTimeoutSeconds is the maximum timeout that could be set to the nrdb client
+	// NrdbClientMaxTimeoutSeconds is the maximum timeout that could be set to the nrdb client.
 	NrdbClientMaxTimeoutSeconds = 120
 )
 
