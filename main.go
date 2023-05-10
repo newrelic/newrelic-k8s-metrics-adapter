@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"time"
 
 	nrClient "github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
@@ -83,7 +82,7 @@ func Run(ctx context.Context, args []string) error {
 	clientOptions := []nrClient.ConfigOption{
 		nrClient.ConfigPersonalAPIKey(os.Getenv(NewRelicAPIKeyEnv)),
 		nrClient.ConfigRegion(config.Region),
-		nrClient.ConfigHTTPTimeout(time.Duration(config.NrdbClientTimeoutSeconds) * time.Second),
+		// nrClient.ConfigHTTPTimeout(time.Duration(config.NrdbClientTimeoutSeconds) * time.Second),
 	}
 
 	// The NEWRELIC_API_KEY is read from an envVar populated thanks to a k8s secret.
