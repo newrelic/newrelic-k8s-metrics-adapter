@@ -7,6 +7,7 @@ verboseLog: false
 config:
   accountID: 111
   region: EU
+  nrdbClientTimeoutSeconds: 60
 
 extraEnv:
   - name: ENV_VAR1
