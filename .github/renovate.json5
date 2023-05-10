@@ -6,6 +6,17 @@
   "labels": ["dependencies"],
   "packageRules": [
     {
+      "matchDatasources": [
+        "go"
+      ],
+      "groupName": "golang dependency updates",
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchCurrentVersion": "!/^(0|v0)/",
+      "automerge": true,
+      "automergeType": "branch",
+      "pruneBranchAfterAutomerge": true
+    },
+    {
       "matchUpdateTypes": ["minor", "patch"],
       // Exclude any dependencies which are pre-1.0.0 because those can make breaking changes at any time
       // according to the SemVer spec.
@@ -15,7 +26,7 @@
       // - In case it matches one of the rest cases, it will create a branch that will be auto merged if tests pass.
       // - If in the previous step tests fail, a PR will be created instead of merging the branch.
       "automerge": true,
-      "automergeType": "branch",
+      "automergeType": "pr",
       "pruneBranchAfterAutomerge": true
     },
   ],
