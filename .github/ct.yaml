@@ -5,5 +5,3 @@ target-branch: main
 
 # Charts will be released manually.
 check-version-increment: false
-
-nrdbClientTimeoutSeconds: 30
