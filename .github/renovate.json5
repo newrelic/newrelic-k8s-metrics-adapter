@@ -26,7 +26,7 @@
       // - In case it matches one of the rest cases, it will create a branch that will be auto merged if tests pass.
       // - If in the previous step tests fail, a PR will be created instead of merging the branch.
       "automerge": true,
-      "automergeType": "branch",
+      "automergeType": "pr",
       "pruneBranchAfterAutomerge": true
     },
   ],
