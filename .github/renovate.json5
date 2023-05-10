@@ -6,11 +6,10 @@
   "labels": ["dependencies"],
   "packageRules": [
     {
-      "matchPackagePatterns": [
-        "^k8s.io",
-        "^sigs.k8s.io"
+      "matchDatasources": [
+        "go"
       ],
-      "groupName": "k8s modules",
+      "groupName": "golang dependency updates",
       "matchUpdateTypes": ["minor", "patch"],
       "matchCurrentVersion": "!/^(0|v0)/",
       "automerge": true,
