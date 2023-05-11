@@ -43,7 +43,7 @@ jobs:
         run: |
           make build
       - name: Upload artifact for Docker build step
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           retention-days: 1
           name: newrelic-k8s-metrics-adapter-${{ matrix.goos }}-${{ matrix.goarch }}
