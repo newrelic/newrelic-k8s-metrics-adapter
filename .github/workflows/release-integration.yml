@@ -17,25 +17,6 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
-
-      # A cache entry is will be generated for `key`, and attempted to restore.
-      # If `key` is not found, any partial match for `restore-keys` will be attempted.
-      # Regardless of whether `key` was found or not, it will be created at the end of the run.
-      # With this mechanism, we ensure caches are cycled regularly.
-      - name: Go modules cache
-        uses: actions/cache@v3
-        with:
-          path: ~/go/pkg/mod
-          key: gomod-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            gomod-
-      - name: Build cache
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/go-build
-          key: gobuild-${{ matrix.goos }}-${{ matrix.goarch }}-${{ github.sha }}
-          restore-keys: |
-            gobuild-${{ matrix.goos }}-${{ matrix.goarch }}
       - name: Build integration
         env:
           GOOS: ${{ matrix.goos }}
