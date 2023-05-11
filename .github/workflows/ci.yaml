@@ -20,7 +20,7 @@ jobs:
       GOARCH: ${{ matrix.goarch }}
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
 
@@ -124,7 +124,7 @@ jobs:
           container runtime: ${{ matrix.cri }}
           driver: docker
           github token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v4
         if: steps.list-changed.outputs.changed == 'true'
         with:
           go-version-file: 'go.mod'
@@ -165,7 +165,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
       - uses: helm/kind-action@v1.5.0
@@ -224,7 +224,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
       - uses: newrelic/newrelic-infra-checkers@v1
