@@ -5,7 +5,8 @@ go 1.19
 require (
 	github.com/elazarl/goproxy v0.0.0-20220417044921-416226498f94
 	github.com/google/go-cmp v0.5.9
-	github.com/newrelic/newrelic-client-go v0.91.3
+	github.com/newrelic/newrelic-client-go v1.1.0
+	github.com/newrelic/newrelic-client-go/v2 v2.19.0
 	github.com/spf13/pflag v1.0.5
 	k8s.io/api v0.25.4
 	k8s.io/apimachinery v0.25.4
@@ -50,7 +51,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.1 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.0 // indirect
-	github.com/imdario/mergo v0.3.12 // indirect
+	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
