@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/elazarl/goproxy v0.0.0-20220417044921-416226498f94
-	github.com/google/go-cmp v0.5.8
+	github.com/google/go-cmp v0.5.9
 	github.com/newrelic/newrelic-client-go v0.91.3
 	github.com/spf13/pflag v1.0.5
 	k8s.io/api v0.25.4
