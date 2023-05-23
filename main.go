@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"time"
 
 	nrClient "github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
@@ -36,14 +37,18 @@ const (
 
 	// ClusterNameEnv is an environment variable name which will be read for filtering cluster-scoped metrics.
 	ClusterNameEnv = "CLUSTER_NAME"
+
+	// NrdbClientMaxTimeoutSeconds is the maximum timeout that could be set to the nrdb client.
+	NrdbClientMaxTimeoutSeconds = 120
 )
 
 // ConfigOptions represents supported configuration options for metric-adapter.
 type ConfigOptions struct {
-	AccountID       int64                      `json:"accountID"`
-	ExternalMetrics map[string]newrelic.Metric `json:"externalMetrics"`
-	Region          string                     `json:"region"`
-	CacheTTLSeconds int64                      `json:"cacheTTLSeconds"`
+	AccountID                int64                      `json:"accountID"`
+	ExternalMetrics          map[string]newrelic.Metric `json:"externalMetrics"`
+	Region                   string                     `json:"region"`
+	CacheTTLSeconds          int64                      `json:"cacheTTLSeconds"`
+	NrdbClientTimeoutSeconds int                        `json:"nrdbClientTimeoutSeconds"`
 }
 
 // Run reads configuration file and environment variables to configure and run the adapter.
@@ -72,9 +77,13 @@ func Run(ctx context.Context, args []string) error {
 		}
 	}
 
+	if config.NrdbClientTimeoutSeconds > NrdbClientMaxTimeoutSeconds {
+		config.NrdbClientTimeoutSeconds = NrdbClientMaxTimeoutSeconds
+	}
 	clientOptions := []nrClient.ConfigOption{
 		nrClient.ConfigPersonalAPIKey(os.Getenv(NewRelicAPIKeyEnv)),
 		nrClient.ConfigRegion(config.Region),
+		nrClient.ConfigHTTPTimeout(time.Duration(config.NrdbClientTimeoutSeconds) * time.Second),
 	}
 
 	// The NEWRELIC_API_KEY is read from an envVar populated thanks to a k8s secret.
