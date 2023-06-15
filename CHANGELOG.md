@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update helm/kind-action action to v1.7.0 by @renovate in https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/155
 - Update aquasecurity/trivy-action action to v0.11.0 by @renovate in https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/159
 - Update aquasecurity/trivy-action action to v0.11.2 by @renovate in https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/163
+- Update Alpine image to address vulnerabilities by @juanjjaramillo in https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/167
+
+[0.4.3]: https://github.com/newrelic/newrelic-k8s-metrics-adapter/releases/tag/v0.4.3
 
 ## [0.4.0]
 
