@@ -71,13 +71,12 @@ image:
 replicas: 1
 
 # -- Resources you wish to assign to the pod.
-# @default -- See `values.yaml`
-resources:
-  limits:
-    memory: 80M
-  requests:
-    cpu: 100m
-    memory: 30M
+resources: {}
+# limits:
+#   memory: 80M
+# requests:
+#   cpu: 100m
+#   memory: 30M
 
 serviceAccount:
   # -- Specifies whether a ServiceAccount should be created for the job and the deployment.

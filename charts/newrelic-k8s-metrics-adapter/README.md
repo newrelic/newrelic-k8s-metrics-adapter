@@ -121,7 +121,7 @@ externalMetrics:
 
 ## Resources
 
-The default set of resources assigned to the newrelic-k8s-metrics-adapter pods is shown below:
+This chart does not deploy with a default set of resources. You can specify resources for the pods by using the `resources` parameter. For example:
 
 ```yaml
 resources:

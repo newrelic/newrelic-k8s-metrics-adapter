@@ -66,3 +66,15 @@ tests:
           path: spec.template.spec.containers[0].env[2].value
           value: localhost:1234
         template: templates/deployment.yaml
+  - it: correctly uses resources
+    asserts:
+      - equal:
+          path: spec.template.spec.resources
+          value:
+            requests:
+              cpu: 15m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+        template: templates/deployment.yaml

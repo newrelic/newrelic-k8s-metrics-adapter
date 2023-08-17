@@ -12,3 +12,11 @@ config:
 image:
   repository: e2e/newrelic-metrics-adapter
   tag: "test"  # Defaults to AppVersion
+
+resources:
+  requests:
+    cpu: 15m
+    memory: 32Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
