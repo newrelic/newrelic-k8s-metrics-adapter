@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-### Enhancement
+### enhancement
 - Update K8s Versions in E2E Tests by @xqi-nr in [#191](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/191)
 
 ## [0.4.3]
