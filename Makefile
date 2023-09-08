@@ -23,7 +23,7 @@ TEST_KUBECONFIG ?= $(shell realpath kubeconfig)
 
 KIND_CMD ?= kind
 KIND_SCRIPT ?= hack/kind-with-registry.sh
-KIND_IMAGE ?= kindest/node:v1.22.1
+KIND_IMAGE ?= kindest/node:v1.28.0
 
 NEWRELIC_REGION ?= $(shell (grep NEWRELIC_REGION .env 2>/dev/null) | cut -d= -f2 2>/dev/null)
 NEWRELIC_API_KEY ?= $(shell (grep NEWRELIC_API_KEY .env 2>/dev/null || echo "X") | cut -d= -f2 2>/dev/null)

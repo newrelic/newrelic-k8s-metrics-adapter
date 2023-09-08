@@ -42,14 +42,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        kubernetes-version: [ "v1.19.16", "v1.22.0", "v1.25.3" ]
+        kubernetes-version: [ "1.23.17", "1.24.17", "1.25.13", "1.26.8", "1.27.5" ]
         cri: [ docker, containerd ]
         exclude:
-          - kubernetes-version: v1.19.16
-            cri: containerd
-          - kubernetes-version: v1.22.0
-            cri: containerd
-          - kubernetes-version: v1.25.3
+          - kubernetes-version: v1.25.13
             cri: docker
     steps:
       - uses: actions/checkout@v3
