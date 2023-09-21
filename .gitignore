@@ -28,3 +28,6 @@
 *.un~
 Session.vim
 .netrwhist
+
+# Release toolkit
+CHANGELOG.partial.md
