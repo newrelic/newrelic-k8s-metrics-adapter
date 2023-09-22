@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### enhancement
 - Remove old maintainers by @svetlanabrennan [#198](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/198)
 
-## [0.4.3]
+## 0.4.3
 
 ### What's Changed
 - Remove manual go cache since setup-go/v4 automatically caches by @htroisi in https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/149
@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [0.4.3]: https://github.com/newrelic/newrelic-k8s-metrics-adapter/releases/tag/v0.4.3
 
-## [0.4.0]
+## 0.4.0
 
 ### Added
 
@@ -34,7 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [0.4.0]: https://github.com/newrelic/newrelic-k8s-metrics-adapter/releases/tag/v0.4.0
 
-## [0.3.0]
+## 0.3.0
 
 ### Added
 
@@ -43,7 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [0.3.0]: https://github.com/newrelic/newrelic-k8s-metrics-adapter/releases/tag/v0.3.0
 
-## [0.2.0]
+## 0.2.0
 
 ### Added
 
@@ -51,7 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [0.2.0]: https://github.com/newrelic/newrelic-k8s-metrics-adapter/releases/tag/v0.2.0
 
-## [0.1.0]
+## 0.1.0
 
 ### Added
 
