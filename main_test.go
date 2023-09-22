@@ -3,6 +3,7 @@
 
 package main_test
 
+// replace io/ioutil - it was deprecated
 import (
 	"context"
 	"fmt"

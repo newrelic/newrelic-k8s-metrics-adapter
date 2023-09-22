@@ -3,6 +3,7 @@
 
 package main
 
+// TODO: replace io/ioutil - it was deprecated
 import (
 	"context"
 	"errors"

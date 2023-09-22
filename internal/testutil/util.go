@@ -4,6 +4,7 @@
 // Package testutil provides common helper for tests.
 package testutil
 
+// TODO: replace io/ioutil, k8s.io/utils/pointer - it was deprecated
 import (
 	"bytes"
 	"context"
