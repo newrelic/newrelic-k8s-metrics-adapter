@@ -7,7 +7,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"time"
 
@@ -151,7 +150,7 @@ func main() {
 }
 
 func loadConfiguration(configPath string) (*ConfigOptions, error) {
-	b, err := ioutil.ReadFile(configPath)
+	b, err := os.ReadFile(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("reading config file: %w", err)
 	}

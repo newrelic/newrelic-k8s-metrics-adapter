@@ -6,7 +6,6 @@ package main_test
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -27,7 +26,7 @@ func Test_Run_reads_API_key_and_cluster_name_from_environment_variable(t *testin
 	withoutGlobalMetricsRegistry(t)
 
 	configPath := filepath.Join(t.TempDir(), "config.yaml")
-	if err := ioutil.WriteFile(configPath, []byte("accountID: 1"), 0o600); err != nil {
+	if err := os.WriteFile(configPath, []byte("accountID: 1"), 0o600); err != nil {
 		t.Fatalf("Error writing test config file: %v", err)
 	}
 
@@ -71,7 +70,7 @@ func Test_Run_fails_when(t *testing.T) {
 		t.Parallel()
 
 		configPath := filepath.Join(t.TempDir(), "config.yaml")
-		if err := ioutil.WriteFile(configPath, []byte("badKey: 1"), 0o600); err != nil {
+		if err := os.WriteFile(configPath, []byte("badKey: 1"), 0o600); err != nil {
 			t.Fatalf("Error writing test config file: %v", err)
 		}
 
@@ -87,7 +86,7 @@ func Test_Run_fails_when(t *testing.T) {
 		unsetenv(t, adapter.NewRelicAPIKeyEnv)
 
 		configPath := filepath.Join(t.TempDir(), "config.yaml")
-		if err := ioutil.WriteFile(configPath, []byte("accountID: 1"), 0o600); err != nil {
+		if err := os.WriteFile(configPath, []byte("accountID: 1"), 0o600); err != nil {
 			t.Fatalf("Error writing test config file: %v", err)
 		}
 
@@ -105,7 +104,7 @@ func Test_Run_fails_when(t *testing.T) {
 		withoutGlobalMetricsRegistry(t)
 
 		configPath := filepath.Join(t.TempDir(), "config.yaml")
-		if err := ioutil.WriteFile(configPath, []byte("accountID: 0"), 0o600); err != nil {
+		if err := os.WriteFile(configPath, []byte("accountID: 0"), 0o600); err != nil {
 			t.Fatalf("Error writing test config file: %v", err)
 		}
 
@@ -130,7 +129,7 @@ func Test_Run_fails_when(t *testing.T) {
 		setenv(t, adapter.ClusterNameEnv, "bar")
 
 		configPath := filepath.Join(t.TempDir(), "config.yaml")
-		if err := ioutil.WriteFile(configPath, []byte("accountID: 1\nregion: BAR"), 0o600); err != nil {
+		if err := os.WriteFile(configPath, []byte("accountID: 1\nregion: BAR"), 0o600); err != nil {
 			t.Fatalf("Error writing test config file: %v", err)
 		}
 
@@ -147,7 +146,7 @@ func Test_Run_fails_when(t *testing.T) {
 		setenv(t, adapter.ClusterNameEnv, "bar")
 
 		configPath := filepath.Join(t.TempDir(), "config.yaml")
-		if err := ioutil.WriteFile(configPath, []byte("accountID: 1\ncacheTTLSeconds: 10\n"), 0o600); err != nil {
+		if err := os.WriteFile(configPath, []byte("accountID: 1\ncacheTTLSeconds: 10\n"), 0o600); err != nil {
 			t.Fatalf("Error writing test config file: %v", err)
 		}
 

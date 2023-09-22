@@ -14,7 +14,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"math/big"
 	"net"
 	"net/http"
@@ -24,7 +24,7 @@ import (
 	"time"
 
 	"k8s.io/client-go/rest"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 )
 
@@ -115,7 +115,7 @@ externalMetrics:
   `, te.AccountID, te.Region)
 	}
 
-	if err := ioutil.WriteFile(te.ConfigPath, []byte(te.Config), testFileMode); err != nil {
+	if err := os.WriteFile(te.ConfigPath, []byte(te.Config), testFileMode); err != nil {
 		t.Fatalf("Error writing test config file: %v", err)
 	}
 
@@ -145,7 +145,7 @@ externalMetrics:
 
 	if te.StartKubernetes {
 		testEnv := &envtest.Environment{
-			UseExistingCluster: pointer.BoolPtr(true),
+			UseExistingCluster: ptr.To(true),
 		}
 
 		restConfig, err := testEnv.Start()
@@ -247,7 +247,7 @@ func RetryGetRequestAndCheckStatus(
 			t.Fatalf("Unexpected response code %d", resp.StatusCode)
 		}
 
-		data, err := ioutil.ReadAll(resp.Body)
+		data, err := io.ReadAll(resp.Body)
 		if err != nil {
 			t.Fatalf("Reading response body: %v", err)
 		}
@@ -351,12 +351,12 @@ func servingCertsWithCA(t *testing.T) (string, string, []byte) {
 	}
 
 	keyPath := filepath.Join(dir, "tls.key")
-	if err := ioutil.WriteFile(keyPath, key.Bytes(), testFileMode); err != nil {
+	if err := os.WriteFile(keyPath, key.Bytes(), testFileMode); err != nil {
 		t.Fatalf("Writing private key to %q: %v", keyPath, err)
 	}
 
 	certPath := filepath.Join(dir, "tls.crt")
-	if err := ioutil.WriteFile(certPath, cert.Bytes(), testFileMode); err != nil {
+	if err := os.WriteFile(certPath, cert.Bytes(), testFileMode); err != nil {
 		t.Fatalf("Writing certificate to %q: %v", certPath, err)
 	}
 
