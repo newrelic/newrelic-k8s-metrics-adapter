@@ -98,7 +98,7 @@ jobs:
           kubernetes version: ${{ matrix.kubernetes-version }}
           driver: docker
           github token: ${{ secrets.GITHUB_TOKEN }}
-          start args: "--nodes=2 --container-runtime=${{ matrix.cri }}"
+          start args: "--container-runtime=${{ matrix.cri }}"
       - uses: actions/setup-go@v4
         if: steps.list-changed.outputs.changed == 'true'
         with:
