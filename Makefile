@@ -139,3 +139,12 @@ buildLicenseNotice:
 .PHONY: generate
 generate: ## Runs code generation from //go:generate statements
 	$(GO_CMD) generate -tags codegen ./...
+
+# rt-update-changelog runs the release-toolkit run.sh script by piping it into bash to update the CHANGELOG.md.
+# It also passes down to the script all the flags added to the make target. To check all the accepted flags,
+# see: https://github.com/newrelic/release-toolkit/blob/main/contrib/ohi-release-notes/run.sh
+#  e.g. `make rt-update-changelog -- -v`
+rt-update-changelog:
+	curl "https://raw.githubusercontent.com/newrelic/release-toolkit/v1/contrib/ohi-release-notes/run.sh" | bash -s -- $(filter-out $@,$(MAKECMDGOALS))
+
+.PHONY: rt-update-changelog
