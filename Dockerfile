@@ -12,7 +12,7 @@ ARG TARGETARCH
 # Some old-ish versions of Docker do not support adding and renaming in the same line, and will instead
 # interpret the second argument as a new folder to create and place the original file inside.
 # For this reason, we workaround with regular ADD and then run mv inside the container.
-ADD --chmod=755 bin/newrelic-k8s-metrics-adapter-${TARGETOS}-${TARGETARCH} ./
+ADD --chmod=755 newrelic-k8s-metrics-adapter-${TARGETOS}-${TARGETARCH} ./
 RUN mv newrelic-k8s-metrics-adapter-${TARGETOS}-${TARGETARCH} /usr/local/bin/newrelic-k8s-metrics-adapter
 
 ENTRYPOINT ["/usr/local/bin/newrelic-k8s-metrics-adapter"]
