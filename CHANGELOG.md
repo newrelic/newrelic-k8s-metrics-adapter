@@ -7,9 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v0.5.0 - 2023-09-25
 
-### enhancement
+### 🚀 Enhancements
 - Fix CI workflow and remove old maintainers by @svetlanabrennan [#198](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/198)
+
+### ⛓️ Dependencies
+- Updated k8s.io/utils digest
+- Updated github.com/elazarl/goproxy digest to f99041a [security]
+- Updated alpine to v3.18.3
 
 ## 0.4.3
 
