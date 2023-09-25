@@ -7,9 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-## v0.5.0 - 2023-09-22
-
-### 🚀 Enhancements
+### enhancement
 - Fix CI workflow and remove old maintainers by @svetlanabrennan [#198](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/198)
 
 ### ⛓️ Dependencies
