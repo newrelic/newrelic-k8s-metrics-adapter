@@ -1,4 +1,5 @@
 # Use ?= for variable assignment so they can be overwritten with environment variables.
+BIN_DIR = ./bin
 GO_PACKAGES ?= ./...
 GO_TESTS ?= ^.*$
 GO_CMD ?= go
@@ -8,7 +9,7 @@ GOOS ?=
 GOARCH ?=
 CGO_ENABLED ?= 0
 
-BINARY_NAME ?= newrelic-k8s-metrics-adapter
+BINARY_NAME ?= $(BIN_DIR)/newrelic-k8s-metrics-adapter
 
 TAG ?= "dev"
 X_LD_FLAGS ?= -X 'github.com/newrelic/newrelic-k8s-metrics-adapter/internal/adapter.version=$(TAG)'
