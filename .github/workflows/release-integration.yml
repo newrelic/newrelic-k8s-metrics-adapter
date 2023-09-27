@@ -1,4 +1,4 @@
-name: Release metrics adapter image
+name: Pre-release and Release pipeline
 
 on:
   release:
