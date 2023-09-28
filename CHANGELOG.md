@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-### bugfix
+## v0.6.1 - 2023-09-28
+
+### 🐞 Bug fixes
 - Fix renovate config file by @svetlanabrennan [#211](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/211)
 
 ## v0.6.0 - 2023-09-26
