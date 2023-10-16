@@ -7,9 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-## v0.6.3 - 2023-10-16
-
-### 🐞 Bug fixes
+### bugfix
 - Address CVE-2023-3978, CVE-2023-44487 and CVE-2023-39325 by juanjjaramillo in [#224](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/224)
 
 ## v0.6.2 - 2023-09-30
