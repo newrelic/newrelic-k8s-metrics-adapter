@@ -15,7 +15,7 @@ import (
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/custom-metrics-apiserver/pkg/apiserver"
 	basecmd "sigs.k8s.io/custom-metrics-apiserver/pkg/cmd"
-	"sigs.k8s.io/custom-metrics-apiserver/pkg/cmd/server"
+	o "sigs.k8s.io/custom-metrics-apiserver/pkg/cmd/options"
 	"sigs.k8s.io/custom-metrics-apiserver/pkg/provider"
 
 	generatedopenapi "github.com/newrelic/newrelic-k8s-metrics-adapter/internal/generated/openapi"
@@ -60,7 +60,7 @@ func NewAdapter(options Options) (Adapter, error) {
 	a.OpenAPIConfig.Info.Version = version
 
 	// Initialize part of the struct by hand to be able to specify default secure port.
-	a.CustomMetricsAdapterServerOptions = server.NewCustomMetricsAdapterServerOptions()
+	a.CustomMetricsAdapterServerOptions = o.NewCustomMetricsAdapterServerOptions()
 	a.CustomMetricsAdapterServerOptions.OpenAPIConfig = a.OpenAPIConfig
 	a.SecureServing.BindPort = DefaultSecurePort
 
