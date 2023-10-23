@@ -7,8 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-### bugfix
+## v0.6.4 - 2023-10-23
+
+### 🐞 Bug fixes
 - Address CVE-2023-45142 by juanjjaramillo in [#226](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/226)
+
+### ⛓️ Dependencies
+- Updated sigs.k8s.io/controller-runtime to v0.16.3
+- Updated github.com/google/go-cmp to v0.6.0 - [Changelog 🔗](https://github.com/google/go-cmp/releases/tag/v0.6.0)
+- Updated k8s.io/metrics to v0.28.3
 
 ## v0.6.3 - 2023-10-17
 
