@@ -7,10 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-### enhancement
+## v0.7.0 - 2023-10-30
+
+### 🚀 Enhancements
 - Remove 1.23 support by @svetlanabrennan in [#233](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/233)
 - Bump google.golang.org/grpc from 1.58.2 to 1.58.3 by @svetlanabrennan in [#237](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/237)
 - Add k8s 1.28.0-rc.1 support by @svetlanabrennan in [#235](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/235)
+
+### ⛓️ Dependencies
+- Updated sigs.k8s.io/yaml to v1.4.0
 
 ## v0.6.4 - 2023-10-23
 
