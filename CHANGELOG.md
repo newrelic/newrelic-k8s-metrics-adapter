@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 
 ### enhancement
-- Replace k8s v1.28.0-rc.1 with k8s 1.28.3 support by @svetlanabrennan
+- Replace k8s v1.28.0-rc.1 with k8s 1.28.3 support by @svetlanabrennan in [#245](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/245)
 
 ## v0.7.0 - 2023-10-30
 
