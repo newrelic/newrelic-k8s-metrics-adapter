@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 
 ### enhancement
+- Make E2E testing run for all supported K8s versions by @juanjjaramillo in [#253](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/253)
 - E2E testing: use `autoscaling/v2` instead of `autoscaling/v2beta2` by @juanjjaramillo in [#252](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/252)
 - Automate local integration and E2E testing by @juanjjaramillo in [#251](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/251)
 
