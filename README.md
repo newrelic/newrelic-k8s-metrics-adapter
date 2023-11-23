@@ -89,6 +89,18 @@ In order to run unit tests run:
 ```sh
 make test
 ```
+In order to run integration tests locally, you can use `test-integration.sh`. To get help on usage call the script with the `--help` flag:
+```sh
+./test-integration.sh --help
+```
+In order to run E2E tests locally, you can use `test-e2e.sh`. To get help on usage call the script with the `--help` flag:
+```sh
+./test-e2e.sh --help
+```
+
+#### Personalized tests
+Sometimes you may need extra flexibility on how to run tests. Here are the instructions to allow you to personalize the test experience.
+
 In order to run integration and e2e tests run:
 
 ```sh

@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### enhancement
+- Automate local integration and E2E testing by @juanjjaramillo in [#251](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/251)
+
 ## v0.8.0 - 2023-11-13
 
 ### 🚀 Enhancements
