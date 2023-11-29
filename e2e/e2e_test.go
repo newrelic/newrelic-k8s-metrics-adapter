@@ -15,7 +15,7 @@ import (
 	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
-	autoscalingv2beta2 "k8s.io/api/autoscaling/v2beta2"
+	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -95,29 +95,29 @@ func Test_Metrics_adapter_makes_sample_external_metric_available(t *testing.T) {
 
 				deploymentName := withTestDeployment(testEnv.Context, t, clientset.AppsV1().Deployments(ns))
 
-				client := clientset.AutoscalingV2beta2().HorizontalPodAutoscalers(ns)
+				client := clientset.AutoscalingV2().HorizontalPodAutoscalers(ns)
 
-				hpa := &autoscalingv2beta2.HorizontalPodAutoscaler{
+				hpa := &autoscalingv2.HorizontalPodAutoscaler{
 					ObjectMeta: metav1.ObjectMeta{
 						GenerateName: "newrelic-metrics-adapter-e2e-test",
 						Namespace:    ns,
 					},
-					Spec: autoscalingv2beta2.HorizontalPodAutoscalerSpec{
+					Spec: autoscalingv2.HorizontalPodAutoscalerSpec{
 						MaxReplicas: 1,
-						ScaleTargetRef: autoscalingv2beta2.CrossVersionObjectReference{
+						ScaleTargetRef: autoscalingv2.CrossVersionObjectReference{
 							Kind:       "Deployment",
 							APIVersion: "apps/v1",
 							Name:       deploymentName,
 						},
-						Metrics: []autoscalingv2beta2.MetricSpec{
+						Metrics: []autoscalingv2.MetricSpec{
 							{
-								Type: autoscalingv2beta2.ExternalMetricSourceType,
-								External: &autoscalingv2beta2.ExternalMetricSource{
-									Target: autoscalingv2beta2.MetricTarget{
+								Type: autoscalingv2.ExternalMetricSourceType,
+								External: &autoscalingv2.ExternalMetricSource{
+									Target: autoscalingv2.MetricTarget{
 										Type:  "Value",
 										Value: resource.NewQuantity(1, resource.DecimalSI),
 									},
-									Metric: autoscalingv2beta2.MetricIdentifier{
+									Metric: autoscalingv2.MetricIdentifier{
 										Name:     testMetric,
 										Selector: &testData,
 									},
@@ -155,9 +155,9 @@ func Test_Metrics_adapter_makes_sample_external_metric_available(t *testing.T) {
 						}
 
 						switch condition.Type {
-						case autoscalingv2beta2.ScalingActive:
+						case autoscalingv2.ScalingActive:
 							scalingActive = true
-						case autoscalingv2beta2.AbleToScale:
+						case autoscalingv2.AbleToScale:
 							ableToScale = true
 						default:
 							t.Logf("Ignoring condition %v", condition)
