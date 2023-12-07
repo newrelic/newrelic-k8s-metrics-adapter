@@ -7,14 +7,14 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/newrelic/newrelic-client-go/v2 v2.22.2
 	github.com/spf13/pflag v1.0.5
-	k8s.io/api v0.28.3
-	k8s.io/apimachinery v0.28.3
-	k8s.io/apiserver v0.28.3
-	k8s.io/client-go v0.28.3
-	k8s.io/component-base v0.28.3
+	k8s.io/api v0.28.4
+	k8s.io/apimachinery v0.28.4
+	k8s.io/apiserver v0.28.4
+	k8s.io/client-go v0.28.4
+	k8s.io/component-base v0.28.4
 	k8s.io/klog/v2 v2.100.1
 	k8s.io/kube-openapi v0.0.0-20230901164831-6c774f458599
-	k8s.io/metrics v0.28.3
+	k8s.io/metrics v0.28.4
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b
 	sigs.k8s.io/controller-runtime v0.16.3
 	sigs.k8s.io/custom-metrics-apiserver v1.28.0
@@ -112,7 +112,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/apiextensions-apiserver v0.28.3 // indirect
 	k8s.io/gengo v0.0.0-20230829151522-9cce18d56c01 // indirect
-	k8s.io/kms v0.28.3 // indirect
+	k8s.io/kms v0.28.4 // indirect
 	sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.1.2 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
