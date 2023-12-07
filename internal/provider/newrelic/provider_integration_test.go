@@ -17,7 +17,7 @@ import (
 	"testing"
 
 	"github.com/elazarl/goproxy"
-	nrClient "github.com/newrelic/newrelic-client-go/newrelic"
+	nrClient "github.com/newrelic/newrelic-client-go/v2/newrelic"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
 	"k8s.io/component-base/metrics/legacyregistry"

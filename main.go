@@ -10,9 +10,9 @@ import (
 	"os"
 	"time"
 
-	nrClient "github.com/newrelic/newrelic-client-go/newrelic"
-	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
-	"github.com/newrelic/newrelic-client-go/pkg/region"
+	nrClient "github.com/newrelic/newrelic-client-go/v2/newrelic"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/nrdb"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/region"
 	"github.com/spf13/pflag"
 	"k8s.io/component-base/logs"
 	"k8s.io/component-base/metrics/legacyregistry"
