@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v0.9.1 - 2023-12-09
+
+### ⛓️ Dependencies
+- Updated go to v1.21.5
+- Updated github.com/newrelic/newrelic-client-go to v2
+- Updated kubernetes packages to v0.28.4
+- Updated k8s.io/utils digest to b307cd5
+- Updated github.com/elazarl/goproxy digest
+- Updated alpine
+
 ## v0.10.0 - 2023-12-09
 
 ### 🚀 Enhancements
