@@ -6,8 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
-### enhancement
+
+## v0.10.0 - 2023-12-09
+
+### 🚀 Enhancements
 - Trigger release creation by @juanjjaramillo [#263](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/263)
+
+### ⛓️ Dependencies
+- Updated go to v1.21.5
+- Updated github.com/newrelic/newrelic-client-go to v2
+- Updated kubernetes packages to v0.28.4
+- Updated k8s.io/utils digest to b307cd5
+- Updated github.com/elazarl/goproxy digest
+- Updated alpine
 
 ## v0.9.0 - 2023-12-06
 
