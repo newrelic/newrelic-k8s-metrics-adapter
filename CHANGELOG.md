@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v0.10.1 - 2024-01-09
+
+### ⛓️ Dependencies
+- Updated github.com/newrelic/newrelic-client-go/v2 to v2.23.0 - [Changelog 🔗](https://github.com/newrelic/newrelic-client-go/releases/tag/v2.23.0)
+- Updated k8s.io/utils digest to e7106e6
+
 ## v0.10.0 - 2023-12-09
 
 ### 🚀 Enhancements
