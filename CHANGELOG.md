@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v0.10.3 - 2024-01-29
+
+### ⛓️ Dependencies
+- Updated k8s.io/klog/v2 to v2.120.1
+- Updated alpine to v3.19.1
+
 ## v0.10.2 - 2024-01-22
 
 ### ⛓️ Dependencies
