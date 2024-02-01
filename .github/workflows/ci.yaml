@@ -143,6 +143,15 @@ jobs:
       - name: Create k8s Kind Cluster
         run: make kind-up
 
+      - name: Run unit tests
+        run: make test
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d # v3.1.4
+        with:
+          fail_ci_if_error: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       - name: Run integration tests
         env:
           NEWRELIC_API_KEY: "${{ secrets.K8S_AGENTS_E2E_API_KEY }}"

@@ -1,6 +1,6 @@
 <a href="https://opensource.newrelic.com/oss-category/#community-plus"><picture><source media="(prefers-color-scheme: dark)" srcset="https://github.com/newrelic/opensource-website/raw/main/src/images/categories/dark/Community_Plus.png"><source media="(prefers-color-scheme: light)" srcset="https://github.com/newrelic/opensource-website/raw/main/src/images/categories/Community_Plus.png"><img alt="New Relic Open Source community plus project banner." src="https://github.com/newrelic/opensource-website/raw/main/src/images/categories/Community_Plus.png"></picture></a>
 
-# newrelic-k8s-metrics-adapter
+# newrelic-k8s-metrics-adapter [![codecov](https://codecov.io/gh/newrelic/newrelic-k8s-metrics-adapter/graph/badge.svg?token=P5WVUPZ6US)](https://codecov.io/gh/newrelic/newrelic-k8s-metrics-adapter)
 
 The newrelic-k8s-metrics-adapter implements the `external.metrics.k8s.io` API to support the use of external metrics based New Relic NRQL queries. 
 
