@@ -1,3 +1,5 @@
+BIN_DIR = ./bin
+TEST_COVERAGE_DIR := $(BIN_DIR)/test-coverage
 # Use ?= for variable assignment so they can be overwritten with environment variables.
 GO_PACKAGES ?= ./...
 GO_TESTS ?= ^.*$
@@ -46,7 +48,8 @@ build-test: ## Compiles unit tests.
 
 .PHONY: test
 test: ## Runs all unit tests.
-	$(GO_TEST) $(GO_PACKAGES)
+	@mkdir -p $(TEST_COVERAGE_DIR)
+	$(GO_TEST) $(GO_PACKAGES) -count=1 -coverprofile=$(TEST_COVERAGE_DIR)/coverage.out -covermode=count
 
 .PHONY: test-integration
 test-integration: ENV := $(ENV) KUBECONFIG=$(TEST_KUBECONFIG)
