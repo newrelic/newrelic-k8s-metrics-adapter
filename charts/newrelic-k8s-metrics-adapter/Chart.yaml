@@ -16,8 +16,10 @@ dependencies:
 maintainers:
   - name: juanjjaramillo
     url: https://github.com/juanjjaramillo
-  - name: svetlanabrennan
-    url: https://github.com/svetlanabrennan
+  - name: csongnr
+    url: https://github.com/csongnr
+  - name: dbudziwojskiNR
+    url: https://github.com/dbudziwojskiNR
 keywords:
   - infrastructure
   - newrelic
