@@ -6,7 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
-### enhancement
+
+## v0.11.0 - 2024-02-05
+
+### 🚀 Enhancements
 - Add Codecov @dbudziwojskiNR [#285](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/285)
 
 ## v0.10.3 - 2024-01-29
