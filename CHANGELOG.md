@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v0.11.0 - 2024-02-05
+
+### 🚀 Enhancements
+- Add Codecov @dbudziwojskiNR [#285](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/285)
+
+## v0.10.3 - 2024-01-29
+
+### ⛓️ Dependencies
+- Updated k8s.io/klog/v2 to v2.120.1
+- Updated alpine to v3.19.1
+
+## v0.10.2 - 2024-01-22
+
+### ⛓️ Dependencies
+- Updated go to v1.21.6
+
+## v0.10.1 - 2024-01-09
+
+### ⛓️ Dependencies
+- Updated github.com/newrelic/newrelic-client-go/v2 to v2.23.0 - [Changelog 🔗](https://github.com/newrelic/newrelic-client-go/releases/tag/v2.23.0)
+- Updated k8s.io/utils digest to e7106e6
+
 ## v0.10.0 - 2023-12-09
 
 ### 🚀 Enhancements
