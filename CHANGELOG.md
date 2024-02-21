@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### enhancement
+- Add linux node selector @dbudziwojskiNR [#297](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/297)
 
 ## v0.11.0 - 2024-02-05
 
