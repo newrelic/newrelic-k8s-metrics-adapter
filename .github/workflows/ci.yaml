@@ -50,7 +50,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: azure/setup-kubectl@v3
+      - uses: azure/setup-kubectl@v4
         with:
           version: v1.27.5
 
