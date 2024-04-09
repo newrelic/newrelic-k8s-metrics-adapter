@@ -5,7 +5,7 @@ go 1.21.6
 require (
 	github.com/elazarl/goproxy v0.0.0-20231117061959-7cc037d33fb5
 	github.com/google/go-cmp v0.6.0
-	github.com/newrelic/newrelic-client-go/v2 v2.23.0
+	github.com/newrelic/newrelic-client-go/v2 v2.26.1
 	github.com/spf13/pflag v1.0.5
 	k8s.io/api v0.28.4
 	k8s.io/apimachinery v0.28.4
@@ -15,7 +15,7 @@ require (
 	k8s.io/klog/v2 v2.120.1
 	k8s.io/kube-openapi v0.0.0-20230901164831-6c774f458599
 	k8s.io/metrics v0.28.4
-	k8s.io/utils v0.0.0-20240102154912-e7106e64919e
+	k8s.io/utils v0.0.0-20240310230437-4693a0247e57
 	sigs.k8s.io/controller-runtime v0.16.3
 	sigs.k8s.io/custom-metrics-apiserver v1.28.0
 	sigs.k8s.io/yaml v1.4.0

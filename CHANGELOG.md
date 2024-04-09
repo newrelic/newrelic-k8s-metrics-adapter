@@ -6,7 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
-### enhancement
+
+## v0.12.2 - 2024-03-25
+
+### ⛓️ Dependencies
+- Updated k8s.io/utils digest
+- Updated github.com/newrelic/newrelic-client-go/v2 to v2.26.1 - [Changelog 🔗](https://github.com/newrelic/newrelic-client-go/releases/tag/v2.26.1)
+
+## v0.12.1 - 2024-03-04
+
+### ⛓️ Dependencies
+- Updated github.com/newrelic/newrelic-client-go/v2 to v2.25.0 - [Changelog 🔗](https://github.com/newrelic/newrelic-client-go/releases/tag/v2.25.0)
+
+## v0.12.0 - 2024-02-26
+
+### 🚀 Enhancements
 - Add linux node selector @dbudziwojskiNR [#297](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/297)
 
 ## v0.11.0 - 2024-02-05
