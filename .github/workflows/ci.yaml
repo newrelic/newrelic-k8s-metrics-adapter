@@ -136,7 +136,7 @@ jobs:
           go-version-file: 'go.mod'
 
       - name: Kind action
-        uses: helm/kind-action@v1.9.0
+        uses: helm/kind-action@v1.10.0
         with:
           kubectl_version: ${{ matrix.k8sVersion }}
 
