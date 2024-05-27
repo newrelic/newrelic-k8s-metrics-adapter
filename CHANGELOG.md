@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v0.12.3 - 2024-05-27
+
+### ⛓️ Dependencies
+- Updated github.com/newrelic/newrelic-client-go/v2 to v2.34.1 - [Changelog 🔗](https://github.com/newrelic/newrelic-client-go/releases/tag/v2.34.1)
+- Updated k8s.io/utils digest to fe8a2dd
+- Updated alpine
+
 ## v0.12.2 - 2024-03-25
 
 ### ⛓️ Dependencies
