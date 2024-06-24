@@ -7,8 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-### enhancement
+## v0.13.0 - 2024-06-24
+
+### 🚀 Enhancements
 - Add 1.29 and 1.30 support and drop 1.25 and 1.24 @dbudziwojskiNR [#333](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/333)
+
+### ⛓️ Dependencies
+- Updated alpine to v3.20.1
 
 ## v0.12.5 - 2024-06-17
 
