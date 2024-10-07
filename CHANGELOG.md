@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v0.13.4 - 2024-10-07
+
+### ⛓️ Dependencies
+- Updated github.com/elazarl/goproxy digest
+- Updated github.com/newrelic/newrelic-client-go/v2 to v2.47.0 - [Changelog 🔗](https://github.com/newrelic/newrelic-client-go/releases/tag/v2.47.0)
+- Updated go to v1.23.2
+
 ## v0.13.3 - 2024-09-09
 
 ### ⛓️ Dependencies
