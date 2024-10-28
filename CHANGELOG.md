@@ -7,11 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v0.14.0 - 2024-10-28
 
-### security 
-- patched CVE CVE-2023-47108 https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/352 
+### 🛡️ Security notices
+- patched CVE CVE-2023-47108 [https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/352](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/352)
 
-### enhancement
+### 🚀 Enhancements
 - Add 1.31 support and drop 1.26 @zeitlerc [#351](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/351)
 
 ## v0.13.4 - 2024-10-07
