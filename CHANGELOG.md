@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### security 
+- patched CVE-2024-24786 in https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/360
+
 ## v0.13.4 - 2024-10-07
 
 ### ⛓️ Dependencies
