@@ -10,6 +10,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### security 
 - patched CVE CVE-2024-6104 https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/359
 
+## v0.14.1 - 2024-11-04
+
+### ⛓️ Dependencies
+- Updated k8s.io/utils digest
+- Updated github.com/newrelic/newrelic-client-go/v2 to v2.48.2 - [Changelog 🔗](https://github.com/newrelic/newrelic-client-go/releases/tag/v2.48.2)
+
+## v0.14.0 - 2024-10-28
+
+### 🛡️ Security notices
+- patched CVE CVE-2023-47108 [https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/352](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/352)
+
+### 🚀 Enhancements
+- Add 1.31 support and drop 1.26 @zeitlerc [#351](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/351)
+
+
 ## v0.13.4 - 2024-10-07
 
 ### ⛓️ Dependencies
