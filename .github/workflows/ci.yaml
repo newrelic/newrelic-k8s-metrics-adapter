@@ -242,5 +242,5 @@ jobs:
         with:
           check_filenames: true
           check_hidden: true
-          ignore_words_list: te,enver,NotIn
+          ignore_words_list: te,enver,NotIn,Bu
           skip: ./.git,./internal/generated
