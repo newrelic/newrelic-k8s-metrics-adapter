@@ -3,7 +3,7 @@ module github.com/newrelic/newrelic-k8s-metrics-adapter
 go 1.23.3
 
 require (
-	github.com/elazarl/goproxy v0.0.0-20240909085733-6741dbfc16a1
+	github.com/elazarl/goproxy v0.0.0-20241209145312-60626aee8fb5
 	github.com/google/go-cmp v0.6.0
 	github.com/newrelic/newrelic-client-go/v2 v2.51.3
 	github.com/spf13/pflag v1.0.5
