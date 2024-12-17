@@ -1,6 +1,6 @@
 module github.com/newrelic/newrelic-k8s-metrics-adapter
 
-go 1.23.3
+go 1.23.4
 
 require (
 	github.com/elazarl/goproxy v0.0.0-20240909085733-6741dbfc16a1
