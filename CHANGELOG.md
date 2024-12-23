@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v0.15.4 - 2024-12-23
+
+### ⛓️ Dependencies
+- Updated go to v1.23.4
+- Updated github.com/elazarl/goproxy digest to ac55c76
+- Updated k8s.io/utils digest
+
 ## v0.15.3 - 2024-12-09
 
 ### ⛓️ Dependencies
