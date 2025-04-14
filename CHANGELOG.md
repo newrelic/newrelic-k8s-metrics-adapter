@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v0.16.1 - 2025-04-14
+
+### ⛓️ Dependencies
+- Updated github.com/google/go-cmp to v0.7.0 - [Changelog 🔗](https://github.com/google/go-cmp/releases/tag/v0.7.0)
+
 ## v0.16.0 - 2025-03-24
 
 ### 🚀 Enhancements
