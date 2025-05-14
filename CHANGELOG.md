@@ -7,10 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-## v0.16.1 - 2025-04-28
-
-### dependency
-- Updated golang.org/x/crypto to v0.35.0
+### security
+- Updated golang.org/x/crypto to v0.35.0 @TmNguyen12 [#394](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/394)
 
 ## v0.16.1 - 2025-04-14
 
