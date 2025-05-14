@@ -150,7 +150,7 @@ func Test_Run_fails_when(t *testing.T) {
 			t.Fatalf("Error writing test config file: %v", err)
 		}
 
-		expectedError := "sample error"
+		const expectedError = "sample error"
 		reg := legacyregistry.Register
 
 		legacyregistry.Register = func(m metrics.Registerable) error {
