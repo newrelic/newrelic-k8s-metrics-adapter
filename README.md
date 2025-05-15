@@ -152,4 +152,4 @@ The newrelic-k8s-metrics-adapter is licensed under the [Apache 2.0](http://apach
 
 > The newrelic-k8s-metrics-adapter also uses source code from third-party libraries. 
 > You can find full details on which libraries are used, and the terms under which they are licensed in the third-party 
-> notices document.
+> notices document .

@@ -342,7 +342,7 @@ newrelic_adapter_external_provider_cache_requests_total{result="hit"} 1
 func Test_Creating_provider_returns_error_when_registering_metrics_fails(t *testing.T) {
 	t.Parallel()
 
-	expectedError := "foo"
+	const expectedError = "foo"
 
 	options := cache.ProviderOptions{
 		ExternalProvider: &mock.Provider{},
