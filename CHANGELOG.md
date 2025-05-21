@@ -7,8 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-### security
+## v0.17.0 - 2025-05-19
+
+### 🛡️ Security notices
 - Updated golang.org/x/crypto to v0.35.0 @TmNguyen12 [#394](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/394)
+
+### ⛓️ Dependencies
+- Updated github.com/spf13/pflag to v1.0.6 - [Changelog 🔗](https://github.com/spf13/pflag/releases/tag/v1.0.6)
+- Updated go to v1.24.3
 
 ## v0.16.1 - 2025-04-14
 
