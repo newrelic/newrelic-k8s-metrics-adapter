@@ -12,7 +12,7 @@ COPY . .
 
 RUN make
 
-FROM alpine:3.21
+FROM alpine:3.22
 
 COPY --from=builder /usr/src/newrelic-k8s-metrics-adapter/newrelic-k8s-metrics-adapter /usr/local/bin/
 
