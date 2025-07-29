@@ -5,7 +5,7 @@ go 1.24.5
 require (
 	github.com/elazarl/goproxy v0.0.0-20241218172127-ac55c7698e0d
 	github.com/google/go-cmp v0.7.0
-	github.com/newrelic/newrelic-client-go/v2 v2.64.0
+	github.com/newrelic/newrelic-client-go/v2 v2.67.0
 	github.com/spf13/pflag v1.0.6
 	k8s.io/api v0.28.4
 	k8s.io/apimachinery v0.28.4
@@ -69,6 +69,7 @@ require (
 	github.com/prometheus/client_model v0.4.0 // indirect
 	github.com/prometheus/common v0.44.0 // indirect
 	github.com/prometheus/procfs v0.10.1 // indirect
+	github.com/robertkrimen/otto v0.5.1 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/cobra v1.7.0 // indirect
 	github.com/stoewer/go-strcase v1.2.0 // indirect
@@ -109,6 +110,7 @@ require (
 	google.golang.org/protobuf v1.35.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
+	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/apiextensions-apiserver v0.28.3 // indirect
