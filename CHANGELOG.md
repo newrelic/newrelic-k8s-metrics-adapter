@@ -7,8 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-### enhancement
-- Add v1.33 support and drop support for v1.28 @TmNguyen12 
+## v0.18.0 - 2025-08-11
+
+### 🚀 Enhancements
+- Add v1.33 support and drop support for v1.28 @TmNguyen12
 
 ## v0.17.5 - 2025-08-04
 
