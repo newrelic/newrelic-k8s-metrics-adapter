@@ -129,15 +129,12 @@ github.com/modern-go/reflect2 v1.0.3-0.20250322232337-35a7c28c31ee h1:W5t00kpgFd
 github.com/modern-go/reflect2 v1.0.3-0.20250322232337-35a7c28c31ee/go.mod h1:yWuevngMOJpCy52FWWMvUC8ws7m/LJsjYzDa0/r8luk=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
-github.com/newrelic/newrelic-client-go/v2 v2.67.0 h1:7iTzwiAaZaYzbScSvaSJUPtBbPHb32fSWECdVc8KpFA=
-github.com/newrelic/newrelic-client-go/v2 v2.67.0/go.mod h1:qrs1eeDeXWE1/8nrk6471ZHYIrfiF/BSMX33HLtcbu0=
+github.com/newrelic/newrelic-client-go/v2 v2.68.1 h1:u5qeg5UoPB9kjhige+7HK8GLeOc6zPH3VTUhl/DNxlk=
+github.com/newrelic/newrelic-client-go/v2 v2.68.1/go.mod h1:P6rXSHPtayzr50+UEYvvjzYPiADv7w2SqeyKz0z5HkU=
 github.com/onsi/ginkgo/v2 v2.22.0 h1:Yed107/8DjTr0lKCNt7Dn8yQ6ybuDRQoMGrNFKzMfHg=
 github.com/onsi/ginkgo/v2 v2.22.0/go.mod h1:7Du3c42kxCUegi0IImZ1wUQzMBVecgIHjR1C+NkhLQo=
 github.com/onsi/gomega v1.36.1 h1:bJDPBO7ibjxcbHMgSCoo4Yj18UWbKDlLwX1x9sybDcw=
 github.com/onsi/gomega v1.36.1/go.mod h1:PvZbdDc8J6XJEpDK4HCuRBm8a6Fzp9/DmhC9C7yFlog=
-github.com/newrelic/newrelic-client-go/v2 v2.68.1 h1:u5qeg5UoPB9kjhige+7HK8GLeOc6zPH3VTUhl/DNxlk=
-github.com/newrelic/newrelic-client-go/v2 v2.68.1/go.mod h1:P6rXSHPtayzr50+UEYvvjzYPiADv7w2SqeyKz0z5HkU=
-github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
