@@ -5,6 +5,7 @@
 package adapter
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"strings"
@@ -43,7 +44,7 @@ type adapter struct {
 
 // Adapter represents adapter functionality.
 type Adapter interface {
-	Run(<-chan struct{}) error
+	Run(context.Context) error
 }
 
 // NewAdapter validates given adapter options and creates new runnable adapter instance.
