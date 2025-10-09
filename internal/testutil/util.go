@@ -193,6 +193,7 @@ externalMetrics:
 		te.Flags = []string{
 			"--authentication-kubeconfig=" + te.KubeconfigPath,
 			"--authorization-kubeconfig=" + te.KubeconfigPath,
+			"--lister-kubeconfig=" + te.KubeconfigPath,
 			"--tls-cert-file=" + te.ServingCertPath,
 			"--tls-private-key-file=" + te.ServingKeyPath,
 			"--secure-port=" + te.Port,
