@@ -125,7 +125,7 @@ func runAdapter(t *testing.T, testEnv *testutil.TestEnv) {
 	}
 
 	go func() {
-		if err := adapter.Run(testEnv.Context.Done()); err != nil {
+		if err := adapter.Run(testEnv.Context); err != nil {
 			t.Logf("Running operator: %v\n", err)
 			t.Fail()
 		}

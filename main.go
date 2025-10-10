@@ -107,7 +107,7 @@ func Run(ctx context.Context, args []string) error {
 		return fmt.Errorf("initializing adapter: %w", err)
 	}
 
-	return a.Run(ctx.Done()) //nolint:wrapcheck // Don't wrap as otherwise error annotations will be duplicated.
+	return a.Run(ctx) //nolint:wrapcheck // Don't wrap as otherwise error annotations will be duplicated.
 }
 
 func externalMetricsProvider(config *ConfigOptions, nrdb *nrdb.Nrdb) (provider.ExternalMetricsProvider, error) {

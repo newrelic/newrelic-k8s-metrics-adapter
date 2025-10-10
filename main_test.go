@@ -37,7 +37,10 @@ func Test_Run_reads_API_key_and_cluster_name_from_environment_variable(t *testin
 		t.Fatalf("Expected error running adapter")
 	}
 
-	expectedError := "failed to get delegated authentication kubeconfig"
+	// in sigs.k8s.io/custom-metrics-apiserver v1.33.0, the error occurs earlier in initialization
+	// at https://github.com/kubernetes-sigs/custom-metrics-apiserver/blob/179e68dadb02e81891ecb8e0dd46f0f53bf3ab4b/pkg/cmd/builder.go#L304
+	// instead of https://github.com/kubernetes-sigs/custom-metrics-apiserver/blob/1e7ed5df24ef39898861260b002d9400f2d09300/pkg/cmd/builder.go#L296
+	expectedError := "unable to construct lister client config to initialize provider"
 
 	if !strings.Contains(err.Error(), expectedError) {
 		t.Fatalf("Expected error %q, got: %v", expectedError, err)
