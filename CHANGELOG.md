@@ -7,14 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-### enhancement
-- Add support for k8s v1.34.0, remove support for v1.29.5 @TmNguyen12 [#431](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/431)
+## v0.19.0 - 2025-10-13
 
 ### dependency
 - Updated k8s.io/api, apimachinery, apiserver, client-go, component-base, metrics to v0.34.1
 - Updated k8s.io/kube-openapi to v0.0.0-20250910181357-589584f1c912
 - Updated sigs.k8s.io/controller-runtime to v0.22.1
 - Updated sigs.k8s.io/custom-metrics-apiserver to v1.33.0
+
+### 🚀 Enhancements
+- Add support for k8s v1.34.0, remove support for v1.29.5 @TmNguyen12 [#431](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/431)
+
+### ⛓️ Dependencies
+- Updated alpine to v3.22.2
 
 ## v0.18.2 - 2025-09-08
 
