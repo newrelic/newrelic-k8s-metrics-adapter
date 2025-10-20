@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v0.19.1 - 2025-10-20
+
+### ⛓️ Dependencies
+- Updated github.com/newrelic/newrelic-client-go/v2 to v2.68.1 - [Changelog 🔗](https://github.com/newrelic/newrelic-client-go/releases/tag/v2.68.1)
+- Updated github.com/spf13/pflag to v1.0.10 - [Changelog 🔗](https://github.com/spf13/pflag/releases/tag/v1.0.10)
+
 ## v0.19.0 - 2025-10-13
 
 ### dependency
