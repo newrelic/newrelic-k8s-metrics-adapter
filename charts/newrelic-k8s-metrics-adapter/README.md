@@ -32,6 +32,8 @@ A Helm chart to deploy the New Relic Kubernetes Metrics Adapter.
 | config.nrdbClientTimeoutSeconds | int | 30 | Defines the NRDB client timeout. The maximum allowed value is 120. |
 | config.region | string | Automatically detected from `licenseKey`. | New Relic account region. If not set, it will be automatically derived from the License Key. |
 | containerSecurityContext | string | `nil` | Configure containerSecurityContext |
+| customAPIKeySecretName | string | `nil` | Name of the Secret object where the personal API key is stored. |
+| customAPIKeySecretKey | string | `nil` | Key of the Secret object where the personal API key is stored. |
 | extraEnv | list | `[]` | Array to add extra environment variables |
 | extraEnvFrom | list | `[]` | Array to add extra envFrom |
 | extraVolumeMounts | list | `[]` | Add extra volume mounts |
@@ -40,7 +42,7 @@ A Helm chart to deploy the New Relic Kubernetes Metrics Adapter.
 | image | object | See `values.yaml`. | Registry, repository, tag, and pull policy for the container image. |
 | image.pullSecrets | list | `[]` | The image pull secrets. |
 | nodeSelector | object | `{}` | Node label to use for scheduling. |
-| personalAPIKey | string | `nil` | New Relic [Personal API Key](https://docs.newrelic.com/docs/apis/intro-apis/new-relic-api-keys/#user-api-key) (stored in a secret). Used to connect to NerdGraph in order to fetch the configured metrics. (**Required**) |
+| personalAPIKey | string | `nil` | New Relic [Personal API Key](https://docs.newrelic.com/docs/apis/intro-apis/new-relic-api-keys/#user-api-key). Used to connect to NerdGraph in order to fetch the configured metrics. This will be the preferred configuration option if both `personalAPIKey` and `customAPIKeySecretName` are specified. (**one of `personalAPIKey` or `customAPIKeySecretName` is required**) |
 | podAnnotations | string | `nil` | Additional annotations to apply to the pod(s). |
 | podSecurityContext | string | `nil` | Configure podSecurityContext |
 | proxy | string | `nil` | Configure proxy for the metrics-adapter. |
