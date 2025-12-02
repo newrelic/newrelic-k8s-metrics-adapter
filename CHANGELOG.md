@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### 🧪 Testing
+- Added comprehensive global value inheritance test suite with 30 test cases validating proper propagation and override precedence of global configuration values (cluster, images.registry, images.pullSecrets, nodeSelector, tolerations, affinity, priorityClassName, dnsConfig, hostNetwork, serviceAccount.name, podSecurityContext, containerSecurityContext, labels, podLabels)
+
 ### enhancement
 - Add v1.32 support and drop support for v1.27 @kpattaswamy [#387](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/387)
 

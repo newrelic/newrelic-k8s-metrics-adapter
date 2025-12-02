@@ -1,7 +1,7 @@
 apiVersion: v2
 description: A Helm chart to deploy the New Relic Kubernetes Metrics Adapter.
 name: newrelic-k8s-metrics-adapter
-version: 1.13.6
+version: 1.13.7
 appVersion: 0.15.6
 home: https://hub.docker.com/r/newrelic/newrelic-k8s-metrics-adapter
 sources:
