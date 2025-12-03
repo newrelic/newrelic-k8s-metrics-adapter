@@ -1,4 +1,4 @@
-FROM alpine:3.22.2
+FROM alpine:3.23.0
 
 # Set by Docker automatically.
 # If building with `docker build` directly, make sure to set GOOS/GOARCH explicitly when calling make:
