@@ -523,3 +523,72 @@ tests:
           value: "true"
         template: templates/deployment.yaml
 
+  # ========== VERBOSE LOG TESTS ==========
+  - it: default verboseLog is false (--v=1)
+    set:
+      personalAPIKey: test-api-key
+      config:
+        accountID: "12345"
+      cluster: test-cluster
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --v=1
+        template: templates/deployment.yaml
+      - notContains:
+          path: spec.template.spec.containers[0].args
+          content: --v=10
+        template: templates/deployment.yaml
+
+  - it: enables verbose logging from global.verboseLog
+    set:
+      personalAPIKey: test-api-key
+      config:
+        accountID: "12345"
+      cluster: test-cluster
+      global:
+        verboseLog: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --v=10
+        template: templates/deployment.yaml
+      - notContains:
+          path: spec.template.spec.containers[0].args
+          content: --v=1
+        template: templates/deployment.yaml
+
+  - it: local verboseLog=true overrides global=false
+    set:
+      personalAPIKey: test-api-key
+      config:
+        accountID: "12345"
+      cluster: test-cluster
+      verboseLog: true
+      global:
+        verboseLog: false
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --v=10
+        template: templates/deployment.yaml
+
+  - it: local verboseLog=false overrides global=true
+    set:
+      personalAPIKey: test-api-key
+      config:
+        accountID: "12345"
+      cluster: test-cluster
+      verboseLog: false
+      global:
+        verboseLog: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --v=1
+        template: templates/deployment.yaml
+      - notContains:
+          path: spec.template.spec.containers[0].args
+          content: --v=10
+        template: templates/deployment.yaml
+

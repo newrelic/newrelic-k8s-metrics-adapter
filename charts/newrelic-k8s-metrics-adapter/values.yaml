@@ -14,8 +14,9 @@
 # -- New Relic [Personal API Key](https://docs.newrelic.com/docs/apis/intro-apis/new-relic-api-keys/#user-api-key) (stored in a secret). Used to connect to NerdGraph in order to fetch the configured metrics. (**Required**)
 personalAPIKey:
 
-# -- Enable metrics adapter verbose logs.
-verboseLog: false
+# -- Enable metrics adapter verbose logs. Can be configured also with `global.verboseLog`
+# @default -- `false`
+verboseLog:
 
 config:
   # -- New Relic [Account ID](https://docs.newrelic.com/docs/accounts/accounts-billing/account-structure/account-id/) where the configured metrics are sourced from. (**Required**)
