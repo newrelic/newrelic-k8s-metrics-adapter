@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### dependency
 - Updated helm to v3.19.4 for chart linting @jamescripter [#457](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/457)
 
+## v0.19.5 - 2025-12-22
+
+### ⛓️ Dependencies
+- Updated alpine to v3.23.2
+
 ## v0.19.4 - 2025-12-08
 
 ### ⛓️ Dependencies
