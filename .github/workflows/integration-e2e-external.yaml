@@ -67,7 +67,8 @@ jobs:
           make generate-local-values
           helm dependency build ./charts/newrelic-k8s-metrics-adapter
           helm install newrelic-k8s-metrics-adapter ./charts/newrelic-k8s-metrics-adapter \
-          --set image.repository=localhost:5000/newrelic-k8s-metrics-adapter \
+          --set image.registry=localhost:5000 \
+          --set image.repository=newrelic-k8s-metrics-adapter \
           --set image.pullPolicy=IfNotPresent \
           --values values-dev.yaml --values values-local.yaml \
           --wait --timeout 240s
