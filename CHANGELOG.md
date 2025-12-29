@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v0.19.6 - 2025-12-29
+
+### ⛓️ Dependencies
+- Updated k8s.io/utils digest
+- Updated go to v1.25.5
+
 ## v0.19.5 - 2025-12-22
 
 ### ⛓️ Dependencies
