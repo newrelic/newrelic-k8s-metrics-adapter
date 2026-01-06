@@ -1,4 +1,4 @@
-name: Integration and E2E over minikube (Internal Contribution)
+name: Integration and E2E over minikube
 on:
   pull_request:
   push:
