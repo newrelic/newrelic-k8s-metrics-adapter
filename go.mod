@@ -1,22 +1,22 @@
 module github.com/newrelic/newrelic-k8s-metrics-adapter
 
-go 1.25.3
+go 1.25.5
 
 require (
 	github.com/elazarl/goproxy v0.0.0-20241218172127-ac55c7698e0d
 	github.com/google/go-cmp v0.7.0
-	github.com/newrelic/newrelic-client-go/v2 v2.68.1
+	github.com/newrelic/newrelic-client-go/v2 v2.73.2
 	github.com/spf13/pflag v1.0.10
-	k8s.io/api v0.34.1
-	k8s.io/apimachinery v0.34.1
-	k8s.io/apiserver v0.34.1
-	k8s.io/client-go v0.34.1
-	k8s.io/component-base v0.34.1
+	k8s.io/api v0.34.2
+	k8s.io/apimachinery v0.34.2
+	k8s.io/apiserver v0.34.2
+	k8s.io/client-go v0.34.2
+	k8s.io/component-base v0.34.2
 	k8s.io/klog/v2 v2.130.1
-	k8s.io/kube-openapi v0.0.0-20250710124328-f3f2b991d03b
-	k8s.io/metrics v0.34.1
-	k8s.io/utils v0.0.0-20250820121507-0af2bda4dd1d
-	sigs.k8s.io/controller-runtime v0.22.1
+	k8s.io/kube-openapi v0.0.0-20250910181357-589584f1c912
+	k8s.io/metrics v0.34.2
+	k8s.io/utils v0.0.0-20251222233032-718f0e51e6d2
+	sigs.k8s.io/controller-runtime v0.22.4
 	sigs.k8s.io/custom-metrics-apiserver v1.33.0
 	sigs.k8s.io/yaml v1.6.0
 )
@@ -104,7 +104,6 @@ require (
 	golang.org/x/text v0.28.0 // indirect
 	golang.org/x/time v0.9.0 // indirect
 	golang.org/x/tools v0.36.0 // indirect
-	golang.org/x/tools/go/packages/packagestest v0.1.1-deprecated // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250303144028-a0af3efb3deb // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250303144028-a0af3efb3deb // indirect
 	google.golang.org/grpc v1.72.1 // indirect
@@ -114,9 +113,9 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/apiextensions-apiserver v0.34.0 // indirect
+	k8s.io/apiextensions-apiserver v0.34.1 // indirect
 	k8s.io/gengo/v2 v2.0.0-20250604051438-85fd79dbfd9f // indirect
-	k8s.io/kms v0.34.1 // indirect
+	k8s.io/kms v0.34.2 // indirect
 	sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.31.2 // indirect
 	sigs.k8s.io/json v0.0.0-20241014173422-cfa47c3a1cc8 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect

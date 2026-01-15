@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v0.19.6 - 2026-01-12
+
+### dependency
+- Updated helm to v3.19.4 for chart linting @jamescripter [#457](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/457)
+
+## v0.19.6 - 2025-12-29
+
+### ⛓️ Dependencies
+- Updated k8s.io/utils digest
+- Updated go to v1.25.5
+
+## v0.19.5 - 2025-12-22
+
+### ⛓️ Dependencies
+- Updated alpine to v3.23.2
+
+## v0.19.4 - 2025-12-08
+
+### ⛓️ Dependencies
+- Updated alpine
+
+## v0.19.3 - 2025-11-24
+
+### ⛓️ Dependencies
+- Updated go to v1.25.4
+- Updated sigs.k8s.io/controller-runtime to v0.22.4
+- Updated github.com/newrelic/newrelic-client-go/v2 to v2.73.2 - [Changelog 🔗](https://github.com/newrelic/newrelic-client-go/releases/tag/v2.73.2)
+- Updated kubernetes packages to v0.34.2
+- Updated k8s.io/kube-openapi digest
+
 ## v0.19.2 - 2025-10-27
 
 ### ⛓️ Dependencies
