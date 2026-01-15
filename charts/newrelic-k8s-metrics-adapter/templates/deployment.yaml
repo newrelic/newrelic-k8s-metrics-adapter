@@ -60,10 +60,14 @@ spec:
         - name: CLUSTER_NAME
           value: {{ include "newrelic.common.cluster" . }}
         - name: NEWRELIC_API_KEY
+          {{- if and .Values.personalAPIKey (.Values.personalAPIKey | ne "") }}
+          value: {{ .Values.personalAPIKey | quote }}
+          {{- else if and .Values.customAPIKeySecretName .Values.customAPIKeySecretKey }}
           valueFrom:
             secretKeyRef:
-              name: {{ include "newrelic.common.naming.fullname" . }}
-              key: personalAPIKey
+              name: {{ .Values.customAPIKeySecretName }}
+              key: {{ .Values.customAPIKeySecretKey }}
+          {{- end }}
         {{- with (include "newrelic.common.proxy" .) }}
         - name: HTTPS_PROXY
           value: {{ . }}
