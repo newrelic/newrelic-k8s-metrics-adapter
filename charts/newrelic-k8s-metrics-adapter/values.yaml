@@ -11,8 +11,19 @@
 #   cluster:
 #   nrStaging:
 
-# -- New Relic [Personal API Key](https://docs.newrelic.com/docs/apis/intro-apis/new-relic-api-keys/#user-api-key) (stored in a secret). Used to connect to NerdGraph in order to fetch the configured metrics. (**Required**)
+# -- New Relic [Personal API Key](https://docs.newrelic.com/docs/apis/intro-apis/new-relic-api-keys/#user-api-key) (stored in a secret). Used to connect to NerdGraph in order to fetch the configured metrics. (**Required when `customSecretName` is not set**)
 personalAPIKey:
+
+# -- Name of a pre-created secret containing the New Relic Personal API Key. When set, the chart will not create a secret and will use this one instead.
+# The secret must exist in the same namespace and contain the key specified by `customSecretKey`.
+# When set, the `personalAPIKey` value is ignored.
+# @default -- `""`
+customSecretName: ""
+
+# -- The key in the `customSecretName` secret that contains the New Relic Personal API Key.
+# Only used when `customSecretName` is set.
+# @default -- `personalAPIKey`
+customSecretKey: personalAPIKey
 
 # -- Enable metrics adapter verbose logs.
 verboseLog: false
