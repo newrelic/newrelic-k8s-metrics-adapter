@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### bugfix
 - Reverted k8s supported versions lists to latest for integration and e2e tests @jamescripter [#462](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/462)
 
+## v0.19.6 - 2026-01-12
+
 ### dependency
 - Updated helm to v3.19.4 for chart linting @jamescripter [#457](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/457)
 
