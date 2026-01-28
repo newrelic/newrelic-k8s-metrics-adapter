@@ -55,3 +55,36 @@ Naming helpers
 {{- define "newrelic-k8s-metrics-adapter.name.hpa-controller" -}}
 {{ include "newrelic.common.naming.truncateToDNSWithSuffix" (dict "name" (include "newrelic.common.naming.fullname" .) "suffix" "hpa-controller") }}
 {{- end -}}
+
+{{/*
+Determine the secret name to use - either custom or generated
+*/}}
+{{- define "newrelic-k8s-metrics-adapter.secretName" -}}
+{{- if .Values.customSecretName -}}
+  {{- .Values.customSecretName -}}
+{{- else -}}
+  {{- include "newrelic.common.naming.fullname" . -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Determine the secret key to use - custom or default
+*/}}
+{{- define "newrelic-k8s-metrics-adapter.secretKey" -}}
+{{- if .Values.customSecretKey -}}
+  {{- .Values.customSecretKey -}}
+{{- else -}}
+  {{- "personalAPIKey" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Determine whether to create the secret - false if customSecretName is set
+*/}}
+{{- define "newrelic-k8s-metrics-adapter.createSecret" -}}
+{{- if .Values.customSecretName -}}
+  {{- false -}}
+{{- else -}}
+  {{- true -}}
+{{- end -}}
+{{- end -}}
