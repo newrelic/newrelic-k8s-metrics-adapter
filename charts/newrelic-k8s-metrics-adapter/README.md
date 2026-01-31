@@ -32,6 +32,8 @@ A Helm chart to deploy the New Relic Kubernetes Metrics Adapter.
 | config.nrdbClientTimeoutSeconds | int | 30 | Defines the NRDB client timeout. The maximum allowed value is 120. |
 | config.region | string | Automatically detected from `licenseKey`. | New Relic account region. If not set, it will be automatically derived from the License Key. |
 | containerSecurityContext | string | `nil` | Configure containerSecurityContext |
+| customSecretKey | string | `personalAPIKey` | The key in the `customSecretName` secret that contains the New Relic Personal API Key. Only used when `customSecretName` is set. |
+| customSecretName | string | `""` | Name of a pre-created secret containing the New Relic Personal API Key. When set, the chart will not create a secret and will use this one instead. The secret must exist in the same namespace and contain the key specified by `customSecretKey`. When set, the `personalAPIKey` value is ignored. |
 | extraEnv | list | `[]` | Array to add extra environment variables |
 | extraEnvFrom | list | `[]` | Array to add extra envFrom |
 | extraVolumeMounts | list | `[]` | Add extra volume mounts |
@@ -40,7 +42,7 @@ A Helm chart to deploy the New Relic Kubernetes Metrics Adapter.
 | image | object | See `values.yaml`. | Registry, repository, tag, and pull policy for the container image. |
 | image.pullSecrets | list | `[]` | The image pull secrets. |
 | nodeSelector | object | `{}` | Node label to use for scheduling. |
-| personalAPIKey | string | `nil` | New Relic [Personal API Key](https://docs.newrelic.com/docs/apis/intro-apis/new-relic-api-keys/#user-api-key) (stored in a secret). Used to connect to NerdGraph in order to fetch the configured metrics. (**Required**) |
+| personalAPIKey | string | `nil` | New Relic [Personal API Key](https://docs.newrelic.com/docs/apis/intro-apis/new-relic-api-keys/#user-api-key) (stored in a secret). Used to connect to NerdGraph in order to fetch the configured metrics. (**Required when `customSecretName` is not set**) |
 | podAnnotations | string | `nil` | Additional annotations to apply to the pod(s). |
 | podSecurityContext | string | `nil` | Configure podSecurityContext |
 | proxy | string | `nil` | Configure proxy for the metrics-adapter. |
@@ -73,6 +75,43 @@ Then, to install this chart, run the following command:
 ```sh
 helm upgrade --install [release-name] newrelic-k8s-metrics-adapter/newrelic-k8s-metrics-adapter --values [values file path]
 ```
+
+### Using a Pre-Created Secret
+
+Instead of providing the API key directly in the values file, you can use a pre-created Kubernetes Secret. This is useful when using secret management tools like:
+
+- [External Secrets Operator](https://external-secrets.io/)
+- [Sealed Secrets](https://github.com/bitnami-labs/sealed-secrets)
+- [Vault](https://www.vaultproject.io/)
+- Manual secret creation
+
+To use a pre-created secret, first create it in your Kubernetes cluster:
+
+```sh
+kubectl create secret generic newrelic-api-key \
+  --from-literal=personalAPIKey=<your-api-key> \
+  --namespace=<your-namespace>
+```
+
+Then, configure the chart to use this secret by setting `customSecretName`:
+
+```yaml
+customSecretName: newrelic-api-key
+customSecretKey: personalAPIKey
+config:
+  accountID: <Account ID>
+  externalMetrics:
+    nginx_average_requests:
+      query: "FROM Metric SELECT average(nginx.server.net.requestsPerSecond) SINCE 2 MINUTES AGO"
+```
+
+And install the chart:
+
+```sh
+helm upgrade --install [release-name] newrelic-k8s-metrics-adapter/newrelic-k8s-metrics-adapter --values [values file path]
+```
+
+**Note:** When using `customSecretName`, you must ensure the secret exists in the target namespace before installing the Helm chart.
 
 Once deployed the metric `nginx_average_requests` will be available to use by any HPA. This is and example of an HPA yaml using this metric:
 
