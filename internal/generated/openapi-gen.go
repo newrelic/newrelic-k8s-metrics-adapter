@@ -21,7 +21,7 @@
 // so the same version of kube-openapi is used to generate and render the openapi spec
 package main
 
-//go:generate go run -mod=mod k8s.io/kube-openapi/cmd/openapi-gen --logtostderr --go-header-file ../../hack/boilerplate.go.txt --output-file zz_generated.openapi.go --output-dir ./ --output-pkg github.com/newrelic/newrelic-k8s-metrics-adapter/internal/generated/openapi --report-filename /dev/null k8s.io/metrics/pkg/apis/external_metrics k8s.io/metrics/pkg/apis/external_metrics/v1beta1 k8s.io/apimachinery/pkg/apis/meta/v1 k8s.io/apimachinery/pkg/api/resource k8s.io/apimachinery/pkg/version k8s.io/api/core/v1
+//go:generate go run -mod=mod k8s.io/kube-openapi/cmd/openapi-gen --logtostderr --go-header-file ../../hack/boilerplate.go.txt --output-file zz_generated.openapi.go --output-dir ./openapi --output-pkg github.com/newrelic/newrelic-k8s-metrics-adapter/internal/generated/openapi --report-filename /dev/null k8s.io/metrics/pkg/apis/external_metrics k8s.io/metrics/pkg/apis/external_metrics/v1beta1 k8s.io/apimachinery/pkg/apis/meta/v1 k8s.io/apimachinery/pkg/api/resource k8s.io/apimachinery/pkg/version k8s.io/api/core/v1
 
 import (
 	_ "k8s.io/kube-openapi/cmd/openapi-gen"
