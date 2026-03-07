@@ -13,7 +13,7 @@ require (
 	k8s.io/client-go v0.35.0
 	k8s.io/component-base v0.35.0
 	k8s.io/klog/v2 v2.130.1
-	k8s.io/kube-openapi v0.0.0-20251125145642-4e65d59e963e
+	k8s.io/kube-openapi v0.0.0-20260304202019-5b3e3fdb0acf
 	k8s.io/metrics v0.35.0
 	k8s.io/utils v0.0.0-20260210185600-b8788abfbbc2
 	sigs.k8s.io/controller-runtime v0.23.3
