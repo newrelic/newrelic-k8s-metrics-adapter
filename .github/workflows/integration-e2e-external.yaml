@@ -1,4 +1,4 @@
-name: Integration and E2E over minikube (External Contribution)
+name: Integration and E2E over minikube
 on:
   pull_request_target:
 
@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        k8sVersion: ["v1.32.0", "v1.31.0", "v1.30.0", "v1.29.5", "v1.28.3"]
+        k8sVersion: ["v1.34.0", "v1.33.0", "v1.32.0", "v1.31.0", "v1.30.0"]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -24,12 +24,12 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
 
       - name: Kind action
-        uses: helm/kind-action@v1.13.0
+        uses: helm/kind-action@v1.14.0
         with:
           kubectl_version: ${{ matrix.k8sVersion }}
 

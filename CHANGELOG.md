@@ -13,6 +13,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixes
 - Remove deprecated `engine: gotpl` field from Chart.yaml for Helm v3 compliance
 
+## v0.19.8 - 2026-02-09
+
+### ⛓️ Dependencies
+- Updated go to v1.25.6
+
+## v0.19.7 - 2026-02-02
+
+### ⛓️ Dependencies
+- Updated k8s.io/kube-openapi digest
+- Updated github.com/newrelic/newrelic-client-go/v2 to v2.75.1 - [Changelog 🔗](https://github.com/newrelic/newrelic-client-go/releases/tag/v2.75.1)
+- Updated sigs.k8s.io/custom-metrics-apiserver to v1.34.0
+- Updated k8s.io/utils digest
+- Updated alpine to v3.23.3
+
 ## v0.19.6 - 2026-01-12
 
 ### dependency
