@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Enhancements
+- Add support for using pre-created Kubernetes secrets in the Helm chart via `customSecretName` and `customSecretKey` values
+
+### Fixes
+- Remove deprecated `engine: gotpl` field from Chart.yaml for Helm v3 compliance
+
 ## v0.19.9 - 2026-03-09
 
 ### ⛓️ Dependencies
