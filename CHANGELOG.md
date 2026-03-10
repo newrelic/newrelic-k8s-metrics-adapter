@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### security
+- Fixed CVE-2026-24051 by upgrading go.opentelemetry.io/otel/sdk to v1.42.0 (fixed in v1.40.0+)
+
+### dependency
+- Updated go.opentelemetry.io/otel/sdk to v1.42.0 (from v1.36.0)
+- Updated go.opentelemetry.io/otel/exporters/otlp/otlptrace to v1.42.0 (from v1.34.0)
+- Updated go.opentelemetry.io/proto/otlp to v1.9.0 (from v1.5.0)
+- Updated google.golang.org/grpc to v1.79.2 (from v1.72.2)
+
 ## v0.19.9 - 2026-03-09
 
 ### ⛓️ Dependencies
