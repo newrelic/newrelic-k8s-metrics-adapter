@@ -82,9 +82,7 @@ Determine the secret key to use - custom or default
 Determine whether to create the secret - false if customSecretName is set
 */}}
 {{- define "newrelic-k8s-metrics-adapter.createSecret" -}}
-{{- if .Values.customSecretName -}}
-  {{- false -}}
-{{- else -}}
+{{- if not .Values.customSecretName -}}
   {{- true -}}
 {{- end -}}
 {{- end -}}
