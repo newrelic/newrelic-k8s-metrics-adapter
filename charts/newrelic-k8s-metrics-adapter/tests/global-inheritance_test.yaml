@@ -7,6 +7,30 @@ release:
   name: my-release
   namespace: my-namespace
 tests:
+  # ========== PERSONAL API KEY / SECRET TESTS ==========
+  - it: personalAPIKey is stored in secret with correct value
+    set: &base
+      personalAPIKey: test-api-key
+      config:
+        accountID: "12345"
+      cluster: test-cluster
+    asserts:
+      - equal:
+          path: stringData.personalAPIKey
+          value: test-api-key
+        template: templates/secret.yaml
+
+  - it: customSecretName suppresses secret creation
+    set:
+      config:
+        accountID: "12345"
+      cluster: test-cluster
+      customSecretName: my-existing-secret
+    asserts:
+      - hasDocuments:
+          count: 0
+        template: templates/secret.yaml
+
   # ========== CLUSTER & API KEY TESTS ==========
   - it: cluster from global when local not set
     set:
@@ -23,10 +47,8 @@ tests:
 
   - it: cluster from local overrides global
     set:
+      <<: *base
       cluster: local-cluster
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
       global:
         cluster: global-cluster
     asserts:
@@ -38,10 +60,7 @@ tests:
   # ========== IMAGE INHERITANCE TESTS ==========
   - it: uses default image when no registry override
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
     asserts:
       - matchRegex:
           path: spec.template.spec.containers[0].image
@@ -50,10 +69,7 @@ tests:
 
   - it: uses global.images.registry for adapter image
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
       global:
         images:
           registry: harbor.corp.net/newrelic
@@ -65,10 +81,7 @@ tests:
 
   - it: local image registry overrides global registry
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
       image:
         registry: local-registry.io
       global:
@@ -82,10 +95,7 @@ tests:
 
   - it: sets imagePullSecrets from global
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
       global:
         images:
           pullSecrets:
@@ -98,10 +108,7 @@ tests:
 
   - it: merges global and local imagePullSecrets (global then local)
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
       image:
         pullSecrets:
           - name: local-secret
@@ -122,10 +129,7 @@ tests:
   # ========== PROXY TESTS ==========
   - it: sets proxy from global
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
       global:
         proxy: http://proxy.corp.net:3128
     asserts:
@@ -136,10 +140,7 @@ tests:
 
   - it: local proxy overrides global
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
       proxy: http://local-proxy.io:8080
       global:
         proxy: http://global-proxy.corp.net:3128
@@ -152,10 +153,7 @@ tests:
   # ========== NODE SCHEDULING TESTS ==========
   - it: sets nodeSelector from global
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
       global:
         nodeSelector:
           node.role/monitoring: "true"
@@ -169,10 +167,7 @@ tests:
 
   - it: local nodeSelector overrides global
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
       nodeSelector:
         local-node: "true"
       global:
@@ -188,10 +183,7 @@ tests:
 
   - it: sets tolerations from global
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
       global:
         tolerations:
           - key: monitoring-taint
@@ -206,10 +198,7 @@ tests:
 
   - it: local tolerations override global
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
       tolerations:
         - key: local-taint
           operator: Exists
@@ -226,10 +215,7 @@ tests:
 
   - it: sets affinity from global
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
       global:
         affinity:
           nodeAffinity:
@@ -247,10 +233,7 @@ tests:
 
   - it: local affinity overrides global
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -277,10 +260,7 @@ tests:
   # ========== PRIORITY & RESOURCE CONSTRAINTS ==========
   - it: sets priorityClassName from global
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
       global:
         priorityClassName: high-priority
     asserts:
@@ -291,10 +271,7 @@ tests:
 
   - it: local priorityClassName overrides global
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
       priorityClassName: local-priority
       global:
         priorityClassName: global-priority
@@ -307,10 +284,7 @@ tests:
   # ========== DNS & NETWORK TESTS ==========
   - it: sets dnsConfig from global
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
       global:
         dnsConfig:
           options:
@@ -324,10 +298,7 @@ tests:
 
   - it: local dnsConfig overrides global
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
       dnsConfig:
         options:
           - name: local-ndots
@@ -345,10 +316,7 @@ tests:
 
   - it: default hostNetwork is false
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
     asserts:
       - equal:
           path: spec.template.spec.hostNetwork
@@ -357,10 +325,7 @@ tests:
 
   - it: sets hostNetwork from global when true
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
       global:
         hostNetwork: true
     asserts:
@@ -371,10 +336,7 @@ tests:
 
   - it: local hostNetwork overrides global
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
       hostNetwork: false
       global:
         hostNetwork: true
@@ -387,10 +349,7 @@ tests:
   # ========== SECURITY CONTEXT TESTS ==========
   - it: sets podSecurityContext from global
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
       global:
         podSecurityContext:
           runAsUser: 2000
@@ -408,10 +367,7 @@ tests:
 
   - it: local podSecurityContext overrides global
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
       podSecurityContext:
         runAsUser: 5000
       global:
@@ -425,10 +381,7 @@ tests:
 
   - it: sets containerSecurityContext from global
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
       global:
         containerSecurityContext:
           allowPrivilegeEscalation: false
@@ -441,10 +394,7 @@ tests:
 
   - it: local containerSecurityContext overrides global
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
       containerSecurityContext:
         allowPrivilegeEscalation: true
       global:
@@ -459,10 +409,7 @@ tests:
   # ========== SERVICE ACCOUNT TESTS (CRITICAL FOR IAM ROLES) ==========
   - it: uses service account name from global
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
       serviceAccount:
         create: false
       global:
@@ -476,10 +423,7 @@ tests:
 
   - it: local service account name overrides global
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
       serviceAccount:
         create: false
         name: local-sa
@@ -495,10 +439,7 @@ tests:
   # ========== LABELS TESTS ==========
   - it: applies labels from global
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
       global:
         labels:
           global-label: "true"
@@ -510,10 +451,7 @@ tests:
 
   - it: applies podLabels from global
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
       global:
         podLabels:
           global-pod-label: "true"
@@ -526,10 +464,7 @@ tests:
   # ========== VERBOSE LOG TESTS ==========
   - it: default verboseLog is false (--v=1)
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
     asserts:
       - contains:
           path: spec.template.spec.containers[0].args
@@ -542,10 +477,7 @@ tests:
 
   - it: enables verbose logging from global.verboseLog
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
       global:
         verboseLog: true
     asserts:
@@ -560,10 +492,7 @@ tests:
 
   - it: local verboseLog=true overrides global=false
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
       verboseLog: true
       global:
         verboseLog: false
@@ -575,10 +504,7 @@ tests:
 
   - it: local verboseLog=false overrides global=true
     set:
-      personalAPIKey: test-api-key
-      config:
-        accountID: "12345"
-      cluster: test-cluster
+      <<: *base
       verboseLog: false
       global:
         verboseLog: true
@@ -591,4 +517,3 @@ tests:
           path: spec.template.spec.containers[0].args
           content: --v=10
         template: templates/deployment.yaml
-
