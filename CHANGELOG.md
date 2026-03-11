@@ -16,6 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated go.opentelemetry.io/proto/otlp to v1.9.0 (from v1.5.0)
 - Updated google.golang.org/grpc to v1.79.2 (from v1.72.2)
 
+### enhancement
+- Add support for using pre-created Kubernetes secrets in the Helm chart via `customSecretName` and `customSecretKey` values
+
+### bugfix
+- Remove deprecated `engine: gotpl` field from Chart.yaml for Helm v3 compliance
+
 ## v0.19.9 - 2026-03-09
 
 ### ⛓️ Dependencies
