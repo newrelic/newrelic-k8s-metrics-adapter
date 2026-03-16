@@ -76,43 +76,6 @@ Then, to install this chart, run the following command:
 helm upgrade --install [release-name] newrelic-k8s-metrics-adapter/newrelic-k8s-metrics-adapter --values [values file path]
 ```
 
-### Using a Pre-Created Secret
-
-Instead of providing the API key directly in the values file, you can use a pre-created Kubernetes Secret. This is useful when using secret management tools like:
-
-- [External Secrets Operator](https://external-secrets.io/)
-- [Sealed Secrets](https://github.com/bitnami-labs/sealed-secrets)
-- [Vault](https://www.vaultproject.io/)
-- Manual secret creation
-
-To use a pre-created secret, first create it in your Kubernetes cluster:
-
-```sh
-kubectl create secret generic newrelic-api-key \
-  --from-literal=personalAPIKey=<your-api-key> \
-  --namespace=<your-namespace>
-```
-
-Then, configure the chart to use this secret by setting `customSecretName`:
-
-```yaml
-customSecretName: newrelic-api-key
-customSecretKey: personalAPIKey
-config:
-  accountID: <Account ID>
-  externalMetrics:
-    nginx_average_requests:
-      query: "FROM Metric SELECT average(nginx.server.net.requestsPerSecond) SINCE 2 MINUTES AGO"
-```
-
-And install the chart:
-
-```sh
-helm upgrade --install [release-name] newrelic-k8s-metrics-adapter/newrelic-k8s-metrics-adapter --values [values file path]
-```
-
-**Note:** When using `customSecretName`, you must ensure the secret exists in the target namespace before installing the Helm chart.
-
 Once deployed the metric `nginx_average_requests` will be available to use by any HPA. This is and example of an HPA yaml using this metric:
 
 ```yaml
