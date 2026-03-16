@@ -7,8 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-### security
-- Fixed CVE-2026-24051 by upgrading go.opentelemetry.io/otel/sdk to v1.42.0 (fixed in v1.40.0+)
+## v0.20.0 - 2026-03-16
 
 ### dependency
 - Updated go.opentelemetry.io/otel/sdk to v1.42.0 (from v1.36.0)
@@ -16,10 +15,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated go.opentelemetry.io/proto/otlp to v1.9.0 (from v1.5.0)
 - Updated google.golang.org/grpc to v1.79.2 (from v1.72.2)
 
-### enhancement
+### 🛡️ Security notices
+- Fixed CVE-2026-24051 by upgrading go.opentelemetry.io/otel/sdk to v1.42.0 (fixed in v1.40.0+)
+
+### 🚀 Enhancements
 - Add support for using pre-created Kubernetes secrets in the Helm chart via `customSecretName` and `customSecretKey` values
 
-### bugfix
+### 🐞 Bug fixes
 - Remove deprecated `engine: gotpl` field from Chart.yaml for Helm v3 compliance
 
 ## v0.19.9 - 2026-03-09
