@@ -25,8 +25,9 @@ customSecretName: ""
 # @default -- `personalAPIKey`
 customSecretKey: personalAPIKey
 
-# -- Enable metrics adapter verbose logs.
-verboseLog: false
+# -- Enable metrics adapter verbose logs. Can be configured also with `global.verboseLog`
+# @default -- `false`
+verboseLog:
 
 config:
   # -- New Relic [Account ID](https://docs.newrelic.com/docs/accounts/accounts-billing/account-structure/account-id/) where the configured metrics are sourced from. (**Required**)
