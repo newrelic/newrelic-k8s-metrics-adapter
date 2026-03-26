@@ -17,7 +17,7 @@ require (
 	k8s.io/metrics v0.35.0
 	k8s.io/utils v0.0.0-20260210185600-b8788abfbbc2
 	sigs.k8s.io/controller-runtime v0.23.3
-	sigs.k8s.io/custom-metrics-apiserver v1.34.0
+	sigs.k8s.io/custom-metrics-apiserver v1.35.0
 	sigs.k8s.io/yaml v1.6.0
 )
 
