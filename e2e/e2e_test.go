@@ -24,6 +24,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	appsv1client "k8s.io/client-go/kubernetes/typed/apps/v1"
 	eclient "k8s.io/metrics/pkg/client/external_metrics"
+	"k8s.io/utils/ptr"
 
 	"github.com/newrelic/newrelic-k8s-metrics-adapter/internal/testutil"
 )
@@ -133,7 +134,7 @@ func Test_Metrics_adapter_makes_sample_external_metric_available(t *testing.T) {
 				}
 
 				t.Cleanup(func() {
-					if err := client.Delete(testEnv.Context, hpa.Name, metav1.DeleteOptions{}); err != nil {
+					if err := client.Delete(context.Background(), hpa.Name, metav1.DeleteOptions{}); err != nil {
 						t.Logf("Failed removing HPA %q: %v", hpa.Name, err)
 					}
 				})
@@ -173,6 +174,139 @@ func Test_Metrics_adapter_makes_sample_external_metric_available(t *testing.T) {
 	})
 }
 
+//nolint:funlen,cyclop,gocognit,paralleltest // scale_up and scale_down run sequentially for readable output.
+func Test_Metrics_adapter_triggers_scaling(t *testing.T) {
+	t.Parallel()
+
+	testEnv := &testutil.TestEnv{
+		ContextTimeout:  3 * time.Minute,
+		StartKubernetes: true,
+	}
+
+	testEnv.Generate(t)
+
+	clientset, err := kubernetes.NewForConfig(testEnv.RestConfig)
+	if err != nil {
+		t.Fatalf("creating clientset: %v", err)
+	}
+
+	t.Run("scale_up", func(t *testing.T) {
+
+		ns := withTestNamespace(testEnv.Context, t, clientset)
+		deploymentName := withTestDeployment(testEnv.Context, t, clientset.AppsV1().Deployments(ns))
+
+		// Wait for deployment to reach its initial state before HPA fires.
+		waitForAvailableReplicas(testEnv.Context, t, clientset.AppsV1().Deployments(ns), deploymentName, 1)
+
+		hpaClient := clientset.AutoscalingV2().HorizontalPodAutoscalers(ns)
+
+		// The e2e metric always returns 0.123. Target of 50m (0.05) is below the
+		// metric value, so HPA scales up: ceil(1 * 0.123/0.05) = 3 replicas.
+		hpa, err := hpaClient.Create(testEnv.Context, &autoscalingv2.HorizontalPodAutoscaler{
+			ObjectMeta: metav1.ObjectMeta{
+				GenerateName: testPrefix,
+				Namespace:    ns,
+			},
+			Spec: autoscalingv2.HorizontalPodAutoscalerSpec{
+				MinReplicas: ptr.To[int32](1),
+				MaxReplicas: 3,
+				ScaleTargetRef: autoscalingv2.CrossVersionObjectReference{
+					Kind:       "Deployment",
+					APIVersion: "apps/v1",
+					Name:       deploymentName,
+				},
+				Metrics: []autoscalingv2.MetricSpec{
+					{
+						Type: autoscalingv2.ExternalMetricSourceType,
+						External: &autoscalingv2.ExternalMetricSource{
+							Target: autoscalingv2.MetricTarget{
+								Type:  autoscalingv2.ValueMetricType,
+								Value: resource.NewMilliQuantity(50, resource.DecimalSI),
+							},
+							Metric: autoscalingv2.MetricIdentifier{
+								Name: testMetric,
+							},
+						},
+					},
+				},
+			},
+		}, metav1.CreateOptions{})
+		if err != nil {
+			t.Fatalf("creating HPA: %v", err)
+		}
+
+		t.Cleanup(func() {
+			if err := hpaClient.Delete(context.Background(), hpa.Name, metav1.DeleteOptions{}); err != nil {
+				t.Logf("deleting HPA %q: %v", hpa.Name, err)
+			}
+		})
+
+		waitForAvailableReplicas(testEnv.Context, t, clientset.AppsV1().Deployments(ns), deploymentName, 3)
+	})
+
+	t.Run("scale_down", func(t *testing.T) {
+
+		ns := withTestNamespace(testEnv.Context, t, clientset)
+
+		// Start with 3 replicas; HPA will scale it down to 1.
+		deploymentName := withTestDeploymentReplicas(testEnv.Context, t, clientset.AppsV1().Deployments(ns), 3)
+
+		// Wait for deployment to reach its initial state before HPA fires.
+		waitForAvailableReplicas(testEnv.Context, t, clientset.AppsV1().Deployments(ns), deploymentName, 3)
+
+		hpaClient := clientset.AutoscalingV2().HorizontalPodAutoscalers(ns)
+
+		// The e2e metric always returns 0.123. Target of 1 is above the metric
+		// value, so HPA scales down: ceil(3 * 0.123/1) = 1 replica.
+		// stabilizationWindowSeconds: 0 removes the default 5-minute scale-down delay.
+		hpa, err := hpaClient.Create(testEnv.Context, &autoscalingv2.HorizontalPodAutoscaler{
+			ObjectMeta: metav1.ObjectMeta{
+				GenerateName: testPrefix,
+				Namespace:    ns,
+			},
+			Spec: autoscalingv2.HorizontalPodAutoscalerSpec{
+				MinReplicas: ptr.To[int32](1),
+				MaxReplicas: 3,
+				ScaleTargetRef: autoscalingv2.CrossVersionObjectReference{
+					Kind:       "Deployment",
+					APIVersion: "apps/v1",
+					Name:       deploymentName,
+				},
+				Metrics: []autoscalingv2.MetricSpec{
+					{
+						Type: autoscalingv2.ExternalMetricSourceType,
+						External: &autoscalingv2.ExternalMetricSource{
+							Target: autoscalingv2.MetricTarget{
+								Type:  autoscalingv2.ValueMetricType,
+								Value: resource.NewQuantity(1, resource.DecimalSI),
+							},
+							Metric: autoscalingv2.MetricIdentifier{
+								Name: testMetric,
+							},
+						},
+					},
+				},
+				Behavior: &autoscalingv2.HorizontalPodAutoscalerBehavior{
+					ScaleDown: &autoscalingv2.HPAScalingRules{
+						StabilizationWindowSeconds: ptr.To[int32](0),
+					},
+				},
+			},
+		}, metav1.CreateOptions{})
+		if err != nil {
+			t.Fatalf("creating HPA: %v", err)
+		}
+
+		t.Cleanup(func() {
+			if err := hpaClient.Delete(context.Background(), hpa.Name, metav1.DeleteOptions{}); err != nil {
+				t.Logf("deleting HPA %q: %v", hpa.Name, err)
+			}
+		})
+
+		waitForAvailableReplicas(testEnv.Context, t, clientset.AppsV1().Deployments(ns), deploymentName, 1)
+	})
+}
+
 func withTestNamespace(ctx context.Context, t *testing.T, clientset *kubernetes.Clientset) string {
 	t.Helper()
 
@@ -192,7 +326,7 @@ func withTestNamespace(ctx context.Context, t *testing.T, clientset *kubernetes.
 	namespaceName := ns.Name
 
 	t.Cleanup(func() {
-		if err := namespaceClient.Delete(ctx, namespaceName, metav1.DeleteOptions{}); err != nil {
+		if err := namespaceClient.Delete(context.Background(), namespaceName, metav1.DeleteOptions{}); err != nil {
 			t.Logf("deleting test namespace %q: %v", ns.Name, err)
 		}
 	})
@@ -203,15 +337,22 @@ func withTestNamespace(ctx context.Context, t *testing.T, clientset *kubernetes.
 func withTestDeployment(ctx context.Context, t *testing.T, client appsv1client.DeploymentInterface) string {
 	t.Helper()
 
+	return withTestDeploymentReplicas(ctx, t, client, 1)
+}
+
+func withTestDeploymentReplicas(ctx context.Context, t *testing.T, client appsv1client.DeploymentInterface, initialReplicas int32) string {
+	t.Helper()
+
 	testLabels := map[string]string{
 		"app": "test",
 	}
 
-	deployTemplate := appsv1.Deployment{
+	deploy, err := client.Create(ctx, &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: testPrefix,
 		},
 		Spec: appsv1.DeploymentSpec{
+			Replicas: ptr.To(initialReplicas),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: testLabels,
 			},
@@ -229,12 +370,29 @@ func withTestDeployment(ctx context.Context, t *testing.T, client appsv1client.D
 				},
 			},
 		},
-	}
-
-	deploy, err := client.Create(ctx, &deployTemplate, metav1.CreateOptions{})
+	}, metav1.CreateOptions{})
 	if err != nil {
 		t.Fatalf("Creating test Deployment: %v", err)
 	}
 
 	return deploy.Name
+}
+
+func waitForAvailableReplicas(ctx context.Context, t *testing.T, client appsv1client.DeploymentInterface, name string, expected int32) {
+	t.Helper()
+
+	if err := wait.PollImmediateUntilWithContext(ctx, 1*time.Second, func(ctx context.Context) (bool, error) {
+		d, err := client.Get(ctx, name, metav1.GetOptions{})
+		if err != nil {
+			t.Logf("getting deployment %q: %v", name, err)
+
+			return false, nil
+		}
+
+		t.Logf("deployment %q: %d/%d available replicas", name, d.Status.AvailableReplicas, expected)
+
+		return d.Status.AvailableReplicas == expected, nil
+	}); err != nil {
+		t.Fatalf("timed out waiting for %d available replicas on deployment %q: %v", expected, name, err)
+	}
 }
