@@ -57,7 +57,7 @@ jobs:
         with:
           version: v1.32.0
 
-      - uses: azure/setup-helm@v4
+      - uses: azure/setup-helm@v5
         with:
           version: v3.19.4
 
