@@ -9,6 +9,8 @@ FROM alpine:3.23.3
 ARG TARGETOS
 ARG TARGETARCH
 
+RUN apk upgrade --no-cache
+
 # Some old-ish versions of Docker do not support adding and renaming in the same line, and will instead
 # interpret the second argument as a new folder to create and place the original file inside.
 # For this reason, we workaround with regular ADD and then run mv inside the container.
