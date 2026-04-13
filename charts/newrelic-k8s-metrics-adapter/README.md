@@ -52,7 +52,7 @@ A Helm chart to deploy the New Relic Kubernetes Metrics Adapter.
 | serviceAccount.create | string | `true` | Specifies whether a ServiceAccount should be created for the job and the deployment. false avoids creation, true or empty will create the ServiceAccount |
 | serviceAccount.name | string | Automatically generated. | If `serviceAccount.create` this will be the name of the ServiceAccount to use. If not set and create is true, a name is generated using the fullname template. If create is false, a serviceAccount with the given name must exist |
 | tolerations | list | `[]` | List of node taints to tolerate (requires Kubernetes >= 1.6) |
-| verboseLog | bool | `false` | Enable metrics adapter verbose logs. |
+| verboseLog | string | `false` | Enable metrics adapter verbose logs. Can be configured also with `global.verboseLog` |
 
 ## Example
 
