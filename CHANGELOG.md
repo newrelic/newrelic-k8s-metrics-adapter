@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v0.20.1 - 2026-04-13
+
+### ⛓️ Dependencies
+- Updated k8s.io/klog/v2 to v2.140.0
+- Updated k8s.io/kube-openapi digest
+- Updated sigs.k8s.io/custom-metrics-apiserver to v1.35.0
+- Updated kubernetes monorepo to v0.35.3
+- Updated k8s.io/utils digest
+- Updated go to v1.26.2
+
 ## v0.20.0 - 2026-03-16
 
 ### dependency
