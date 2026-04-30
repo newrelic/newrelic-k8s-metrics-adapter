@@ -5,7 +5,7 @@ go 1.26.2
 require (
 	github.com/elazarl/goproxy v0.0.0-20241218172127-ac55c7698e0d
 	github.com/google/go-cmp v0.7.0
-	github.com/newrelic/newrelic-client-go/v2 v2.79.0
+	github.com/newrelic/newrelic-client-go/v2 v2.82.0
 	github.com/spf13/pflag v1.0.10
 	k8s.io/api v0.35.3
 	k8s.io/apimachinery v0.35.3
