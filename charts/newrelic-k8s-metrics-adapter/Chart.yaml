@@ -10,7 +10,7 @@ sources:
 icon: https://newrelic.com/assets/newrelic/source/NewRelic-logo-square.svg
 dependencies:
   - name: common-library
-    version: 1.4.0
+    version: 2.0.1
     repository: "https://helm-charts.newrelic.com"
 maintainers:
   - name: juanjjaramillo
