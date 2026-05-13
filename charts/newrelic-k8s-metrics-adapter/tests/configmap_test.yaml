@@ -68,6 +68,21 @@ tests:
             region: EU
             cacheTTLSeconds: 30
             nrdbClientTimeoutSeconds: 30
+  - it: has the correct region when no global values exist and licenseKey is from jp
+    set:
+      personalAPIKey: 21321
+      cluster: test-cluster
+      licenseKey: jpx-whatever
+      config:
+        accountID: 111
+    asserts:
+      - equal:
+          path: data["config.yaml"]
+          value: |
+            accountID: 111
+            region: JP
+            cacheTTLSeconds: 30
+            nrdbClientTimeoutSeconds: 30
   - it: has no region when not defined and licenseKey is not from eu
     set:
       personalAPIKey: 21321

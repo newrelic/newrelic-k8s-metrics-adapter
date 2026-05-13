@@ -18,12 +18,13 @@ Select a value for the region
 When this value is empty the New Relic client region will be the default 'US'
 */}}
 {{- define "newrelic-k8s-metrics-adapter.region" -}}
-{{- if .Values.config.region -}}
-  {{- .Values.config.region | upper -}}
-{{- else if (include "newrelic.common.nrStaging" .)  -}}
+{{- if include "newrelic.common.region.is_stg" . -}}
 Staging
-{{- else if hasPrefix "eu" (include "newrelic.common.license._licenseKey" .) -}}
-EU
+{{- else if .Values.config.region -}}
+{{- .Values.config.region -}}
+{{- else if include "newrelic.common.region.is_us" . -}}
+{{- else -}}
+{{- include "newrelic.common.region.or_us" . -}}
 {{- end -}}
 {{- end -}}
 
