@@ -7,8 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v0.20.5 - 2026-05-18
+
 ### dependency
-- github.com/newrelic/newrelic-client-go/v2 to v2.83.4 (from v2.83.3)  @Philip-R-Beckwith [#513](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/513)
+- github.com/newrelic/newrelic-client-go/v2 to v2.83.4 (from v2.83.3) @Philip-R-Beckwith [#513](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/513)
+
+### ⛓️ Dependencies
+- Updated go module directive to v1.26.3
 
 ## v0.20.4 - 2026-05-11
 
