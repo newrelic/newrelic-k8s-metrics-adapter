@@ -59,7 +59,7 @@ jobs:
 
       - uses: azure/setup-helm@v5
         with:
-          version: v4.2.1
+          version: v4.2.2
 
       - uses: actions/setup-python@v6
         with:
