@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### dependency
+- Update golang.org/x/net to v0.56.0 @dbudziwojski [#529](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/529)
+
 ## v0.20.8 - 2026-06-22
 
 ### ⛓️ Dependencies
