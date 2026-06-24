@@ -59,7 +59,7 @@ jobs:
 
       - uses: azure/setup-helm@v5
         with:
-          version: v4.2.2
+          version: v3.21.2 #Do NOT update to v4 until https://github.com/helm-unittest/helm-unittest/issues/777 is resolved
 
       - uses: actions/setup-python@v6
         with:
