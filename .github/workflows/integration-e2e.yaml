@@ -1,4 +1,4 @@
-name: Integration and E2E over minikube
+name: Integration and E2E over minikube (Internal Contribution)
 on:
   pull_request:
   push:
@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   integration-e2e-test:
-    name: Run Integration and E2E tests (Internal Contribution)
+    name: Run Integration and E2E tests
     # Do not run e2e tests if PR is from a forked repo (external contribution)
     if: ${{ github.event.pull_request.head.repo.full_name == 'newrelic/newrelic-k8s-metrics-adapter' }}
     runs-on: ubuntu-latest
