@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        k8sVersion: ["v1.34.0", "v1.33.0", "v1.32.0", "v1.31.0", "v1.30.0"]
+        k8sVersion: ["v1.35.0", "v1.34.0", "v1.33.0", "v1.32.0", "v1.31.0"]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
