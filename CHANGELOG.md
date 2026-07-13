@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-### enhancement
+## v0.21.0 - 2026-07-13
+
+### 🚀 Enhancements
 - Add support for Kubernetes 1.35, remove support for 1.30 @jamescripter [#532](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/532)
 
 ## v0.20.9 - 2026-06-29
