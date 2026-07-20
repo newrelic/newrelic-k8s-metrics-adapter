@@ -61,7 +61,7 @@ jobs:
         with:
           version: v3.21.3 #Do NOT update to v4 until https://github.com/helm-unittest/helm-unittest/issues/777 is resolved
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.14'
 
