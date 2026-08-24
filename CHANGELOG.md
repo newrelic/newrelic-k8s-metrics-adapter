@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v0.21.2 - 2026-08-24
+
+### ⛓️ Dependencies
+- Updated github.com/newrelic/newrelic-client-go/v2 to v2.93.1 - [Changelog 🔗](https://github.com/newrelic/newrelic-client-go/releases/tag/v2.93.1)
+- Updated k8s.io/kube-openapi digest to be32def
+- Updated github.com/elazarl/goproxy to v1.9.0 - [Changelog 🔗](https://github.com/elazarl/goproxy/releases/tag/v1.9.0)
+- Updated kubernetes monorepo to v0.36.4
+
 ## v0.21.1 - 2026-07-20
 
 ### ⛓️ Dependencies
