@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v0.21.3 - 2026-09-07
+
+### ⛓️ Dependencies
+- Updated github.com/newrelic/newrelic-client-go/v2 to v2.93.2 - [Changelog 🔗](https://github.com/newrelic/newrelic-client-go/releases/tag/v2.93.2)
+- Updated go module directive to v1.27.0
+
 ## v0.21.2 - 2026-08-31
 
 ### dependency
