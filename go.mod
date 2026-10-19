@@ -23,7 +23,6 @@ require (
 
 require (
 	cel.dev/expr v0.25.2 // indirect
-	github.com/NYTimes/gziphandler v1.1.1 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
@@ -41,19 +40,10 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v1.0.2 // indirect
 	github.com/go-openapi/jsonreference v1.0.3 // indirect
-	github.com/go-openapi/swag v0.27.1 // indirect
-	github.com/go-openapi/swag/cmdutils v0.27.1 // indirect
 	github.com/go-openapi/swag/conv v0.29.2 // indirect
-	github.com/go-openapi/swag/fileutils v0.27.1 // indirect
 	github.com/go-openapi/swag/jsonutils v0.29.2 // indirect
-	github.com/go-openapi/swag/loading v0.27.1 // indirect
-	github.com/go-openapi/swag/mangling v0.27.1 // indirect
-	github.com/go-openapi/swag/netutils v0.27.1 // indirect
 	github.com/go-openapi/swag/pools v0.29.2 // indirect
-	github.com/go-openapi/swag/stringutils v0.27.1 // indirect
 	github.com/go-openapi/swag/typeutils v0.29.2 // indirect
-	github.com/go-openapi/swag/yamlutils v0.27.1 // indirect
-	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/cel-go v0.29.2 // indirect
 	github.com/google/gnostic-models v0.7.1 // indirect
@@ -79,7 +69,6 @@ require (
 	github.com/robertkrimen/otto v0.5.1 // indirect
 	github.com/sirupsen/logrus v1.10.2 // indirect
 	github.com/spf13/cobra v1.10.2 // indirect
-	github.com/stoewer/go-strcase v1.3.0 // indirect
 	github.com/stretchr/testify v1.12.1 // indirect
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
 	github.com/valyala/fastjson v1.6.4 // indirect
@@ -121,7 +110,6 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/apiextensions-apiserver v0.37.1 // indirect
 	k8s.io/gengo/v2 v2.0.0-20260408192533-25e2208e0dc3 // indirect
 	k8s.io/kms v0.38.0-alpha.2 // indirect
