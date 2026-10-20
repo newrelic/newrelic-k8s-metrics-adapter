@@ -55,17 +55,17 @@ jobs:
 
       - uses: azure/setup-kubectl@v5
         with:
-          version: v1.37.0
+          version: v1.37.1
 
       - uses: azure/setup-helm@v5
         with:
-          version: v3.22.0 #Do NOT update to v4 until https://github.com/helm-unittest/helm-unittest/issues/777 is resolved
+          version: v3.22.1 #Do NOT update to v4 until https://github.com/helm-unittest/helm-unittest/issues/777 is resolved
 
       - uses: actions/setup-python@v7
         with:
-          python-version: '3.14'
+          python-version: '3.15'
 
-      - uses: helm/chart-testing-action@v2.8.0
+      - uses: helm/chart-testing-action@v2.9.0
 
       - name: Add newrelic repository
         run: helm repo add newrelic https://helm-charts.newrelic.com
@@ -94,7 +94,7 @@ jobs:
             fi
           done
       - name: Setup Minikube
-        uses: manusa/actions-setup-minikube@v2.18.0
+        uses: manusa/actions-setup-minikube@v2.19.0
         if: steps.list-changed.outputs.changed == 'true'
         with:
           minikube version: v1.39.0

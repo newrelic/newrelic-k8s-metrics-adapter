@@ -7,8 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-### enhancement
+### dependency
+- Updated many dependencies @danielstokes [#566](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/566)
+  - github.com/elazarl/goproxy 1.9.0 -> v1.9.2
+  - github.com/newrelic/newrelic-client-go/v2 v2.93.2 -> v2.97.0
+  - k8s.io/api v0.36.4 -> v0.38.0-alpha.2
+  - k8s.io/apimachinery v0.36.4 -> v0.38.0-alpha.2
+  - k8s.io/apiserver v0.36.4 -> v0.38.0-alpha.2
+  - k8s.io/client-go v0.36.4 -> v0.38.0-alpha.2
+  - k8s.io/component-base v0.36.4 -> v0.38.0-alpha.2
+  - k8s.io/kube-openapi v0.0.0-20260821135717-be32def86098 -> v0.0.0-20261014044854-ca3452a79603
+  - k8s.io/metrics v0.36.4 -> v0.37.1
+  - sigs.k8s.io/controller-runtime v0.24.1 -> v0.25.2
+  - sigs.k8s.io/custom-metrics-apiserver v1.36.0 -> v1.37.0
+  - regenerated code for k8s via `make generate`
+  
+## v0.22.1 - 2026-10-05
+
+### ⛓️ Dependencies
+- Updated go module directive to v1.27.1
+
+## v0.22.0 - 2026-09-21
+
+### 🚀 Enhancements
 - Add support for Kubernetes 1.36, remove support for 1.31 [#555](https://github.com/newrelic/newrelic-k8s-metrics-adapter/pull/555)
+
+### ⛓️ Dependencies
+- Updated alpine to v3.24.2
 
 ## v0.21.3 - 2026-09-07
 
