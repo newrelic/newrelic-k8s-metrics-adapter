@@ -10,7 +10,7 @@ require (
 	k8s.io/api v0.38.0-alpha.2
 	k8s.io/apimachinery v0.38.0-alpha.2
 	k8s.io/apiserver v0.38.0-alpha.2
-	k8s.io/client-go v0.38.0-alpha.2
+	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/component-base v0.38.0-alpha.2
 	k8s.io/klog/v2 v2.140.0
 	k8s.io/kube-openapi v0.0.0-20261014044854-ca3452a79603
