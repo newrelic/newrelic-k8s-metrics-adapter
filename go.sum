@@ -122,6 +122,8 @@ github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/newrelic/newrelic-client-go/v2 v2.97.0 h1:fBSVPnxMjpBT064mOVmKE/Zle9Iqjl5w2gULt18tI10=
 github.com/newrelic/newrelic-client-go/v2 v2.97.0/go.mod h1:Zuv+2A5y4076Ytp/bFw8ZwNYHSgTxdEa30jMySmySRc=
+github.com/newrelic/newrelic-client-go/v2 v2.97.1 h1:VquLs87GFvaJN7kPNarWeLoIle85JEA3VBI3oHbueX4=
+github.com/newrelic/newrelic-client-go/v2 v2.97.1/go.mod h1:Zuv+2A5y4076Ytp/bFw8ZwNYHSgTxdEa30jMySmySRc=
 github.com/onsi/ginkgo/v2 v2.27.4 h1:fcEcQW/A++6aZAZQNUmNjvA9PSOzefMJBerHJ4t8v8Y=
 github.com/onsi/ginkgo/v2 v2.27.4/go.mod h1:ArE1D/XhNXBXCBkKOLkbsb2c81dQHCRcF5zwn/ykDRo=
 github.com/onsi/gomega v1.44.0 h1:eAiGl3Pw5jz5GQdDff0BcxYpAX1JxW8xD7mFUuwNfZQ=
