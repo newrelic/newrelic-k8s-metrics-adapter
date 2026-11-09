@@ -7,9 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-### security
+## v0.23.0 - 2026-11-09
+
+### 🛡️ Security notices
 - Update golang.org/x/net to v0.62.0
 - Update golang.org/x/crypto to v0.58.1-0.20261009181718-2f1f834330b2 (GO-2026-5932)
+
+### ⛓️ Dependencies
+- Updated alpine to v3.24.4
 
 ## v0.22.2 - 2026-10-26
 
